@@ -1,0 +1,32 @@
+Structs
+Struct for swarm containing particle array and number of particles and the opencl environment (command queue/context), and gbest.
+Struct for each particle containing number of dimensions for the particle, and how fit the particle is, and personal best.
+
+Functions
+Opencl function to perform the addition for each particle. The random numbers might need to be passed through.
+v[]= w*v[] +(1.492 or 2)*rand()*(gbest[]-present[])+(1.492 or 2)*rand()*(pbest[]-present[])
+present[]=v[]+present[]
+Where present is the present position in the problem "space", v[] is the velocity in the problem "space", w is the inertial weight,
+gbest[] is the global position of the "most fit particle", pbest[] is that particle's best position.
+
+initialize swarm.
+Arguments: int dimension number, (struct swarm) swarm type (deep or normal), int particle number,.
+
+swarm distribute (The difficult one)
+Arguments: swarm name, maybe function pointer
+this will distribute the particles evenly over the problem space by default. It should have a function pointer to make a distribution
+but I am not sure that is reasonable
+
+run swarm:
+Arguments: int iterations to run, swarm name
+
+conditional run swarm
+Arguments: function pointer, swarm name
+this function should return a not 0 value when the swarm should keep going, and return a 0 when it should stop. The fitness vaule of the 
+particle should be accepted as an argument for the stopping function. The function will be fed the gbest of every swarm run
+
+determine fitness.
+Arguments: function pointer to fitness function, (struct swarm) swarm name
+
+stop swarm
+Arguments: swarm name
