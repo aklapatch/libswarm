@@ -18,7 +18,7 @@ this will distribute the particles evenly over the problem space by default. It 
 but I am not sure that is reasonable
 
 run swarm:
-Arguments: int iterations to run, swarm name
+Arguments: int iterations to run
 
 conditional run swarm
 Arguments: function pointer, swarm name
