@@ -6,24 +6,25 @@
 //struct for each particle 
 typedef struct particle {
     int dimensionnum;
-    double *present, *pbest, fitness;
+    double *present, *pbest, fitness,v,w;
 } particle;
 
 //struct for the swarm
 typedef struct swarm {
     int partnum, dimnum;
-    double *gbest, w;
+    double *gbest;
     particle *herd;
 } swarm;
 
 //struct for the opencl accelerated swarm
 typedef struct clswarm {
     int partnum, dimnum;
-    double *gbest, w;
+    double *gbest;
     particle *herd;
     cl_device_id device_id;
     cl_context context;
     cl_command_queue command_queue;
+    cl_int ret;
 } clswarm;
 
 //swarm initializaion
