@@ -12,14 +12,14 @@ typedef struct particle {
 //struct for the swarm
 typedef struct swarm {
     int partnum, dimnum;
-    double *gbest;
+    double *gbest, w;
     particle *herd;
 } swarm;
 
 //struct for the opencl accelerated swarm
 typedef struct clswarm {
     int partnum, dimnum;
-    double *gbest;
+    double *gbest, w;
     particle *herd;
     cl_device_id device_id;
     cl_context context;
@@ -27,9 +27,9 @@ typedef struct clswarm {
 } clswarm;
 
 //swarm initializaion
-void initswarm(char type, int dimensionnum, int partnum, swarm school);
+swarm initswarm(char type, int dimensionnum, int partnum,double w);
 
-void clinitswarm(char type, int dimensionnum, int partnum, clswarm school);
+clswarm clinitswarm(char type, int dimensionnum, int partnum, double w);
 
 //swarm particle distribution
 void distributeparticles(swarm school);
@@ -41,28 +41,9 @@ void clrunswarm(int iterations, clswarm school, double (*fitness)(particle *);
 
 void runswarm(int iterations, swarm school,double (*fitness)(particle *));
 
-//releasing the swarm
+//releasing/ending the swarm
 void releaseswarm(swarm school);
 
 void clreleaseswarm(clswarm school);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #endif
