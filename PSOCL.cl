@@ -9,13 +9,13 @@ typedef struct clswarm {
     particle *part;
 } clswarm;
 
-__kernel void PSOadd(clswarm  school, double rand1, double rand2){
-    int i, gid = get_global_id(0);
-    for(i=0,i<school.dimnum,++i){
-        school.part[gid].v[i]=school.w*school.part[gid].v[i] + 1.492*rand1*(gbest[i]-present[i])
-        +1.492*rand2*(school.part[gid].pbest[i];
-        school.part[gid].present[i]= school.part[gid].v[i] + school.part[gid].present[i];
-    }    
-        
-    
+__kernel void swarm_add(clswarm  school){
+    int gid = get_global_id(0);
+    PSO_vector_add(school.part[gid]);        
+}
+
+__kernel void PSO_vector_add(particle *part, double  *rand, double *gbest,double w){
+    int gid=get_global_id(0);
+    part.v[gid]= w*part.v[gid] + rand[0]*(part.pbest[gid]-part.v[gid]) + rand[1]*(gbest[gid]-part.v[gid]);
+    part.present[gid]=part.v[gid]+part.present[gid];
 }
