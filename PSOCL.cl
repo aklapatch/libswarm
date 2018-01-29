@@ -16,15 +16,17 @@ typedef struct clswarm {    //swarm structure
 //and one for the particle dimensions, using the 2d array for get_global_id, i should be able to
 //add everything that way.
 __kernel void PSO_vector_add(__local double  *rand, __global clswarm school){
-    int dimenid=get_global_id(1);
-    int partid=get_global_id(0);
+    int partid=get_global_id(0);    //particle number
+    int dimenid=get_global_id(1);   //particle dimension
 
     if(dimenid<dimnum&&partid<partnum) {
 
+        //velocity update
         school.part[partid].v[dimenid]=school.w*school.part[partid].v[dimenid]
         + rand[0]*(school.part[partid].pbest[dimenid]-school.part[partid].present[gid])
         + rand[1]*(school.gbest[dimenid]-school.part[partid].present[gid]);
 
+        //present position update
         school.part[partid].present[dimenid]=school.part[partid].present[dimenid]+
         school.part[partid].v[dimenid];
     }    
