@@ -15,7 +15,7 @@ typedef struct clswarm {    //swarm structure
 //I am going to try to add everything in one function, there is 2 dimensions, one for the swarm particles
 //and one for the particle dimensions, using the 2d array for get_global_id, i should be able to
 //add everything that way.
-__kernel void PSO_vector_add(__local double  *rand, __global clswarm school){
+__kernel void PSO_vector_add(__global double  *rand, __global clswarm school){
     int partid=get_global_id(0), dimenid=get_global_id(1);
     
     if(dimenid<dimnum&&partid<partnum) {
