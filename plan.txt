@@ -1,12 +1,10 @@
 I am getting the concept from http://www.swarmintelligence.org/tutorials.php
 Ebehart also did a presentation at my school(IUPUI), so I am
-adding the inertial weight constant
+adding the inertial weight constant that he mentioned
 
-Need 2 work dimensions for opencl get_global_id
-I am going to compile this with clang since it
-can compile kernels to AMD or NVidia gpu code
+Clang 5.0.1, is going to be my compiler, for cl kernel checking
 
-
+Example case, having a line, then having the swarm find the highest point in the that line in a domain.
 
 Structs
 Struct for swarm containing particle array and number of particles and the opencl environment (command queue/context), and gbest.
