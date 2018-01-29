@@ -1,3 +1,13 @@
+I am getting the concept from http://www.swarmintelligence.org/tutorials.php
+Ebehart also did a presentation at my school(IUPUI), so I am
+adding the inertial weight constant
+
+Need 2 work dimensions for opencl get_global_id
+I am going to compile this with clang since it
+can compile kernels to AMD or NVidia gpu code
+
+
+
 Structs
 Struct for swarm containing particle array and number of particles and the opencl environment (command queue/context), and gbest.
 Struct for each particle containing number of dimensions for the particle, and how fit the particle is, and personal best.
