@@ -1,3 +1,5 @@
+#ifndef PSOCL_H
+#define PSOCL_H
 /*PSOCL.h
 houses structs and function prototypes
 
@@ -6,14 +8,13 @@ code derived from http://www.swarmintelligence.org/tutorials.php
 along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
-#ifndef PSOCL_H
-#define PSOCL_H
+
 
 #include <CL/cl.h>
 
 //struct for each particle 
 typedef struct particle {
-    double *present, *pbest, fitness,pfitness,*v;
+    double *present, *pbest, fitness, pfitness,*v;
 } particle;
 
 //struct for the swarm
