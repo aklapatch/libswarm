@@ -1,3 +1,11 @@
+/*PSOCL.h
+houses structs and function prototypes
+
+Copyright 2018 by Aaron Klapatch,
+code derived from http://www.swarmintelligence.org/tutorials.php
+along with some help from Dr. Ebeharts presentation at IUPUI.
+*/
+
 #ifndef PSOCL_H
 #define PSOCL_H
 
@@ -6,7 +14,7 @@
 //struct for each particle 
 typedef struct particle {
     int dimensionnum;
-    double *present, *pbest, fitness,*v,w;
+    double *present, *pbest, fitness,*v;
 } particle;
 
 //struct for the swarm
@@ -19,7 +27,7 @@ typedef struct swarm {
 //struct for the opencl accelerated swarm
 typedef struct clswarm {
     int partnum, dimnum;
-    double *gbest;
+    double *gbest, w;
     particle *school;
     cl_device_id device_id;
     cl_context context;
@@ -28,7 +36,7 @@ typedef struct clswarm {
 } clswarm;
 
 //swarm initializaion
-swarm initswarm(char type, int dimensionnum, int partnum,double w);
+swarm initswarm(char type, int dimensionnum, int partnum, double w);
 
 clswarm clinitswarm(char type, int dimensionnum, int partnum, double w);
 
