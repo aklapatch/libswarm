@@ -1,6 +1,6 @@
 #ifndef PSOCL_H
 #define PSOCL_H
-/*PSOCL.h
+/*psocl.h
 houses structs and function prototypes
 
 Copyright 2018 by Aaron Klapatch,
