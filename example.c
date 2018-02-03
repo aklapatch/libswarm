@@ -8,9 +8,14 @@ of a function
 #include<stdlib.h>
 #include<time.h>
 #include"PSOCL.h"
+#include <math.h>
+
+double fitness(double* input){
+    return (input[0])*(input[0]);
+}
 
 int main(){
-    swarm one = initswarm(NULL, 1,100,1);
+    swarm one = initswarm(' ', 1,100,1);
     double *answer;
     double bound[2]={0,30};
 
@@ -20,9 +25,10 @@ int main(){
 
     answer=returnbest(one);
 
+    printf("Answer is %p",answer);
+
+    releaseswarm(one);
 
 }
 
-double fitness(double* input){
-    return (intput[0])*(input[0]);
-}
+

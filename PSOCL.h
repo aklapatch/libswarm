@@ -8,7 +8,14 @@ code derived from http://www.swarmintelligence.org/tutorials.php
 along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
-#include <CL/cl.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <time.h>
+//#include <CL/cl.h>
+
+#define PRINTLN printf("line %d\n",__LINE__)
 
 //struct for each particle 
 typedef struct particle {
@@ -29,10 +36,10 @@ typedef struct clswarm {
     double *gbest, gfitness;
     float w;
     particle *school;
-    cl_device_id device_id;
-    cl_context context;
-    cl_command_queue command_queue;
-    cl_int ret;
+    //cl_device_id device_id;
+    //cl_context context;
+   // cl_command_queue command_queue;
+    //cl_int ret;
 } clswarm;
 
 //swarm initializaion
@@ -46,7 +53,7 @@ void distributeparticles(swarm school,double * bounds);
 void cldistributeparticles(clswarm school,double * bounds);
 
 //running the swarm
-void ruclnswarm(int iterations, clswarm school, double (*fitness)(double *);
+void ruclnswarm(int iterations, clswarm school, double (*fitness)(double *));
 
 void runswarm(int iterations, swarm school,double (*fitness)(double *));
 
@@ -54,7 +61,7 @@ void runswarm(int iterations, swarm school,double (*fitness)(double *));
 //returns school.gbest
 double * returnbest(swarm school);
 
-double * returnbest(clswarm school);
+double * clreturnbest(clswarm school);
 
 //releasing/ending the swarm
 void releaseswarm(swarm school);
