@@ -86,25 +86,25 @@ void runswarm(int iterations, swarm school, double (*fitness)(double*)){
     //the acutal swarm running
     while(iterations--){
         for(i=0;i<school.partnum;++i){
-            for(j=0;j<school.dimnum;++j){
+            for(j=0;j<2*school.dimnum;j+=2){
 
                 //velocity update
-                school.school[i].v[j]=(school.w)*(school.school[i].v[j])
-                + RAN*(school.school[i].pbest[j]- school.school[i].present[j])
-                + RAN*(school.gbest[j]-school.school[i].present[j]);
+                school.school[i].v[j/2]=(school.w)*(school.school[i].v[j/2])
+                + RAN*(school.school[i].pbest[j/2]- school.school[i].present[j/2])
+                + RAN*(school.gbest[j/2]-school.school[i].present[j/2]);
 
                 //position update
-                school.school[i].present[j]=school.school[i].present[j]+school.school[i].v[j];
+                school.school[i].present[j/2]=school.school[i].present[j/2]+school.school[i].v[j/2];
 
                 //upper bound check (intolerant of which bound is which)
-                if(school.school[i].present[j]>((school.bounds[j]>school.bounds[j+1])?school.bounds[j]:school.bounds[j+1])){
+                if(school.school[i].present[j/2]>((school.bounds[j]>school.bounds[j+1])?school.bounds[j]:school.bounds[j+1])){
                     
-                    school.school[i].present[j]=(school.bounds[j]>school.bounds[j+1])?school.bounds[j]:school.bounds[j+1];
+                    school.school[i].present[j/2]=(school.bounds[j]>school.bounds[j+1])?school.bounds[j]:school.bounds[j+1];
                 }
                 //lower bound check (intolerant of which bound is which)
-                else if(school.school[i].present[j]<(school.bounds[j]<school.bounds[j+1])?school.bounds[j]:school.bounds[j+1]){
+                else if(school.school[i].present[j/2]<(school.bounds[j]<school.bounds[j+1])?school.bounds[j]:school.bounds[j+1]){
                     
-                    school.school[i].present[j]=(school.bounds[j]<school.bounds[j+1])?school.bounds[j]:school.bounds[j+1];
+                    school.school[i].present[j/2]=(school.bounds[j]<school.bounds[j+1])?school.bounds[j]:school.bounds[j+1];
                 }
             }
           
