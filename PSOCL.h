@@ -30,7 +30,7 @@ typedef struct swarm {
     particle *school;
 } swarm;
 
-//struct for the opencl accelerated swarm
+//struct for the opencl swarm
 typedef struct clswarm {
     int partnum, dimnum;
     double *gbest, gfitness,*bounds;
@@ -53,9 +53,9 @@ void distributeparticles(swarm school,double * bounds);
 void cldistributeparticles(clswarm school,double * bounds);
 
 //running the swarm
-void ruclnswarm(int iterations, clswarm school, double (*fitness)(double *));
+void runswarm(int iterations, clswarm school, double (*fitness)(double *));
 
-void runswarm(int iterations, swarm school,double (*fitness)(double *));
+void clrunswarm(int iterations, swarm school,double (*fitness)(double *));
 
 //get best solution
 //returns school.gbest

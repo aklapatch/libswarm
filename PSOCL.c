@@ -5,9 +5,7 @@ code derived from http://www.swarmintelligence.org/tutorials.php
 along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
-
-#include "PSOCL.h"
-#include <time.h>
+#include "psocl.h"
 
 #define ABS(x) (sqrt((x)*(x)))      //absolute value
 #define RAN 1.492*((double)rand()/RAND_MAX)     //random number between 0 and 1.492

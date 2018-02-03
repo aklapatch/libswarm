@@ -15,6 +15,7 @@ __kernel void PSO_vector_add(__global float *rand,
                              float w,
                              int  partnum,
                              int dimnum){
+                             
     int  dimenid=get_global_id(0);
     
     if((dimenid<dimnum)&&((dimnum+dimenid)<2*dimnum)) {
