@@ -44,7 +44,8 @@ swarm initswarm(char type, int dimensionnum, int partnum, float w) {
     return school;  //return the constructed swarm
 }
 
-void distributeparticles(swarm school,double * bounds){
+void distributeparticles(swarm school,double *bounds){
+    //check for array dimensions
     if(sizeof(bounds)/sizeof(double)<2*school.dimnum){
         fprintf(stderr,"Bounds are not wide enough for the number of dimensions.\n")
         exit(1);
@@ -53,13 +54,13 @@ void distributeparticles(swarm school,double * bounds){
     int i,j;
 
     for(i=0;i<2*school.dimnum;i+=2){
-        if(bounds[i]<bounds[i+1]){
+        if(bounds[i]<bounds[i+1]){  //if the first bound is lower than the next
             int delta=ABS(bounds[i+1]-bounds[i])/school.partnum;
             for (j=0;j<school.partnum;++j){
                 school.school[j].present[i/2]=bounds[i]+i*delta/2;
             }
         }
-        else{
+        else{   //if the first bound is higher than the next
             int delta=ABS(bounds[i+1]-bounds[i])/school.partnum;
             for (j=0;j<school.partnum;++j){
                 school.school[j].present[i/2]=bounds[i+1]+i*delta/2;
