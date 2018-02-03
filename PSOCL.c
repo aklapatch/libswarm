@@ -93,9 +93,6 @@ void runswarm(int iterations, swarm school, double (*fitness)(double*)){
             if(school.school[i].fitness>school.gfitness){
                 memcpy(school.gbest, school.school[i].present,sizeof(school.school[i].present));
             }
-
         }
-
     }
-
 }
