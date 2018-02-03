@@ -9,8 +9,8 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include "PSOCL.h"
 #include <time.h>
 
-#define ABS(x) (sqrt((x)*(x)))
-#define RAN 1.492*((double)rand()/RAND_MAX)
+#define ABS(x) (sqrt((x)*(x)))      //absolute value
+#define RAN 1.492*((double)rand()/RAND_MAX)     //random number between 0 and 1.492
 
 swarm initswarm(char type, int dimensionnum, int partnum, double w) {
     int i;
@@ -56,7 +56,9 @@ swarm initswarm(char type, int dimensionnum, int partnum, double w) {
 void distributeparticles(swarm school,double *bounds){
 
     int i,j;
+
     memcpy(school.bounds,bounds,2*school.dimnum);
+
     for(i=0;i<2*school.dimnum;i+=2){
         if(bounds[i]<bounds[i+1]){  //if the first bound is lower than the next
             int delta=ABS(bounds[i+1]-bounds[i])/school.partnum;
@@ -77,43 +79,54 @@ void runswarm(int iterations, swarm school, double (*fitness)(double*)){
     int i,j; 
     srand(time(NULL));
 
+    //the acutal swarm running
     while(iterations--){
         for(i=0;i<school.partnum;++i){
             for(j=0;j<school.dimnum;++j){
+
+                //velocity update
                 school.school[i].v[j]=(school.w)*(school.school[i].v[j])
                 + RAN*(school.school[i].pbest[j]- school.school[i].present[j])
                 + RAN*(school.gbest[j]-school.school[i].present[j]);
 
+                //position update
                 school.school[i].present[j]=school.school[i].present[j]+school.school[i].v[j];
+
+                //upper bound check (intolerant of which bound is which)
                 if(school.school[i].present[j]>(school.bounds[j]>school.bounds[j+1])?school.bounds[j]:school.bounds[j+1]){
                     school.school[i].present[j]=(school.bounds[j]>school.bounds[j+1])?school.bounds[j]:school.bounds[j+1];
                 }
+                //lower bound check (intolerant of which bound is which)
                 else if(school.school[i].present[j]<(school.bounds[j]<school.bounds[j+1])?school.bounds[j]:school.bounds[j+1]){
                     school.school[i].present[j]=(school.bounds[j]<school.bounds[j+1])?school.bounds[j]:school.bounds[j+1];
                 }
             }
           
+            //evaluating how fit the particle is with passed function
             school.school[i].fitness= fitness(school.school[i].present);
            
+            //setting particle's best position based on fitness
             if(school.school[i].fitness>school.school[i].pfitness){
                 school.school[i].pfitness=school.school[i].fitness;
                 memcpy(school.school[i].pbest, school.school[i].present,sizeof(double)*school.dimnum);
             }
-           
+
+            //setting new best particle in the swarm
+            //this might be moved inside the previous if statement for optimization
             if(school.school[i].fitness>school.gfitness){
                 school.gfitness=school.school[i].fitness;                
                 memcpy(school.gbest, school.school[i].present,sizeof(double)*school.dimnum);
             }
-            
         }
     }
 }
 
+//gives the user more explicit access to the best solution
 double * returnbest(swarm school){
-    
     return school.gbest;
 }
 
+//frees all data allocated to the swarm
 void releaseswarm(swarm school){
     int i;
     //free particle data
