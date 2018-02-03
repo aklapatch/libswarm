@@ -95,10 +95,10 @@ void runswarm(int iterations, swarm school, double (*fitness)(double*)){
     }
 }
 
+
 double * returnbest(swarm school){
-    double * solution=malloc(sizeof(double)*school.dimnum);
-    memcpy(solution,school.gbest,sizeof(double*school.dimnum));
-    return solution;
+    
+    return school.gbest;
 }
 
 void releaseswarm(swarm school){

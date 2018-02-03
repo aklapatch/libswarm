@@ -51,10 +51,7 @@ void ruclnswarm(int iterations, clswarm school, double (*fitness)(double *);
 void runswarm(int iterations, swarm school,double (*fitness)(double *));
 
 //get best solution
-//this function allocates memory for a new array
-//and returns the pointer to it,
-//if the pointer this function returns is not
-//freed, you are gauranteed to have a memory leak.
+//returns school.gbest
 double * returnbest(swarm school);
 
 double * returnbest(clswarm school);
