@@ -1,4 +1,7 @@
 # PSOCL
 
-If I ever get enough time, this will be a opencl implementation for particle swarm optimization.
-It could be a library eventually.
+An OpenCL implementation of particle swarm optimizaion.
+
+## Status
+
+At this point, I have the CPU only example working,but its too simple to see if this implementation scales
