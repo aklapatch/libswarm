@@ -23,17 +23,17 @@ swarm initswarm(char type, int dimensionnum, int partnum, double w) {
         school.partnum=partnum;
         school.w=w;
         school.gfitness=-100000000.0;
-        school.school=malloc(sizeof(particle)*partnum);
-        school.gbest=malloc(sizeof(double)*dimensionnum);
+        school.school=(particle*)malloc(sizeof(particle)*partnum);
+        school.gbest=(double*)malloc(sizeof(double)*dimensionnum);
         if(school.school==NULL){
             fprintf(stderr,"Failed to allocate memory for the array of particles.\n");
             exit(1);
         }
 
         for(i=0;i<partnum;++i){     //get memory for particle data
-            school.school[i].present=malloc(sizeof(double)*dimensionnum);
-            school.school[i].v=malloc(sizeof(double)*dimensionnum);
-            school.school[i].pbest=calloc(dimensionnum,sizeof(double));
+            school.school[i].present=(double*)malloc(sizeof(double)*dimensionnum);
+            school.school[i].v=(double*)malloc(sizeof(double)*dimensionnum);
+            school.school[i].pbest=(double*)calloc(dimensionnum,sizeof(double));
             school.school[i].pfitness=-100000000.0;
             if(school.school[i].present==NULL
             ||school.school[i].v==NULL
@@ -83,21 +83,21 @@ void runswarm(int iterations, swarm school, double (*fitness)(double*)){
 
                 school.school[i].present[j]=school.school[i].present[j]+school.school[i].v[j];
             }
-            PRINTLN;
+          
             school.school[i].fitness= fitness(school.school[i].present);
-            PRINTLN;
+           
             if(school.school[i].fitness>school.school[i].pfitness){
                 school.school[i].pfitness=school.school[i].fitness;
                 memcpy(school.school[i].pbest, school.school[i].present,sizeof(double)*school.dimnum);
             }
-            PRINTLN;
+           
             if(school.school[i].fitness>school.gfitness){
                 school.gfitness=school.school[i].fitness;
-                PRINTLN;
-                printf("bytes copy %d",sizeof(double));
+                
+                
                 memcpy(school.gbest, school.school[i].present,sizeof(double)*school.dimnum);
             }
-            PRINTLN;
+            
         }
     }
 }
