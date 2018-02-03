@@ -3,7 +3,6 @@ This is an example, where a swarm is used to find the local max
 of a function
 */
 
-
 #include<stdio.h>
 #include<stdlib.h>
 #include<time.h>
@@ -11,7 +10,7 @@ of a function
 #include <math.h>
 
 double fitness(double* input){
-    return 1/input[0];
+    return 1/input[0]+input[0]*input[0];
 }
 
 int main(){
