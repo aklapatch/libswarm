@@ -9,8 +9,10 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include <stdlib.h>
 #include <math.h>
 #include "PSOCL.h"
+#include <time.h>
 
 #define ABS(x) (sqrt((x)*(x)))
+#define RAN 1.492*(rand()/RAND_MAX)
 
 swarm initswarm(char type, int dimensionnum, int partnum, float w) {
     int i;
@@ -67,4 +69,33 @@ void distributeparticles(swarm school,double *bounds){
             }
         }
     }
+}
+
+void runswarm(int iterations, swarm school, double (*fitness)(double*)){
+    int i,j; 
+    srand(time(NULL));
+
+    while(--iterations){
+        for(i=0;i<school.partnum;++i){
+            for(j=0;j<school.dimnum,++j){
+                school.school[i].v[j]=school.w*school.school.v[j]
+                + RAN*(school.school[i].pbest[j]- school.school[i].present[j])
+                + RAN*(school.gbest[j]-school.school[i].present[j]);
+
+                school.school[i].present[j]=school.school[i].present[j]+school.school[i].v[j];
+            }
+
+            school.school[i].fitness= fitness(school.school[i].present);
+            
+            if(school.school[i].fitness>school.school[i].pfitness){
+                memcpy(school.school[i].pbest, school.school[i].present,sizeof(school.school[i].present));
+            }
+            if(school.school[i].fitness>school.gfitness){
+                memcpy(school.gbest, school.school[i].present,sizeof(school.school[i].present));
+            }
+
+        }
+
+    }
+
 }

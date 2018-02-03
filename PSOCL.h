@@ -13,13 +13,13 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 
 //struct for each particle 
 typedef struct particle {
-    double *present, *pbest, fitness,*v;
+    double *present, *pbest, fitness,pfitness,*v;
 } particle;
 
 //struct for the swarm
 typedef struct swarm {
     int partnum, dimnum;
-    double *gbest;
+    double *gbest, gfitness;
     float w;
     particle *school;
 } swarm;
