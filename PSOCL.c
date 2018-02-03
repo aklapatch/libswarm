@@ -18,14 +18,17 @@ swarm initswarm(char type, int dimensionnum, int partnum, double w) {
     if(type=='d'||type=='D'){   //for a deep swarm
                             
     }
-    else{   //apply swarm properties and is particle array
+    else{   //apply swarm properties and its particle array
         school.dimnum=dimensionnum;
         school.partnum=partnum;
         school.w=w;
+        school.bounds=(double*)malloc(dimensionnum*2);
         school.gfitness=-100000000.0;
         school.school=(particle*)malloc(sizeof(particle)*partnum);
         school.gbest=(double*)malloc(sizeof(double)*dimensionnum);
-        if(school.school==NULL){
+        if(school.school==NULL
+        ||school.gbest==NULL
+        ||school.bounds==NULL){
             fprintf(stderr,"Failed to allocate memory for the array of particles.\n");
             exit(1);
         }
@@ -53,7 +56,7 @@ swarm initswarm(char type, int dimensionnum, int partnum, double w) {
 void distributeparticles(swarm school,double *bounds){
 
     int i,j;
-
+    memcpy(school.bounds,bounds,2*school.dimnum);
     for(i=0;i<2*school.dimnum;i+=2){
         if(bounds[i]<bounds[i+1]){  //if the first bound is lower than the next
             int delta=ABS(bounds[i+1]-bounds[i])/school.partnum;
@@ -82,6 +85,12 @@ void runswarm(int iterations, swarm school, double (*fitness)(double*)){
                 + RAN*(school.gbest[j]-school.school[i].present[j]);
 
                 school.school[i].present[j]=school.school[i].present[j]+school.school[i].v[j];
+                if(school.school[i].present[j]>(school.bounds[j]>school.bounds[j+1])?school.bounds[j]:school.bounds[j+1]){
+                    school.school[i].present[j]=(school.bounds[j]>school.bounds[j+1])?school.bounds[j]:school.bounds[j+1];
+                }
+                else if(school.school[i].present[j]<(school.bounds[j]<school.bounds[j+1])?school.bounds[j]:school.bounds[j+1]){
+                    school.school[i].present[j]=(school.bounds[j]<school.bounds[j+1])?school.bounds[j]:school.bounds[j+1];
+                }
             }
           
             school.school[i].fitness= fitness(school.school[i].present);
@@ -92,16 +101,13 @@ void runswarm(int iterations, swarm school, double (*fitness)(double*)){
             }
            
             if(school.school[i].fitness>school.gfitness){
-                school.gfitness=school.school[i].fitness;
-                
-                
+                school.gfitness=school.school[i].fitness;                
                 memcpy(school.gbest, school.school[i].present,sizeof(double)*school.dimnum);
             }
             
         }
     }
 }
-
 
 double * returnbest(swarm school){
     
@@ -119,4 +125,5 @@ void releaseswarm(swarm school){
     //free swarm data
     free(school.gbest);
     free(school.school);
+    free(school.bounds);
 }

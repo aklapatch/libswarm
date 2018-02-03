@@ -25,7 +25,7 @@ typedef struct particle {
 //struct for the swarm
 typedef struct swarm {
     int partnum, dimnum;
-    double *gbest, gfitness;
+    double *gbest, gfitness,*bounds;
     float w;
     particle *school;
 } swarm;
@@ -33,7 +33,7 @@ typedef struct swarm {
 //struct for the opencl accelerated swarm
 typedef struct clswarm {
     int partnum, dimnum;
-    double *gbest, gfitness;
+    double *gbest, gfitness,*bounds;
     float w;
     particle *school;
     //cl_device_id device_id;
