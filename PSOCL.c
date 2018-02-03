@@ -12,7 +12,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include <time.h>
 
 #define ABS(x) (sqrt((x)*(x)))
-#define RAN 1.492*(rand()/RAND_MAX)
+#define RAN 1.492*((double)rand()/RAND_MAX)
 
 swarm initswarm(char type, int dimensionnum, int partnum, float w) {
     int i;
