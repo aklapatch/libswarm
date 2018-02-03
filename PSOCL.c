@@ -10,6 +10,8 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include <math.h>
 #include "PSOCL.h"
 
+#define ABS(x) (sqrt((x)*(x)))
+
 swarm initswarm(char type, int dimensionnum, int partnum, float w) {
     int i;
     if(type=='d'||type=='D'){   //for a deep swarm
@@ -40,4 +42,28 @@ swarm initswarm(char type, int dimensionnum, int partnum, float w) {
     }
 
     return school;  //return the constructed swarm
+}
+
+void distributeparticles(swarm school,double * bounds){
+    if(sizeof(bounds)/sizeof(double)<2*school.dimnum){
+        fprintf(stderr,"Bounds are not wide enough for the number of dimensions.\n")
+        exit(1);
+    }
+
+    int i,j;
+
+    for(i=0;i<2*school.dimnum;i+=2){
+        if(bounds[i]<bounds[i+1]){
+            int delta=ABS(bounds[i+1]-bounds[i])/school.partnum;
+            for (j=0;j<school.partnum;++j){
+                school.school[j].present[i/2]=bounds[i]+i*delta/2;
+            }
+        }
+        else{
+            int delta=ABS(bounds[i+1]-bounds[i])/school.partnum;
+            for (j=0;j<school.partnum;++j){
+                school.school[j].present[i/2]=bounds[i+1]+i*delta/2;
+            }
+        }
+    }
 }
