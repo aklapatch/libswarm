@@ -3,6 +3,8 @@ Ebehart also did a presentation at my school(IUPUI), so I am
 adding the inertial weight constant that he mentioned
 
 Clang 5.0.1, is going to be my compiler, for cl kernel checking
+I think I will use clang in general, since it seems to have better
+warning corrections.
 
 Example case, having a line, then having the swarm find the highest point in the that line in a domain.
 
