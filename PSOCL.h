@@ -8,8 +8,6 @@ code derived from http://www.swarmintelligence.org/tutorials.php
 along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
-
-
 #include <CL/cl.h>
 
 //struct for each particle 
@@ -28,7 +26,7 @@ typedef struct swarm {
 //struct for the opencl accelerated swarm
 typedef struct clswarm {
     int partnum, dimnum;
-    double *gbest;
+    double *gbest, gfitness;
     float w;
     particle *school;
     cl_device_id device_id;
@@ -48,9 +46,14 @@ void distributeparticles(swarm school,double * bounds);
 void cldistributeparticles(clswarm school,double * bounds);
 
 //running the swarm
-void ruclnswarm(int iterations, clswarm school, double (*fitness)(particle *);
+void ruclnswarm(int iterations, clswarm school, double (*fitness)(double *);
 
-void runswarm(int iterations, swarm school,double (*fitness)(particle *));
+void runswarm(int iterations, swarm school,double (*fitness)(double *));
+
+//get best solution
+double * returnbest(swarm school);
+
+double * returnbest(clswarm school);
 
 //releasing/ending the swarm
 void releaseswarm(swarm school);

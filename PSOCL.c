@@ -73,7 +73,7 @@ void runswarm(int iterations, swarm school, double (*fitness)(double*)){
     int i,j; 
     srand(time(NULL));
 
-    while(--iterations){
+    while(iterations--){
         for(i=0;i<school.partnum;++i){
             for(j=0;j<school.dimnum,++j){
                 school.school[i].v[j]=school.w*school.school.v[j]
@@ -93,4 +93,23 @@ void runswarm(int iterations, swarm school, double (*fitness)(double*)){
             }
         }
     }
+}
+
+double * returnbest(swarm school){
+    double * solution=malloc(sizeof(double)*school.dimnum);
+    memcpy(solution,school.gbest,sizeof(double*school.dimnum));
+    return solution;
+}
+
+void releaseswarm(swarm school){
+    int i;
+    //free particle data
+    for(i=0;i<swarm.partnum;++i){
+        free(school.school[i].present);
+        free(school.school[i].pbest);
+        free(school.school[i].v);
+    }
+    //free swarm data
+    free(school.gbest);
+    free(school.school);
 }

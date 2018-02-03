@@ -36,7 +36,8 @@ this function should return a not 0 value when the swarm should keep going, and 
 particle should be accepted as an argument for the stopping function. The function will be fed the gbest of every swarm run
 
 determine fitness.
-Arguments: function pointer to fitness function, (struct swarm) swarm name
+this should be within the run swarm function and it should take a double * as an argument
+It is up to the user to implement this function
 
 stop swarm
 Arguments: swarm name
