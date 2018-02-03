@@ -7,7 +7,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 
 int get_global_id(int);
 
-__kernel void PSO_vector_add(__global float  *rand,
+__kernel void PSO_vector_add(__global float *rand,
                              __global float *present,
                              __global float *pbest ,
                              __global float *v,
