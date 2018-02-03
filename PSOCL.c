@@ -57,9 +57,14 @@ void distributeparticles(swarm school,double *bounds){
 
     int i,j;
 
-    memcpy(school.bounds,bounds,2*school.dimnum);
+    printf("lower %f, upper %f, \n",school.bounds[0],school.bounds[1]);
 
     for(i=0;i<2*school.dimnum;i+=2){
+
+        //set the bounds for the swarm
+        school.bounds[i]=bounds[i];
+        school.bounds[i+1]=bounds[i+1];
+
         if(bounds[i]<bounds[i+1]){  //if the first bound is lower than the next
             int delta=ABS(bounds[i+1]-bounds[i])/school.partnum;
             for (j=0;j<school.partnum;++j){
@@ -93,11 +98,13 @@ void runswarm(int iterations, swarm school, double (*fitness)(double*)){
                 school.school[i].present[j]=school.school[i].present[j]+school.school[i].v[j];
 
                 //upper bound check (intolerant of which bound is which)
-                if(school.school[i].present[j]>(school.bounds[j]>school.bounds[j+1])?school.bounds[j]:school.bounds[j+1]){
+                if(school.school[i].present[j]>((school.bounds[j]>school.bounds[j+1])?school.bounds[j]:school.bounds[j+1])){
+                    
                     school.school[i].present[j]=(school.bounds[j]>school.bounds[j+1])?school.bounds[j]:school.bounds[j+1];
                 }
                 //lower bound check (intolerant of which bound is which)
                 else if(school.school[i].present[j]<(school.bounds[j]<school.bounds[j+1])?school.bounds[j]:school.bounds[j+1]){
+                    
                     school.school[i].present[j]=(school.bounds[j]<school.bounds[j+1])?school.bounds[j]:school.bounds[j+1];
                 }
             }

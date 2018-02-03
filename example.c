@@ -25,9 +25,7 @@ int main(){
 
     answer=returnbest(one);
 
-    double test= 27.378567478589;
-
-    printf("Answer is %e",one.gbest[0]);
+    printf("Answer is %e",answer[0]);
 
     releaseswarm(one);
 
