@@ -53,11 +53,10 @@ swarm initswarm(char type, int dimensionnum, int partnum, double w) {
 //bounds should contain 2X the dimensions in the problem space
 //one should be a lower and the other should be an upper bound.
 //the program is designed to be intolerant of which is which
+//this program also dstributes evenly over the domain.
 void distributeparticles(swarm school,double *bounds){
 
-    int i,j;
-
-    printf("lower %f, upper %f, \n",school.bounds[0],school.bounds[1]);
+    int i;
 
     for(i=0;i<2*school.dimnum;i+=2){
 
@@ -66,15 +65,15 @@ void distributeparticles(swarm school,double *bounds){
         school.bounds[i+1]=bounds[i+1];
 
         if(bounds[i]<bounds[i+1]){  //if the first bound is lower than the next
-            int delta=ABS(bounds[i+1]-bounds[i])/school.partnum;
-            for (j=0;j<school.partnum;++j){
-                school.school[j].present[i/2]=bounds[i]+i*delta/2;
+            int delta=ABS(bounds[i+1]-bounds[i])/(2*school.partnum);
+            while (school.partnum--){
+                school.school[school.partnum].present[i/2]=bounds[i]+i*delta;
             }
         }
         else{   //if the first bound is higher than the next
-            int delta=ABS(bounds[i+1]-bounds[i])/school.partnum;
-            for (j=0;j<school.partnum;++j){
-                school.school[j].present[i/2]=bounds[i+1]+i*delta/2;
+            int delta=ABS(bounds[i+1]-bounds[i])/(2*school.partnum);
+            while (school.partnum--){
+                school.school[school.partnum].present[i/2]=bounds[i]+i*delta;
             }
         }
     }

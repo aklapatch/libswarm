@@ -11,13 +11,13 @@ of a function
 #include <math.h>
 
 double fitness(double* input){
-    return (input[0])*(input[0]);
+    return 1/input[0];
 }
 
 int main(){
     swarm one = initswarm(' ', 1,100,1);
     double *answer;
-    double bound[2]={0,30};
+    double bound[2]={1,30};
 
     distributeparticles(one,bound);
 
