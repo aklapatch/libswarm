@@ -46,12 +46,10 @@ swarm initswarm(char type, int dimensionnum, int partnum, float w) {
     return school;  //return the constructed swarm
 }
 
+//bounds should contain 2X the dimensions in the problem space
+//one should be a lower and the other should be an upper bound.
+//the program is designed to be intolerant of which is which
 void distributeparticles(swarm school,double *bounds){
-    //check for array dimensions
-    if(sizeof(bounds)/sizeof(double)<2*school.dimnum){
-        fprintf(stderr,"Bounds are not wide enough for the number of dimensions.\n")
-        exit(1);
-    }
 
     int i,j;
 
