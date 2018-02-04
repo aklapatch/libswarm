@@ -25,7 +25,7 @@ int main(){
 
     answer=returnbest(one);
 
-    printf("Answer is %e\n",answer[0]);
+    printf("Answer is %f\n",answer[0]);
 
     releaseswarm(one);
 }
