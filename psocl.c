@@ -20,10 +20,10 @@ swarm initswarm(char type, int dimensionnum, int partnum, double w) {
         school.dimnum=dimensionnum;
         school.partnum=partnum;
         school.w=w;
-        school.bounds=(double*)malloc(dimensionnum*2);
+        school.bounds=(double*)calloc(dimensionnum*2,sizeof(double));
         school.gfitness=-HUGE_VALF;
-        school.school=(particle*)malloc(sizeof(particle)*partnum);
-        school.gbest=(double*)malloc(sizeof(double)*dimensionnum);
+        school.school=(particle*)calloc(partnum,sizeof(particle));
+        school.gbest=(double*)calloc(dimensionnum,sizeof(double));
         if(school.school==NULL
         ||school.gbest==NULL
         ||school.bounds==NULL){
@@ -32,8 +32,8 @@ swarm initswarm(char type, int dimensionnum, int partnum, double w) {
         }
 
         for(i=0;i<partnum;++i){     //get memory for particle data
-            school.school[i].present=(double*)malloc(sizeof(double)*dimensionnum);
-            school.school[i].v=(double*)malloc(sizeof(double)*dimensionnum);
+            school.school[i].present=(double*)calloc(dimensionnum,sizeof(double));
+            school.school[i].v=(double*)calloc(dimensionnum, sizeof(double));
             school.school[i].pbest=(double*)calloc(dimensionnum,sizeof(double));
             school.school[i].pfitness=-HUGE_VALF;
             if(school.school[i].present==NULL
@@ -61,17 +61,21 @@ void distributeparticles(swarm school,double *bounds){
         //set the bounds for the swarm
         school.bounds[i]=bounds[i];
         school.bounds[i+1]=bounds[i+1];
+        double delta=ABS(bounds[i+1]-bounds[i])/(school.partnum-1);
 
         if(bounds[i]<bounds[i+1]){  //if the first bound is lower than the next
-            int delta=ABS(bounds[i+1]-bounds[i])/(2*school.partnum);
+    
             while (school.partnum--){
-                school.school[school.partnum].present[i/2]=bounds[i]+i*delta;
+                school.school[school.partnum].v[i/2]=3*(RAN-RAN);
+                school.school[school.partnum].present[i/2]=bounds[i]+school.partnum*delta;
+                printf("position, %f\n",school.school[school.partnum].present[i/2]);
             }
         }
         else{   //if the first bound is higher than the next
-            int delta=ABS(bounds[i+1]-bounds[i])/(2*school.partnum);
+            
             while (school.partnum--){
-                school.school[school.partnum].present[i/2]=bounds[i]+i*delta;
+                school.school[school.partnum].v[i/2]=3*(RAN-RAN);
+                school.school[school.partnum].present[i/2]=bounds[i+1]+school.partnum*delta;
             }
         }
     }
@@ -90,6 +94,7 @@ void runswarm(int iterations, swarm school, double (*fitness)(double*)){
                 school.school[i].v[j/2]=(school.w)*(school.school[i].v[j/2])
                 + RAN*(school.school[i].pbest[j/2]- school.school[i].present[j/2])
                 + RAN*(school.gbest[j/2]-school.school[i].present[j/2]);
+                printf("data %f\n",school.school[i].present[0]);
 
                 //position update
                 school.school[i].present[j/2]=school.school[i].present[j/2]+school.school[i].v[j/2];
@@ -108,7 +113,8 @@ void runswarm(int iterations, swarm school, double (*fitness)(double*)){
           
             //evaluating how fit the particle is with passed function
             school.school[i].fitness= fitness(school.school[i].present);
-           
+            
+            printf("school.school[i].fitness %f\n",school.school[i].fitness);
             //setting particle's best position based on fitness
             if(school.school[i].fitness>school.school[i].pfitness){
                 school.school[i].pfitness=school.school[i].fitness;

@@ -14,13 +14,13 @@ double fitness(double* input){
 }
 
 int main(){
-    swarm one = initswarm(' ', 1,100,1);
+    swarm one = initswarm(' ', 1,5,1);
     double *answer;
     double bound[2]={-3.2,3.1};
 
     distributeparticles(one,bound);
 
-    runswarm(100,one,fitness);
+    runswarm(5,one,fitness);
 
     answer=returnbest(one);
 

@@ -26,8 +26,8 @@ int main(){
     int i=SIZE;
     //the double typcasting is needed for the number generation to work
     //without it, you just get 0's
-    double inf = -HUGE_VALF;
+    double inf = -HUGE_VAL;
     printf("huge val= %lf\n",inf);
-    while(--i)
+    while(i--)
         printf("Random number rand/rand_max %f.\n",RAN);
 }
