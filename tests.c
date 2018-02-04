@@ -10,9 +10,10 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 
 #define RAN 1.492*((double)rand()/RAND_MAX)
-#define SIZE 300
+#define SIZE 10
 
 int main(){
     int * testsize= malloc(SIZE*sizeof(int));
@@ -25,6 +26,8 @@ int main(){
     int i=SIZE;
     //the double typcasting is needed for the number generation to work
     //without it, you just get 0's
+    double inf = -HUGE_VALF;
+    printf("huge val= %lf\n",inf);
     while(--i)
         printf("Random number rand/rand_max %f.\n",RAN);
 }

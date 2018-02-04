@@ -10,3 +10,5 @@ clean:
 lib: psocl.c
 	$(CC) $(CFLAGS) -c psocl.c
 	$(LINK) $(LFLAGS) psocl.a PSOCL.o
+test: tests.c
+	$(CC) $(CFLAGS) tests.c -o test.exe

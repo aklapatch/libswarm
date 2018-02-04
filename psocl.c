@@ -21,7 +21,7 @@ swarm initswarm(char type, int dimensionnum, int partnum, double w) {
         school.partnum=partnum;
         school.w=w;
         school.bounds=(double*)malloc(dimensionnum*2);
-        school.gfitness=-100000000.0;
+        school.gfitness=-HUGE_VALF;
         school.school=(particle*)malloc(sizeof(particle)*partnum);
         school.gbest=(double*)malloc(sizeof(double)*dimensionnum);
         if(school.school==NULL
@@ -35,7 +35,7 @@ swarm initswarm(char type, int dimensionnum, int partnum, double w) {
             school.school[i].present=(double*)malloc(sizeof(double)*dimensionnum);
             school.school[i].v=(double*)malloc(sizeof(double)*dimensionnum);
             school.school[i].pbest=(double*)calloc(dimensionnum,sizeof(double));
-            school.school[i].pfitness=-100000000.0;
+            school.school[i].pfitness=-HUGE_VALF;
             if(school.school[i].present==NULL
             ||school.school[i].v==NULL
             ||school.school[i].pbest==NULL){
