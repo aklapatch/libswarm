@@ -64,17 +64,14 @@ void distributeparticles(swarm school,double *bounds){
         double delta=ABS(bounds[i+1]-bounds[i])/(school.partnum-1);
 
         if(bounds[i]<bounds[i+1]){  //if the first bound is lower than the next
-    
             while (school.partnum--){
                 school.school[school.partnum].v[i/2]=3*(RAN-RAN);
                 school.school[school.partnum].present[i/2]=bounds[i]+school.partnum*delta;
-                printf("position, %f\n",school.school[school.partnum].present[i/2]);
             }
         }
         else{   //if the first bound is higher than the next
-            
             while (school.partnum--){
-                school.school[school.partnum].v[i/2]=3*(RAN-RAN);
+                //school.school[school.partnum].v[i/2]=5*(RAN-RAN);
                 school.school[school.partnum].present[i/2]=bounds[i+1]+school.partnum*delta;
             }
         }

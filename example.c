@@ -15,9 +15,9 @@ double fitness(double* input){
 }
 
 int main(){
-    swarm one = initswarm(' ', 1,5,1);
+    swarm one = initswarm(' ', 1,5,.6);
     double *answer;
-    double bound[2]={-3.2,3.1};
+    double bound[2]={-40,40};
 
     distributeparticles(one,bound);
 
