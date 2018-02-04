@@ -10,7 +10,7 @@ of a function
 #include <math.h>
 
 double fitness(double* input){
-    return sin(input[0]);
+    return exp(input[0]-10);
 }
 
 int main(){

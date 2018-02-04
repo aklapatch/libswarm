@@ -1,4 +1,4 @@
-/*psocl.c
+/*PSOCL.c
 The main functions that facilitate running the swarm
 Copyright 2018 by Aaron Klapatch,
 code derived from http://www.swarmintelligence.org/tutorials.php

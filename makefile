@@ -3,10 +3,10 @@ CFLAGS=
 LINK=ar
 LFLAGS= crf
 
-example: example.c PSOCL.c
-	$(CC) $(CFLAGS) example.c PSOCL.c -o example.exe
+example: example.c psocl.c
+	$(CC) $(CFLAGS) example.c psocl.c -o example.exe
 clean:
 	del *.exe *.ilk *.pdb *.o *.obj *.a *.dll *.lib
-lib: PSOCL.c
-	$(CC) $(CFLAGS) -c PSOCL.c
+lib: psocl.c
+	$(CC) $(CFLAGS) -c psocl.c
 	$(LINK) $(LFLAGS) psocl.a PSOCL.o

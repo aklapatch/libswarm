@@ -1,6 +1,6 @@
 #ifndef PSOCL_H
 #define PSOCL_H
-/*psocl.h
+/*PSOCL.h
 houses structs and function prototypes
 
 Copyright 2018 by Aaron Klapatch,
@@ -53,9 +53,9 @@ void distributeparticles(swarm school,double * bounds);
 void cldistributeparticles(clswarm school,double * bounds);
 
 //running the swarm
-void runswarm(int iterations, clswarm school, double (*fitness)(double *));
+void runswarm(int iterations, swarm school, double (*fitness)(double *));
 
-void clrunswarm(int iterations, swarm school,double (*fitness)(double *));
+void clrunswarm(int iterations, clswarm school,double (*fitness)(double *));
 
 //get best solution
 //returns school.gbest

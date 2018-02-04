@@ -1,4 +1,4 @@
-/*psocl.cl
+/*PSOCL.cl
 Houses the main function to add the particle positions.
 Copyright 2018 by Aaron Klapatch,
 code derived from http://www.swarmintelligence.org/tutorials.php
