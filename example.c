@@ -10,6 +10,7 @@ of a function
 #include <math.h>
 
 double fitness(double* input){
+    printf("input %f\n",*input);
     return -(input[0]*input[0]) +27;
 }
 
