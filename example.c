@@ -9,8 +9,8 @@ of a function
 #include"PSOCL.h"
 #include <math.h>
 
+//example one dimension fitness function
 double fitness(double* input){
-    printf("input %f\n",*input);
     return -(input[0]*input[0]) +27;
 }
 
@@ -21,7 +21,7 @@ int main(){
 
     distributeparticles(one,bound);
 
-    runswarm(5,one,fitness);
+    runswarm(100,one,fitness);
 
     answer=returnbest(one);
 

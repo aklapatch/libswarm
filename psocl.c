@@ -94,12 +94,10 @@ void runswarm(int iterations, swarm school, double (*fitness)(double*)){
                 school.school[i].v[j/2]=(school.w)*(school.school[i].v[j/2])
                 + RAN*(school.school[i].pbest[j/2]- school.school[i].present[j/2])
                 + RAN*(school.gbest[j/2]-school.school[i].present[j/2]);
-                printf("data before update %f\n",school.school[i].present[0]);
 
                 //position update
                 school.school[i].present[j/2]=school.school[i].present[j/2]+school.school[i].v[j/2];
                 
-                printf("data after update %f\n",school.school[i].present[0]);
                 //upper bound check (intolerant of which bound is which)
                 if(school.school[i].present[j/2]>((school.bounds[j]>school.bounds[j+1])?school.bounds[j]:school.bounds[j+1])){
                     school.school[i].present[j/2]=(school.bounds[j]>school.bounds[j+1])?school.bounds[j]:school.bounds[j+1];
@@ -115,7 +113,6 @@ void runswarm(int iterations, swarm school, double (*fitness)(double*)){
             //evaluating how fit the particle is with passed function
             school.school[i].fitness= fitness(school.school[i].present);
             
-            printf("school.school[i].fitness %f\n",school.school[i].fitness);
             //setting particle's best position based on fitness
             if(school.school[i].fitness>school.school[i].pfitness){
                 school.school[i].pfitness=school.school[i].fitness;
