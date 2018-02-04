@@ -65,7 +65,7 @@ void distributeparticles(swarm school,double *bounds){
 
         if(bounds[i]<bounds[i+1]){  //if the first bound is lower than the next
             while (school.partnum--){
-                school.school[school.partnum].v[i/2]=3*(RAN-RAN);
+                //school.school[school.partnum].v[i/2]=3*(RAN-RAN);
                 school.school[school.partnum].present[i/2]=bounds[i]+school.partnum*delta;
             }
         }
