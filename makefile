@@ -1,4 +1,4 @@
-CC=gcc
+CC=clang
 CFLAGS=
 LINK=ar
 LFLAGS= crf
