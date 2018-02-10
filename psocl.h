@@ -43,35 +43,35 @@ typedef struct clswarm {
 } clswarm;
 
 //swarm initializaion
-swarm initswarm(char type, int dimensionnum, int partnum, double w);
+swarm * initswarm(char type, int dimensionnum, int partnum, double w);
 
-clswarm clinitswarm(char type, int dimensionnum, int partnum, double w);
+clswarm * clinitswarm(char type, int dimensionnum, int partnum, double w);
 
 //swarm particle distribution
-void distributeparticles(swarm school,double * bounds);
+void distributeparticles(swarm * school,double * bounds);
 
-void cldistributeparticles(clswarm school,double * bounds);
+void cldistributeparticles(clswarm * school,double * bounds);
 
 //running the swarm
-void runswarm(int iterations, swarm school, double (*fitness)(double *));
+void runswarm(int iterations, swarm  *school, double (*fitness)(double *));
 
-void clrunswarm(int iterations, clswarm school,double (*fitness)(double *));
+void clrunswarm(int iterations, clswarm *school,double (*fitness)(double *));
 
 //Run the swarm conditionally. The keep_going function should return 1 to keep going and 0 to stop
 //inputting 0 into the iterations argument will make the swarm run until the function tells it to stop.
-void conditionalrunswarm(int iterations, swarm school, double (*fitness)(double *), int (*keep_going)(double *));
+void conditionalrunswarm(int iterations, swarm *school, double (*fitness)(double *), int (*keep_going)(double *));
 
-void clconditionalrunswarm(int iterations, clswarm school,double (*fitness)(double *), int (*keep_going)(double *));
+void clconditionalrunswarm(int iterations, clswarm *school,double (*fitness)(double *), int (*keep_going)(double *));
 
 //get best solution
 //returns school.gbest
-double * returnbest(swarm school);
+double * returnbest(swarm * school);
 
-double * clreturnbest(clswarm school);
+double * clreturnbest(clswarm * school);
 
 //releasing/ending the swarm
-void releaseswarm(swarm school);
+void releaseswarm(swarm * school);
 
-void clreleaseswarm(clswarm school);
+void clreleaseswarm(clswarm * school);
 
 #endif
