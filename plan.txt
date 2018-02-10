@@ -28,7 +28,7 @@ gbest[] is the global position of the "most fit particle", pbest[] is that parti
 initialize swarm.
 Arguments: int dimension number, (struct swarm) swarm type (deep or normal), int particle number,.
 
-swarm distribute (The difficult one)
+swarm distribute (The difficult one) (lol, after making it is wasn't that hard)
 Arguments: swarm name, maybe function pointer
 this will distribute the particles evenly over the problem space by default. It should have a function pointer to make a distribution
 but I am not sure that is reasonable
@@ -36,7 +36,7 @@ but I am not sure that is reasonable
 run swarm:
 Arguments: int iterations to run
 
-conditional run swarm
+conditional run swarm (maybe the actual hard one)
 Arguments: function pointer, swarm name
 this function should return a not 0 value when the swarm should keep going, and return a 0 when it should stop. The fitness vaule of the 
 particle should be accepted as an argument for the stopping function. The function will be fed the gbest of every swarm run
