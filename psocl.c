@@ -8,7 +8,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include "psocl.h"
 
 #define ABS(x) (sqrt((x)*(x)))      //absolute value
-#define RAN 1.492*((double)rand()/RAND_MAX)     //random number between 0 and 1.492
+#define RAN 2*((double)rand()/RAND_MAX)     //random number between 0 and 1.492 or 0 and 2
 
 swarm* initswarm(char type, int dimensionnum, int partnum, double w) {
     int i;
@@ -71,13 +71,13 @@ void distributeparticles(swarm *school,double *bounds){
 
         if(bounds[i]<bounds[i+1]){  //if the first bound is lower than the next
             for(j=0;j<school->partnum;++j){
-                //school.school[school.partnum].v[i/2]=3*(RAN-RAN);
+                //school.school[j].v[i/2]=3*(RAN-RAN);
                 school->school[j].present[i/2]=bounds[i]+school->partnum*delta;
             }
         }
         else{   //if the first bound is higher than the next
             for(j=0;j<school->partnum;++j){
-                //school.school[school.partnum].v[i/2]=5*(RAN-RAN);
+                //school.school[j].v[i/2]=5*(RAN-RAN);
                 school->school[j].present[i/2]=bounds[i+1]+school->partnum*delta;
             }
         }
