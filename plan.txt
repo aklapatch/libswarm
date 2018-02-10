@@ -6,7 +6,13 @@ Clang 5.0.1, is going to be my compiler, for cl kernel checking
 But I am going to use mingw-w64 gcc for most other things 
 (I found a bug in clang while trying to print data pulled from a double *)
 
-Example case, having a line, then having the swarm find the highest point in the that line in a domain.
+Optimization 
+Move swarm object to a swarm * in the libraries
+Note: after doing this, resluts do not seem to be as good as before
+I will need to test this later.
+
+Example usage:
+     having a line, then having the swarm find the highest point in the that line in a domain.
 
 Structs
 Swarm containing particle array and number of particles and the opencl environment (command queue/context), and gbest.
@@ -34,6 +40,7 @@ conditional run swarm
 Arguments: function pointer, swarm name
 this function should return a not 0 value when the swarm should keep going, and return a 0 when it should stop. The fitness vaule of the 
 particle should be accepted as an argument for the stopping function. The function will be fed the gbest of every swarm run
+I should also make a wa
 
 determine fitness.
 this should be within the run swarm function and it should take a double * as an argument
