@@ -137,7 +137,6 @@ void conditionalrunswarm(int iterations, swarm *school, double (*fitness)(double
     int i,j; 
     srand(time(NULL));
 
-    
     double ** bests=calloc(PREVIOUS_BESTS,sizeof(double*));
 
     if(bests==NULL){
