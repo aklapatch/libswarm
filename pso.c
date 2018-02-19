@@ -5,7 +5,7 @@ code derived from http://www.swarmintelligence.org/tutorials.php
 along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
-#include "psocl.h"
+#include "pso.h"
 
 #define PREVIOUS_BESTS 5
 #define ABS(x) (sqrt((x)*(x)))      //absolute value

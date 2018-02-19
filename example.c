@@ -6,7 +6,7 @@ of a function
 #include<stdio.h>
 #include<stdlib.h>
 #include<time.h>
-#include"psocl.h"
+#include"pso.h"
 #include <math.h>
 
 //example one dimension fitness function
