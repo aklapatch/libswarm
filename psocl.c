@@ -7,6 +7,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 
 #include "psocl.h"
 
+#define PREVIOUS_BESTS 5
 #define ABS(x) (sqrt((x)*(x)))      //absolute value
 #define RAN 2*((double)rand()/RAND_MAX)     //random number between 0 and 1.492 or 0 and 2
 
@@ -129,6 +130,86 @@ void runswarm(int iterations, swarm * school, double (*fitness)(double*)){
                 memcpy(school->gbest, school->school[i].present,sizeof(double)*school->dimnum);
             }
         }
+    }
+}
+
+void conditionalrunswarm(int iterations, swarm *school, double (*fitness)(double *), int (*keep_going)(double *)){
+    int i,j; 
+    srand(time(NULL));
+
+    
+    double ** bests=calloc(PREVIOUS_BESTS,sizeof(double*));
+
+    if(bests==NULL){
+        printf("Failed to allocate memory for the array of previous bests.\n");
+        releaseswarm(school);
+        exit(1);
+    }
+
+    for(i=0;i<PREVIOUS_BESTS;++i){
+        bests[i]=calloc(school.dimnum,sizeof(double));
+            if(bests[i]==NULL){
+            printf("Failed to allocate memory for the array of previous bests.\n");
+            releaseswarm(school);
+            exit(1);
+        }
+    }
+
+    //the acutal swarm running
+    while(iterations--){
+        if(keep_going){
+            break;
+        }
+
+        for(i=0;i<school->partnum;++i){
+            for(j=0;j<2*school->dimnum;j+=2){
+
+                //velocity update
+                school->school[i].v[j/2]=(school->w)*(school->school[i].v[j/2])
+                + RAN*(school->school[i].pbest[j/2]- school->school[i].present[j/2])
+                + RAN*(school->gbest[j/2]-school->school[i].present[j/2]);
+
+                //position update
+                school->school[i].present[j/2]=school->school[i].present[j/2]+school->school[i].v[j/2];
+                
+                //upper bound check (intolerant of which bound is which)
+                if(school->school[i].present[j/2]>((school->bounds[j]>school->bounds[j+1])?school->bounds[j]:school->bounds[j+1])){
+                    school->school[i].present[j/2]=(school->bounds[j]>school->bounds[j+1])?school->bounds[j]:school->bounds[j+1];
+                }
+
+                //lower bound check (intolerant of which bound is which)
+                else if(school->school[i].present[j/2]<((school->bounds[j]<school->bounds[j+1])?school->bounds[j]:school->bounds[j+1])){
+                    school->school[i].present[j/2]=(school->bounds[j]<school->bounds[j+1])?school->bounds[j]:school->bounds[j+1];
+                }
+                
+            }
+          
+            //evaluating how fit the particle is with passed function
+            school->school[i].fitness= fitness(school->school[i].present);
+            
+            //setting particle's best position based on fitness
+            if(school->school[i].fitness>school->school[i].pfitness){
+                school->school[i].pfitness=school->school[i].fitness;
+                memcpy(school->school[i].pbest, school->school[i].present,sizeof(double)*school->dimnum);
+            }
+
+            //setting new best particle in the swarm
+            //this might be moved inside the previous if statement for optimization
+            if(school->school[i].fitness>school->gfitness){
+                school->gfitness=school->school[i].fitness;                
+                memcpy(school->gbest, school->school[i].present,sizeof(double)*school->dimnum);
+                storebests(school->gbest,bests,school->dimnum);
+            }
+        }
+    }
+}
+
+//this stores all the 5 next best bests in an array
+void storebests(double*gbest, double **bests,int dimnum){
+    int i;
+    memcpy(gbest, bests[0],sizeof(double)*dimnum);
+    for(i=1;i<PREVIOUS_BESTS;++i){
+        memcpy(bests[i-1], bests[i],sizeof(double)*dimnum);
     }
 }
 

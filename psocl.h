@@ -57,8 +57,9 @@ void runswarm(int iterations, swarm  *school, double (*fitness)(double *));
 
 void clrunswarm(int iterations, clswarm *school,double (*fitness)(double *));
 
-//Run the swarm conditionally. The keep_going function should return 1 to keep going and 0 to stop
+//Run the swarm conditionally. The keep_going function should return 0 to keep going and 1 to stop
 //inputting 0 into the iterations argument will make the swarm run until the function tells it to stop.
+//the double * being passed into keep_going is a array of 5
 void conditionalrunswarm(int iterations, swarm *school, double (*fitness)(double *), int (*keep_going)(double *));
 
 void clconditionalrunswarm(int iterations, clswarm *school,double (*fitness)(double *), int (*keep_going)(double *));
