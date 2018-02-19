@@ -29,9 +29,9 @@ typedef struct clswarm {
     double *gbest, gfitness,*bounds;
     float w;
     particle *school;
-    cl_device_id device_id;
-    cl_context context;
-    cl_command_queue command_queue;
+    cl_device_id device_id=NULL;
+    cl_context context=NULL;
+    cl_command_queue command_queue=NULL;
     cl_int ret;
 } clswarm;
 

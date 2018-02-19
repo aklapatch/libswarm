@@ -5,20 +5,30 @@ code derived from http://www.swarmintelligence.org/tutorials.php
 along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
-#include "pso.h"
+#include "psocl.h"
 
 #define PREVIOUS_BESTS 5
 #define ABS(x) (sqrt((x)*(x)))      //absolute value
 #define RAN 2*((double)rand()/RAND_MAX)     //random number between 0 and 1.492 or 0 and 2
 
-swarm* initswarm(char type, int dimensionnum, int partnum, double w) {
+clswarm* clinitswarm(char type, int dimensionnum, int partnum, double w) {
     int i;
-    swarm * school=calloc(1,sizeof(swarm));
+    clswarm * school=calloc(1,sizeof(swarm));
     if(school==NULL){
         fprintf(stderr,"Failed to allocate memory for the swarm *\n");
         exit(1);
     }
 
+    cl_platform_id plat_id = NULL;	
+	cl_uint ret_num_plats;	
+	cl_device_id dev_id = NULL;	
+	cl_uint ret_num_devs;	
+
+    clGetPlatformIDs(1, &platf_id, &num_plats);
+    clGetDeviceIDs(plat_id, CL_DEVICE_TYPE_DEFAULT, 1, &dev_id,	
+	&ret_num_devs);
+    school->context = clCreateContext(NULL, 1, &dev_id, NULL, NULL, &(school->ret));
+    school->command_queue = clCreateCommandQueue(school->context, dev_id, 0, &ret);
 
     if(type=='d'||type=='D'){   //for a deep swarm
                             
@@ -59,7 +69,7 @@ swarm* initswarm(char type, int dimensionnum, int partnum, double w) {
 //one should be a lower and the other should be an upper bound.
 //the program is designed to be intolerant of which is which
 //this program also dstributes evenly over the domain.
-void distributeparticles(swarm *school,double *bounds){
+void cldistributeparticles(clswarm *school,double *bounds){
 
     int i,j;
     
@@ -85,7 +95,7 @@ void distributeparticles(swarm *school,double *bounds){
     }
 }
 
-void runswarm(int iterations, swarm * school, double (*fitness)(double*)){
+void clrunswarm(int iterations, clswarm * school, double (*fitness)(double*)){
     int i,j; 
     srand(time(NULL));
 
@@ -133,7 +143,7 @@ void runswarm(int iterations, swarm * school, double (*fitness)(double*)){
     }
 }
 
-void conditionalrunswarm(int iterations, swarm *school, double (*fitness)(double *), int (*keep_going)(double *)){
+void clconditionalrunswarm(int iterations, clswarm *school, double (*fitness)(double *), int (*keep_going)(double *)){
     int i,j; 
     srand(time(NULL));
 
@@ -213,12 +223,12 @@ void storebests(double*gbest, double **bests,int dimnum){
 }
 
 //gives the user more explicit access to the best solution
-double * returnbest(swarm * school){
+double * clreturnbest(clswarm * school){
     return school->gbest;
 }
 
 //frees all data allocated to the swarm
-void releaseswarm(swarm * school){
+void clreleaseswarm(clswarm * school){
     int i;
     //free particle data
     for(i=0;i<school->partnum;++i){
