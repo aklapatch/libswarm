@@ -19,39 +19,40 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #define PRINTLN printf("line %d\n",__LINE__)
 
 //struct for each particle 
-typedef struct particle {
-    double *present, *pbest, fitness, pfitness,*v;
+typedef struct clparticle {
+    float *present, *pbest, fitness, pfitness,*v;
 } particle;
 
 //struct for the opencl swarm
 typedef struct clswarm {
     int partnum, dimnum;
-    double *gbest, gfitness,*bounds;
+    float *gbest, gfitness,*bounds;
     float w;
-    particle *school;
+    clparticle *school;
     cl_device_id device_id=NULL;
     cl_context context=NULL;
     cl_command_queue command_queue=NULL;
     cl_int ret;
+    cl_program program;
 } clswarm;
 
 //swarm initializaion
-clswarm * clinitswarm(char type, int dimensionnum, int partnum, double w);
+clswarm * clinitswarm(char type, int dimensionnum, int partnum, float w);
 
 //swarm particle distribution
-void cldistributeparticles(clswarm * school,double * bounds);
+void cldistributeparticles(clswarm * school,float * bounds);
 
 //running the swarm
-void clrunswarm(int iterations, clswarm *school,double (*fitness)(double *));
+void clrunswarm(int iterations, clswarm *school,float (*fitness)(float *));
 
 //Run the swarm conditionally. The keep_going function should return 0 to keep going and 1 to stop
 //inputting 0 into the iterations argument will make the swarm run until the function tells it to stop.
-//the double * being passed into keep_going is a array of 5
-void clconditionalrunswarm(int iterations, clswarm *school,double (*fitness)(double *), int (*keep_going)(double *));
+//the float * being passed into keep_going is a array of 5
+void clconditionalrunswarm(int iterations, clswarm *school,float (*fitness)(float *), int (*keep_going)(float *));
 
 //get best solution
 //returns school.gbest
-double * clreturnbest(clswarm * school);
+float * clreturnbest(clswarm * school);
 
 //releasing/ending the swarm
 void clreleaseswarm(clswarm * school);

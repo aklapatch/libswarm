@@ -146,7 +146,7 @@ void conditionalrunswarm(int iterations, swarm *school, double (*fitness)(double
     }
 
     for(i=0;i<PREVIOUS_BESTS;++i){
-        bests[i]=calloc(school.dimnum,sizeof(double));
+        bests[i]=calloc(school->dimnum,sizeof(double));
             if(bests[i]==NULL){
             printf("Failed to allocate memory for the array of previous bests.\n");
             releaseswarm(school);

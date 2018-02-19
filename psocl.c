@@ -9,10 +9,12 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 
 #define PREVIOUS_BESTS 5
 #define ABS(x) (sqrt((x)*(x)))      //absolute value
-#define RAN 2*((double)rand()/RAND_MAX)     //random number between 0 and 1.492 or 0 and 2
+#define RAN 2*((float)rand()/RAND_MAX)     //random number between 0 and 1.492 or 0 and 2
+#define MAX_SOURCE_SIZE (0x100000)
 
-clswarm* clinitswarm(char type, int dimensionnum, int partnum, double w) {
+clswarm* clinitswarm(char type, int dimensionnum, int partnum, float w) {
     int i;
+    FILE * fPtr;
     clswarm * school=calloc(1,sizeof(swarm));
     if(school==NULL){
         fprintf(stderr,"Failed to allocate memory for the swarm *\n");
@@ -23,12 +25,28 @@ clswarm* clinitswarm(char type, int dimensionnum, int partnum, double w) {
 	cl_uint ret_num_plats;	
 	cl_device_id dev_id = NULL;	
 	cl_uint ret_num_devs;	
+    cl_ulong local_size;
+    cl_int cl_local_size;
+    cl_kernel ker;
+    cl_event event;
 
     clGetPlatformIDs(1, &platf_id, &num_plats);
     clGetDeviceIDs(plat_id, CL_DEVICE_TYPE_DEFAULT, 1, &dev_id,	
 	&ret_num_devs);
     school->context = clCreateContext(NULL, 1, &dev_id, NULL, NULL, &(school->ret));
     school->command_queue = clCreateCommandQueue(school->context, dev_id, 0, &ret);
+
+    fPtr =fopen("psocl.cl","r");
+
+    char* ker_src_str = malloc(MAX_SOURCE_SIZE*sizeof(char));
+    ker_code_size = fread(ker_src_str, 1, MAX_SOURCE_SIZE, fPtr);
+    fclose(fPtr);
+
+    school->program=clCreateProgramWithSource(school->context, 1, (const char **)&ker_src_str,	
+    (const size_t *)&ker_code_size, &ret);
+    clBuildProgram(school->program, 1, &dev_id, "", NULL, NULL);
+    ker =clCreateKernel(school->program, "psocl", &ret);
+
 
     if(type=='d'||type=='D'){   //for a deep swarm
                             
@@ -37,10 +55,10 @@ clswarm* clinitswarm(char type, int dimensionnum, int partnum, double w) {
         school->dimnum=dimensionnum;
         school->partnum=partnum;
         school->w=w;
-        school->bounds=(double*)calloc(dimensionnum*2,sizeof(double));
+        school->bounds=(float*)calloc(dimensionnum*2,sizeof(float));
         school->gfitness=-HUGE_VALF;
-        school->school=(particle*)calloc(partnum,sizeof(particle));
-        school->gbest=(double*)calloc(dimensionnum,sizeof(double));
+        school->school=(clparticle*)calloc(partnum,sizeof(clparticle));
+        school->gbest=(float*)calloc(dimensionnum,sizeof(float));
         if(school->school==NULL
         ||school->gbest==NULL
         ||school->bounds==NULL){
@@ -49,14 +67,14 @@ clswarm* clinitswarm(char type, int dimensionnum, int partnum, double w) {
         }
 
         for(i=0;i<partnum;++i){     //get memory for particle data
-            school->school[i].present=(double*)calloc(dimensionnum,sizeof(double));
-            school->school[i].v=(double*)calloc(dimensionnum, sizeof(double));
-            school->school[i].pbest=(double*)calloc(dimensionnum,sizeof(double));
+            school->school[i].present=(float*)calloc(dimensionnum,sizeof(float));
+            school->school[i].v=(float*)calloc(dimensionnum, sizeof(float));
+            school->school[i].pbest=(float*)calloc(dimensionnum,sizeof(float));
             school->school[i].pfitness=-HUGE_VALF;
             if(school->school[i].present==NULL
             ||school->school[i].v==NULL
             ||school->school[i].pbest==NULL){
-                fprintf(stderr,"Failed to allocate memory for particle data.\n");
+                fprintf(stderr,"Failed to allocate memory for clparticle data.\n");
                 exit(1);
             }
         }    
@@ -69,7 +87,7 @@ clswarm* clinitswarm(char type, int dimensionnum, int partnum, double w) {
 //one should be a lower and the other should be an upper bound.
 //the program is designed to be intolerant of which is which
 //this program also dstributes evenly over the domain.
-void cldistributeparticles(clswarm *school,double *bounds){
+void cldistributeparticles(clswarm *school,float *bounds){
 
     int i,j;
     
@@ -78,7 +96,7 @@ void cldistributeparticles(clswarm *school,double *bounds){
         //set the bounds for the swarm
         school->bounds[i]=bounds[i];
         school->bounds[i+1]=bounds[i+1];
-        double delta=ABS(bounds[i+1]-bounds[i])/(school->partnum-1);
+        float delta=ABS(bounds[i+1]-bounds[i])/(school->partnum-1);
 
         if(bounds[i]<bounds[i+1]){  //if the first bound is lower than the next
             for(j=0;j<school->partnum;++j){
@@ -95,7 +113,7 @@ void cldistributeparticles(clswarm *school,double *bounds){
     }
 }
 
-void clrunswarm(int iterations, clswarm * school, double (*fitness)(double*)){
+void clrunswarm(int iterations, clswarm * school, float (*fitness)(float*)){
     int i,j; 
     srand(time(NULL));
 
@@ -130,24 +148,24 @@ void clrunswarm(int iterations, clswarm * school, double (*fitness)(double*)){
             //setting particle's best position based on fitness
             if(school->school[i].fitness>school->school[i].pfitness){
                 school->school[i].pfitness=school->school[i].fitness;
-                memcpy(school->school[i].pbest, school->school[i].present,sizeof(double)*school->dimnum);
+                memcpy(school->school[i].pbest, school->school[i].present,sizeof(float)*school->dimnum);
             }
 
             //setting new best particle in the swarm
             //this might be moved inside the previous if statement for optimization
             if(school->school[i].fitness>school->gfitness){
                 school->gfitness=school->school[i].fitness;                
-                memcpy(school->gbest, school->school[i].present,sizeof(double)*school->dimnum);
+                memcpy(school->gbest, school->school[i].present,sizeof(float)*school->dimnum);
             }
         }
     }
 }
 
-void clconditionalrunswarm(int iterations, clswarm *school, double (*fitness)(double *), int (*keep_going)(double *)){
+void clconditionalrunswarm(int iterations, clswarm *school, float (*fitness)(float *), int (*keep_going)(float *)){
     int i,j; 
     srand(time(NULL));
 
-    double ** bests=calloc(PREVIOUS_BESTS,sizeof(double*));
+    float ** bests=calloc(PREVIOUS_BESTS,sizeof(float*));
 
     if(bests==NULL){
         printf("Failed to allocate memory for the array of previous bests.\n");
@@ -156,7 +174,7 @@ void clconditionalrunswarm(int iterations, clswarm *school, double (*fitness)(do
     }
 
     for(i=0;i<PREVIOUS_BESTS;++i){
-        bests[i]=calloc(school.dimnum,sizeof(double));
+        bests[i]=calloc(school.dimnum,sizeof(float));
             if(bests[i]==NULL){
             printf("Failed to allocate memory for the array of previous bests.\n");
             releaseswarm(school);
@@ -199,14 +217,14 @@ void clconditionalrunswarm(int iterations, clswarm *school, double (*fitness)(do
             //setting particle's best position based on fitness
             if(school->school[i].fitness>school->school[i].pfitness){
                 school->school[i].pfitness=school->school[i].fitness;
-                memcpy(school->school[i].pbest, school->school[i].present,sizeof(double)*school->dimnum);
+                memcpy(school->school[i].pbest, school->school[i].present,sizeof(float)*school->dimnum);
             }
 
             //setting new best particle in the swarm
             //this might be moved inside the previous if statement for optimization
             if(school->school[i].fitness>school->gfitness){
                 school->gfitness=school->school[i].fitness;                
-                memcpy(school->gbest, school->school[i].present,sizeof(double)*school->dimnum);
+                memcpy(school->gbest, school->school[i].present,sizeof(float)*school->dimnum);
                 storebests(school->gbest,bests,school->dimnum);
             }
         }
@@ -214,16 +232,16 @@ void clconditionalrunswarm(int iterations, clswarm *school, double (*fitness)(do
 }
 
 //this stores all the 5 next best bests in an array
-void storebests(double*gbest, double **bests,int dimnum){
+void storebests(float*gbest, float **bests,int dimnum){
     int i;
-    memcpy(gbest, bests[0],sizeof(double)*dimnum);
+    memcpy(gbest, bests[0],sizeof(float)*dimnum);
     for(i=1;i<PREVIOUS_BESTS;++i){
-        memcpy(bests[i-1], bests[i],sizeof(double)*dimnum);
+        memcpy(bests[i-1], bests[i],sizeof(float)*dimnum);
     }
 }
 
 //gives the user more explicit access to the best solution
-double * clreturnbest(clswarm * school){
+float * clreturnbest(clswarm * school){
     return school->gbest;
 }
 
