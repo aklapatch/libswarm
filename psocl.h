@@ -37,7 +37,7 @@ typedef struct clswarm {
 } clswarm;
 
 //swarm initializaion
-clswarm * clinitswarm(char type, int dimensionnum, int partnum, float w);
+clswarm * clinitswarm(int dimensionnum, int partnum, float w);
 
 //swarm particle distribution
 void cldistributeparticles(clswarm * school,float * bounds);

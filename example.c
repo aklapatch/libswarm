@@ -15,7 +15,7 @@ double fitness(double* input) {
 }
 
 int main(){
-    swarm *one = initswarm(' ', 1,1000,1);
+    swarm *one = initswarm(1,1000,1);
     double *answer;
     double bound[2]={-100,100};
 

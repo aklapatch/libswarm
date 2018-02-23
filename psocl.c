@@ -12,7 +12,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #define RAN 2*((float)rand()/RAND_MAX)     //random number between 0 and 1.492 or 0 and 2
 #define MAX_SOURCE_SIZE (0x100000)
 
-clswarm* clinitswarm(char type, int dimensionnum, int partnum, float w) {
+clswarm* clinitswarm( int dimensionnum, int partnum, float w) {
     int i;
     FILE * fPtr;
     clswarm * school=calloc(1,sizeof(swarm));
@@ -47,38 +47,32 @@ clswarm* clinitswarm(char type, int dimensionnum, int partnum, float w) {
     clBuildProgram(school->program, 1, &dev_id, "", NULL, NULL);
     ker =clCreateKernel(school->program, "psocl", &ret);
 
-
-    if(type=='d'||type=='D'){   //for a deep swarm
-                            
+    school->dimnum=dimensionnum;
+    school->partnum=partnum;
+    school->w=w;
+    school->bounds=(float*)calloc(dimensionnum*2,sizeof(float));
+    school->gfitness=-HUGE_VALF;
+    school->school=(clparticle*)calloc(partnum,sizeof(clparticle));
+    school->gbest=(float*)calloc(dimensionnum,sizeof(float));
+    if(school->school==NULL
+    ||school->gbest==NULL
+    ||school->bounds==NULL){
+        fprintf(stderr,"Failed to allocate memory for the array of particles.\n");
+        exit(1);
     }
-    else{   //apply swarm properties and its particle array
-        school->dimnum=dimensionnum;
-        school->partnum=partnum;
-        school->w=w;
-        school->bounds=(float*)calloc(dimensionnum*2,sizeof(float));
-        school->gfitness=-HUGE_VALF;
-        school->school=(clparticle*)calloc(partnum,sizeof(clparticle));
-        school->gbest=(float*)calloc(dimensionnum,sizeof(float));
-        if(school->school==NULL
-        ||school->gbest==NULL
-        ||school->bounds==NULL){
-            fprintf(stderr,"Failed to allocate memory for the array of particles.\n");
+
+    for(i=0;i<partnum;++i){     //get memory for particle data
+        school->school[i].present=(float*)calloc(dimensionnum,sizeof(float));
+        school->school[i].v=(float*)calloc(dimensionnum, sizeof(float));
+        school->school[i].pbest=(float*)calloc(dimensionnum,sizeof(float));
+        school->school[i].pfitness=-HUGE_VALF;
+        if(school->school[i].present==NULL
+        ||school->school[i].v==NULL
+        ||school->school[i].pbest==NULL){
+            fprintf(stderr,"Failed to allocate memory for clparticle data.\n");
             exit(1);
         }
-
-        for(i=0;i<partnum;++i){     //get memory for particle data
-            school->school[i].present=(float*)calloc(dimensionnum,sizeof(float));
-            school->school[i].v=(float*)calloc(dimensionnum, sizeof(float));
-            school->school[i].pbest=(float*)calloc(dimensionnum,sizeof(float));
-            school->school[i].pfitness=-HUGE_VALF;
-            if(school->school[i].present==NULL
-            ||school->school[i].v==NULL
-            ||school->school[i].pbest==NULL){
-                fprintf(stderr,"Failed to allocate memory for clparticle data.\n");
-                exit(1);
-            }
-        }    
-    }
+    }    
 
     return school;  //return the constructed swarm
 }

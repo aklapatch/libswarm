@@ -11,7 +11,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #define ABS(x) (sqrt((x)*(x)))      //absolute value
 #define RAN 2*((double)rand()/RAND_MAX)     //random number between 0 and 1.492 or 0 and 2
 
-swarm* initswarm(char type, int dimensionnum, int partnum, double w) {
+swarm* initswarm(int dimensionnum, int partnum, double w) {
     int i;
     swarm * school=calloc(1,sizeof(swarm));
     if(school==NULL){
@@ -19,38 +19,33 @@ swarm* initswarm(char type, int dimensionnum, int partnum, double w) {
         exit(1);
     }
 
-
-    if(type=='d'||type=='D'){   //for a deep swarm
-                            
+   //apply swarm properties and its particle array
+    school->dimnum=dimensionnum;
+    school->partnum=partnum;
+    school->w=w;
+    school->bounds=(double*)calloc(dimensionnum*2,sizeof(double));
+    school->gfitness=-HUGE_VALF;
+    school->school=(particle*)calloc(partnum,sizeof(particle));
+    school->gbest=(double*)calloc(dimensionnum,sizeof(double));
+    if(school->school==NULL
+    ||school->gbest==NULL
+    ||school->bounds==NULL){
+        fprintf(stderr,"Failed to allocate memory for the array of particles.\n");
+        exit(1);
     }
-    else{   //apply swarm properties and its particle array
-        school->dimnum=dimensionnum;
-        school->partnum=partnum;
-        school->w=w;
-        school->bounds=(double*)calloc(dimensionnum*2,sizeof(double));
-        school->gfitness=-HUGE_VALF;
-        school->school=(particle*)calloc(partnum,sizeof(particle));
-        school->gbest=(double*)calloc(dimensionnum,sizeof(double));
-        if(school->school==NULL
-        ||school->gbest==NULL
-        ||school->bounds==NULL){
-            fprintf(stderr,"Failed to allocate memory for the array of particles.\n");
+
+    for(i=0;i<partnum;++i){     //get memory for particle data
+        school->school[i].present=(double*)calloc(dimensionnum,sizeof(double));
+        school->school[i].v=(double*)calloc(dimensionnum, sizeof(double));
+        school->school[i].pbest=(double*)calloc(dimensionnum,sizeof(double));
+        school->school[i].pfitness=-HUGE_VALF;
+        if(school->school[i].present==NULL
+        ||school->school[i].v==NULL
+        ||school->school[i].pbest==NULL){
+            fprintf(stderr,"Failed to allocate memory for particle data.\n");
             exit(1);
         }
-
-        for(i=0;i<partnum;++i){     //get memory for particle data
-            school->school[i].present=(double*)calloc(dimensionnum,sizeof(double));
-            school->school[i].v=(double*)calloc(dimensionnum, sizeof(double));
-            school->school[i].pbest=(double*)calloc(dimensionnum,sizeof(double));
-            school->school[i].pfitness=-HUGE_VALF;
-            if(school->school[i].present==NULL
-            ||school->school[i].v==NULL
-            ||school->school[i].pbest==NULL){
-                fprintf(stderr,"Failed to allocate memory for particle data.\n");
-                exit(1);
-            }
-        }    
-    }
+    }    
 
     return school;  //return the constructed swarm
 }
@@ -133,6 +128,15 @@ void runswarm(int iterations, swarm * school, double (*fitness)(double*)){
     }
 }
 
+//this stores all the 5 next best bests in an array
+void storebests(double* gbest, double **bests,int dimnum){
+    int i;
+    memcpy(gbest, bests[0],sizeof(double)*dimnum);
+    for(i=1;i<PREVIOUS_BESTS;++i){
+        memcpy(bests[i-1], bests[i],sizeof(double)*dimnum);
+    }
+}
+
 void conditionalrunswarm(int iterations, swarm *school, double (*fitness)(double *), int (*keep_going)(double *)){
     int i,j; 
     srand(time(NULL));
@@ -200,15 +204,6 @@ void conditionalrunswarm(int iterations, swarm *school, double (*fitness)(double
                 storebests(school->gbest,bests,school->dimnum);
             }
         }
-    }
-}
-
-//this stores all the 5 next best bests in an array
-void storebests(double*gbest, double **bests,int dimnum){
-    int i;
-    memcpy(gbest, bests[0],sizeof(double)*dimnum);
-    for(i=1;i<PREVIOUS_BESTS;++i){
-        memcpy(bests[i-1], bests[i],sizeof(double)*dimnum);
     }
 }
 

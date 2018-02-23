@@ -31,7 +31,7 @@ typedef struct swarm {
 } swarm;
 
 //swarm initializaion
-swarm * initswarm(char type, int dimensionnum, int partnum, double w);
+swarm * initswarm(int dimensionnum, int partnum, double w);
 
 //swarm particle distribution
 void distributeparticles(swarm * school,double * bounds);
