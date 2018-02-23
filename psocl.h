@@ -21,6 +21,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 //struct for each particle 
 typedef struct clparticle {
     float *present, *pbest, fitness, pfitness,*v;
+    cl_mem clpresent, clpbest, clfitness, clpfitness, clv;
 } particle;
 
 //struct for the opencl swarm
@@ -34,6 +35,7 @@ typedef struct clswarm {
     cl_command_queue command_queue=NULL;
     cl_int ret;
     cl_program program;
+    cl_mem clpartnum, cldimnum, clgbest,clgfitness,clbounds,clw, clschool;
 } clswarm;
 
 //swarm initializaion

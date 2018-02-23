@@ -10,7 +10,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #define PREVIOUS_BESTS 5
 #define ABS(x) (sqrt((x)*(x)))      //absolute value
 #define RAN 2*((float)rand()/RAND_MAX)     //random number between 0 and 1.492 or 0 and 2
-#define MAX_SOURCE_SIZE (0x100000)
+#define KERNEL_SIZE (0x100000)
 
 clswarm* clinitswarm( int dimensionnum, int partnum, float w) {
     int i;
@@ -27,7 +27,7 @@ clswarm* clinitswarm( int dimensionnum, int partnum, float w) {
 	cl_uint ret_num_devs;	
     cl_ulong local_size;
     cl_int cl_local_size;
-    cl_kernel ker;
+    cl_kernel distrparts;
     cl_event event;
 
     clGetPlatformIDs(1, &platf_id, &num_plats);
@@ -37,15 +37,22 @@ clswarm* clinitswarm( int dimensionnum, int partnum, float w) {
     school->command_queue = clCreateCommandQueue(school->context, dev_id, 0, &ret);
 
     fPtr =fopen("psocl.cl","r");
+    if(fPtr==NULL){
+        fprintf(stderr, "kernel failed to open.\n");
+        exit(1);
+    }
 
-    char* ker_src_str = malloc(MAX_SOURCE_SIZE*sizeof(char));
-    ker_code_size = fread(ker_src_str, 1, MAX_SOURCE_SIZE, fPtr);
+    char* ker_src_str = malloc(KERNEL_SIZE*sizeof(char));
+    if(ker_src_str==NULL){
+        fprintf(stderr, "Failed to allocate memory for kernel compilation\n");
+        exit(1);
+    }
+    ker_code_size = fread(ker_src_str, 1, KERNEL_SIZE, fPtr);
     fclose(fPtr);
 
     school->program=clCreateProgramWithSource(school->context, 1, (const char **)&ker_src_str,	
     (const size_t *)&ker_code_size, &ret);
     clBuildProgram(school->program, 1, &dev_id, "", NULL, NULL);
-    ker =clCreateKernel(school->program, "psocl", &ret);
 
     school->dimnum=dimensionnum;
     school->partnum=partnum;
@@ -73,6 +80,22 @@ clswarm* clinitswarm( int dimensionnum, int partnum, float w) {
             exit(1);
         }
     }    
+
+    school->clpartnum=clCreateBuffer(school->context, CL_MEM_READ_WRITE, sizeof(int), &(school->partnum), &(school->ret));
+    school->cldimnum=clCreateBuffer(school->context, CL_MEM_READ_WRITE, sizeof(int), &(school)->dimnum), &(school->ret));
+    school->clgbest=clCreateBuffer(school->context, CL_MEM_READ_WRITE, sizeof(float)*school->dimnum, &(school)->gbest), &(school->ret));
+    school->cldimnum=clCreateBuffer(school->context, CL_MEM_READ_WRITE, sizeof(float), &(school)->dimnum), &(school->ret));
+    school->clgfitness=clCreateBuffer(school->context, CL_MEM_READ_WRITE, sizeof(float), &(school)->gfitness), &(school->ret));
+    school->clw=clCreateBuffer(school->context, CL_MEM_READ_WRITE, sizeof(float), &(school)->w), &(school->ret));
+    school->clschool=clCreateBuffer(school->context, CL_MEM_READ_WRITE, sizeof(clparticle*), &(school)->school), &(school->ret));
+
+    for(i=0;i<partnum;++i){     //get memory for particle data
+        school->school[i].clpresent=clCreateBuffer(school->context, CL_MEM_READ_WRITE, sizeof(float)*school->dimnum,&(school->school[i]->present) &(school->ret));
+        school->school[i].clpbest=clCreateBuffer(school->context, CL_MEM_READ_WRITE, sizeof(float)*school->dimnum,&(school->school[i]->pbest) &(school->ret));
+        school->school[i].v=clCreateBuffer(school->context, CL_MEM_READ_WRITE, sizeof(float)*school->dimnum,&(school->school[i]->v) &(school->ret));
+        school->school[i].clfitness=clCreateBuffer(school->context, CL_MEM_READ_WRITE, sizeof(float),&(school->school[i]->fitness) &(school->ret));
+        school->school[i].clpfitness=clCreateBuffer(school->context, CL_MEM_READ_WRITE, sizeof(float),&(school->school[i]->pfitness) &(school->ret));
+    }  
 
     return school;  //return the constructed swarm
 }
