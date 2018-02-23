@@ -11,6 +11,10 @@ Move swarm object to a swarm * in the libraries
 Note: after doing this, resluts do not seem to be as good as before
 I will need to test this later.
 
+CL flow
+The dev will have to make a swarm, then the library will provide functions that move the
+swarm calculations onto the GPU, and perform them.
+
 Example usage:
      having a line, then having the swarm find the highest point in the that line in a domain.
 

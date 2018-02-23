@@ -25,11 +25,14 @@ typedef struct clparticle {
 } particle;
 
 typedef struct clenv {
+    cl_platform_id=NULL;
     cl_device_id device_id=NULL;
     cl_context context=NULL;
+    cl_uint ret_num_devices;
     cl_command_queue command_queue=NULL;
     cl_int ret;
     cl_program program;
+    clswarm* data;
 }
 
 //struct for the opencl swarm
@@ -40,8 +43,7 @@ typedef struct clswarm {
     cl_mem clgbest, clbounds;
 } clswarm;
 
-//swarm initializaion
-clswarm * clinitswarm(int dimensionnum, int partnum, float w);
+clenv* clinit(int dimensionnum, int partnum, float w);
 
 //swarm particle distribution
 void cldistributeparticles(clswarm * school,float * bounds);
