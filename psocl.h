@@ -20,8 +20,8 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 
 //struct for each particle 
 typedef struct clparticle {
-    cl_float clfitness, clpfitness;
-    cl_mem clpresent, clpbest, clv;
+    cl_int fitness, pfitness;
+    cl_float * present, * pbest, * v;
 } particle;
 
 typedef struct clenv {
@@ -32,17 +32,19 @@ typedef struct clenv {
     cl_command_queue command_queue=NULL;
     cl_int ret;
     cl_program program;
-    clswarm* data;
-}
+	cl_mem gpuherd;
+    clswarm * herd;
+} clenv;
 
 //struct for the opencl swarm
 typedef struct clswarm {
-    clparticle *clschool;
-    cl_int clpartnum, cldimnum;
-    cl_float clgfitness, clw;
-    cl_mem clgbest, clbounds;
+    clparticle *school=NULL;
+    cl_int partnum, dimnum;
+    cl_float gfitness, w;
+    cl_float * gbest=NULL, * bounds=NULL;
 } clswarm;
 
+/// initialize the swarm environment with device information.
 clenv* clinit(int dimensionnum, int partnum, float w);
 
 //swarm particle distribution
