@@ -29,6 +29,10 @@ typedef struct clenv {
       
 } clenv;
 
+///individual swarm data
+/** most of the data will be kept in the GPU for as long
+ * as possible
+ */
 typedef struct clswarm{
      ///global swarm data
     cl_int dimnum, partnum;
@@ -47,7 +51,7 @@ clenv* clinit();
 clswarm * initclswarm(int dimensionnum, int partnum, double w);
 
 //swarm particle distribution
-void cldistributeparticles(clswarm * school,float * bounds);
+void cldistributeparticles(clenv * env,clswarm * school,float * bounds);
 
 //running the swarm
 void clrunswarm(int iterations, clswarm *school,float (*fitness)(float *));

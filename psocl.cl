@@ -9,7 +9,17 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
     
 int get_global_id(int);
 
-__kernel void distrparts(__global int partnum,__global int dimnum, float ** present, ,__global float * bounds, float * delta){
+__kernel void getdelta(__global float * delta, __global float * bounds, int partnum){
+    int i = 2*get_global_id(0);
+
+    if(bounds[i]<bounds[i+1]){  //if the first bound is lower than the next
+		delta[i/2]=(float)((bounds[i+1]-bounds[i])/partnum);    
+    }
+    else{   //if the first bound is higher than the next
+        delta[i/2]=(float)((bounds[i]-bounds[i+1])/partnum);
+    }
+}
+__kernel void distrparts(__global int partnum,__global int dimnum, float * present, ,__global float * bounds, float * delta){
     int i=2*get_global_id(0);	/// 2* particle dimensions
 	int j = get_global_id(1);	/// number of particles
 

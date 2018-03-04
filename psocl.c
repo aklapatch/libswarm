@@ -53,13 +53,32 @@ clswarm * initclswarm(clenv * env,int dimensionnum, int particlenum, float weigh
     herd->partnum=particlenum;
     herd->iw=weight;
 
-    herd->gbest=clCreateBuffer(env->context, CL_MEM_READ_WRITE, dimensionnum*sizeof(float), NULL, &env->ret);
-    herd->pbests=clCreateBuffer(env->context, CL_MEM_READ_WRITE, particlenum*dimensionnum*sizeof(float), NULL, &env->ret);
-    herd->bounds=clCreateBuffer(env->context, CL_MEM_READ_WRITE, 2*dimensionnum*sizeof(float), NULL, &env->ret);
-    herd->presents=clCreateBuffer(env->context, CL_MEM_READ_WRITE, particlenum*dimensionnum*sizeof(float), NULL, &env->ret);
-    herd->pfitnesses=clCreateBuffer(env->context, CL_MEM_READ_WRITE, particlenum*sizeof(float), NULL, &env->ret);
-    herd->fitnesses=clCreateBuffer(env->context, CL_MEM_READ_WRITE, particlenum*sizeof(float), NULL, &env->ret);
-    herd->vs=clCreateBuffer(env->context, CL_MEM_READ_WRITE, particlenum*dimensionnum*sizeof(float), NULL, &env->ret);
-
     return herd;
+}
+
+void cldistributeparticles(clenv * evn,clswarm * herd,float * bounds){
+
+    int i;
+
+    ///get memory for basically everything
+    herd->gbest=clCreateBuffer(env->context, CL_MEM_READ_WRITE, herd->dimnum*sizeof(float), NULL, &env->ret);
+    herd->pbests=clCreateBuffer(env->context, CL_MEM_READ_WRITE, herd->partnum*herd->dimnum*sizeof(float), NULL, &env->ret);
+    herd->bounds=clCreateBuffer(env->context, CL_MEM_READ_WRITE, 2*herd->dimnum*sizeof(float), NULL, &env->ret);
+    herd->presents=clCreateBuffer(env->context, CL_MEM_READ_WRITE, herd->partnum*herd->dimnum*sizeof(float), NULL, &env->ret);
+    herd->pfitnesses=clCreateBuffer(env->context, CL_MEM_READ_WRITE, herd->partnum*sizeof(float), NULL, &env->ret);
+    herd->fitnesses=clCreateBuffer(env->context, CL_MEM_READ_WRITE, herd->partnum*sizeof(float), NULL, &env->ret);
+    herd->vs=clCreateBuffer(env->context, CL_MEM_READ_WRITE, herd->partnum*herd->dimnum*sizeof(float), NULL, &env->ret);
+
+    ///copy the bounds infor the the GPU memory
+    env->ret=clEnqueueWriteBuffer(env->command_queue, herd->bounds, CL_TRUE, 0, 2*herd->dimnum*sizeof(float), bounds, 0, NULL, NULL);
+
+    ///compute the deltas needed for a even, linear distribution
+    cl_float * delta=calloc(herd->dimnum,sizeof(float));
+    if(delta==NULL){
+        printf("Could not get memory for delta array.");
+        exit(1);
+    }
+
+
+
 }
