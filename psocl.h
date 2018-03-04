@@ -18,12 +18,6 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 
 #define PRINTLN printf("line %d\n",__LINE__)
 
-//struct for each particle 
-typedef struct clparticle {
-    cl_int fitness, pfitness;
-    cl_float * present, * pbest, * v;
-} particle;
-
 typedef struct clenv {
     cl_platform_id=NULL;
     cl_device_id device_id=NULL;
@@ -32,20 +26,25 @@ typedef struct clenv {
     cl_command_queue command_queue=NULL;
     cl_int ret;
     cl_program program;
-	cl_mem gpuherd;
-    clswarm * herd;
+      
 } clenv;
 
-//struct for the opencl swarm
-typedef struct clswarm {
-    clparticle *school=NULL;
-    cl_int partnum, dimnum;
-    cl_float gfitness, w;
-    cl_float * gbest=NULL, * bounds=NULL;
-} clswarm;
+typedef struct clswarm{
+     ///global swarm data
+    cl_int dimnum, partnum;
+    cl_float w, gfitness;
+    cl_mem gbest, bounds;
+
+    ///swarm particle data
+    cl_mem presents, pbests, vs;
+    cl_mem fitnesses, pfitnesses; 
+}
 
 /// initialize the swarm environment with device information.
-clenv* clinit(int dimensionnum, int partnum, float w);
+clenv* clinit();
+
+///get the swarm data
+clswarm * initclswarm(int dimensionnum, int partnum, double w);
 
 //swarm particle distribution
 void cldistributeparticles(clswarm * school,float * bounds);
