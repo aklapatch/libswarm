@@ -32,7 +32,7 @@ typedef struct clenv {
 typedef struct clswarm{
      ///global swarm data
     cl_int dimnum, partnum;
-    cl_float w, gfitness;
+    cl_float iw, gfitness;
     cl_mem gbest, bounds;
 
     ///swarm particle data
