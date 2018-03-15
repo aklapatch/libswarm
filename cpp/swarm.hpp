@@ -18,6 +18,9 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #define DEFAULT_PARTNUM 100
 #define DEFAULT_W 1.5
 
+#define C1 1.492
+#define C2 2
+
 ///there is no particle class, the swarm class has all the data
 ///that might change later on
 class swarm {
@@ -34,7 +37,7 @@ class swarm {
         float w;
 
         ///particle data
-        std::vector<double> *presents, *pbests, *pfitnesses, *fitnesses;
+        std::vector<double> *presents, *pbests, *pfitnesses, *fitnesses, *v;
 
 
     public:
@@ -54,12 +57,13 @@ class swarm {
         void setdimnum(int);
 
         ///sets inertial weight
-        void setweight(int);
+        void setweight(float);
 
-        /// sets upper and lower bounds
+        /// sets upper and lower bounds and distributes linearly between them
         void distribute(std::vector<double> , std::vector<double> );
 
-        void update(int);
+        /// updates (int) number of times with *fitness as a fitness function
+        void update(int, double (*fitness)(std::vector<double>) );
 
         ///returns the best position in the swarm.
         std::vector<double> getgbest();
