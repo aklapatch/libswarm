@@ -28,7 +28,7 @@ class swarm {
         int partnum=DEFAULT_PARTNUM, dimnum=DEFAULT_DIM;
 
         ///best particle dimensions, its fitness, swarm bounds
-        std::vector<double> *gbest, *upperbound, *lowerbound;
+        std::vector<double> gbest, upperbound, lowerbound;
 
         double gfitness;
 
@@ -36,7 +36,8 @@ class swarm {
         float w=DEFAULT_W, c1=C1, c2=C2;
 
         ///particle data
-        std::vector<double> *presents, *pbests, *pfitnesses, *fitnesses, *v;
+        std::vector<std::vector<double>> presents, pbests,v;
+        std::vector<double> pfitnesses, fitnesses;
 
 
     public:
@@ -69,6 +70,9 @@ class swarm {
 
         ///returns the best position in the swarm.
         std::vector<double> getgbest();
+
+        ///returns the fitness of the best particle
+        double getgfitness();
 };
 
 #endif

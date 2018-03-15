@@ -18,26 +18,19 @@ swarm::swarm(){
     w = DEFAULT_W;
 
     
-    ///get the gbest coordinates for the swarm
-    gbest= new std::vector<double>;
-    gbest->resize(DEFAULT_DIM);
-
-    ///get the particle fitness array for the swarm and set its size
-    pfitnesses= new std::vector<double>;
-    pfitnesses->resize(DEFAULT_PARTNUM);
-
-    ///get the finess array for the swarm and set its size
-    fitnesses= new std::vector<double>;
-    fitnesses->resize(DEFAULT_PARTNUM);
-
-    ///get the particle position and best coordinates for the swarm
-    presents= new std::vector<double>[DEFAULT_PARTNUM];
-    pbests= new std::vector<double>[DEFAULT_PARTNUM];
-
-    ///get a v for each particle
-    v=new std::vector<double>[DEFAULT_PARTNUM];
+  
+    ///set all vector sizes to default sizes
+    gbest.resize(DEFAULT_DIM);
     
-    ///set all arrays to the proper size
+    pfitnesses.resize(DEFAULT_PARTNUM);
+    fitnesses.resize(DEFAULT_PARTNUM);
+    
+    pbests.resize(DEFAULT_PARTNUM);
+    presents.resize(DEFAULT_PARTNUM);    
+    v.resize(DEFAULT_PARTNUM);
+
+
+  
     int i;
     for(i=0;i<DEFAULT_PARTNUM;++i){
         presents[i].resize(DEFAULT_DIM);
@@ -54,26 +47,16 @@ swarm::swarm(int numdims, int numparts,float inw){
     dimnum=numdims;
     w= inw;
 
+    ///set all vector sizes to default sizes
+    gbest.resize(dimnum);
     
-    ///get the gbest coordinates for the swarm
-    gbest= new std::vector<double>;
-    gbest->resize(dimnum);
-
-    ///get the particle fitness array for the swarm and set its size
-    pfitnesses= new std::vector<double>;
-    pfitnesses->resize(partnum);
-
-    ///get the finess array for the swarm and set its size
-    fitnesses= new std::vector<double>;
-    fitnesses->resize(partnum);
-
-    ///get the particle position and best coordinates for the swarm
-    presents= new std::vector<double>[partnum];
-    pbests= new std::vector<double>[partnum];
-
-    ///get a v for each particle
-    v=new std::vector<double>[dimnum];
+    pfitnesses.resize(numparts);
+    fitnesses.resize(numparts);
     
+    pbests.resize(numparts);
+    presents.resize(numparts);    
+    v.resize(numparts);
+
     ///set all arrays to the proper size
     int i;
     for(i=0;i<partnum;++i){
@@ -84,28 +67,21 @@ swarm::swarm(int numdims, int numparts,float inw){
 }
 
 swarm::~swarm(){
-    delete gbest;
-    delete pfitnesses;
-    delete fitnesses;
-    delete [] presents;
-    delete [] pbests;
-    delete [] v;
+
 }
 
 void swarm::setpartnum(int num){
+    ///reset particle swarm #
     partnum=num;
     
-    pfitnesses->resize(partnum);
-    fitnesses->resize(partnum);
+    ///resize all internal vectors
+    pfitnesses.resize(partnum);
+    fitnesses.resize(partnum);
+    pbests.resize(partnum);
+    presents.resize(partnum);    
+    v.resize(partnum);
     
-    delete [] presents;
-    delete [] pbests;
-    delete [] v;
-    
-    presents= new std::vector<double>[partnum];
-    pbests= new std::vector<double>[partnum];
-    v=new std::vector<double>[dimnum];
-    
+    ///ensure all contained vectors are the right size
     int i;
     for(i=0;i<partnum;++i){
         presents[i].resize(dimnum);
@@ -117,7 +93,7 @@ void swarm::setpartnum(int num){
 void swarm::setdimnum(int num){
     dimnum=num;
     
-    gbest->resize(dimnum);
+    gbest.resize(dimnum);
     
     int i;
     for(i=0;i<partnum;++i){
@@ -140,22 +116,21 @@ void swarm::setconstants(float nc1,float nc2){
 
 void swarm::distribute(std::vector<double> lower, std::vector<double> upper){
     
-    upperbound= new std::vector<double>;
-    *upperbound=upper;
-    
-    lowerbound=new std::vector<double>;
-    *lowerbound=lower;
+    ///store bounds for later
+    upperbound=upper;
+    lowerbound=lower;
     
     int i,j;
     
-    double * delta= new double [dimnum];
+    std::vector<double> delta;
+    delta.resize(dimnum);
     
     for(i=0; i<dimnum; ++i){
-        delta[i]=(upperbound[0][i] - lowerbound[0][i])/(partnum-1);
-        gbest[0][i]=0;
+        delta[i]=(upperbound[i] - lowerbound[i])/(partnum-1);
+        gbest[i]=0;
         
         for(j=0;j<partnum;++j){
-            presents[j][i]=j*delta[i] + lowerbound[0][i];
+            presents[j][i]=j*delta[i] + lowerbound[i];
             pbests[i][j]=0;
             v[j][i]=0;
         }
@@ -170,34 +145,42 @@ void swarm::update(int times, double (*fitness) (std::vector<double>)){
     std::random_device gen;
     std:: uniform_real_distribution<double> distr(1,0);
 
-
     while(times--){
         for(i=0;i<partnum;++i){
             for(j=0;j<dimnum;++j){
 
                 ///update velocity                
-                v[i][j]=w*v[i][j] + c1*distr(gen)*(pbests[i][j]-presents[i][j]) +c2*distr(gen)*(gbest[0][j]-presents[i][j]);
+                v[i][j]=w*v[i][j] + c1*distr(gen)*(pbests[i][j]-presents[i][j]) +c2*distr(gen)*(gbest[j]-presents[i][j]);
 
                 ///update position
                 presents[i][j]=presents[i][j]+v[i][j];
 
+                ///if it exceeds the bounds
+                if(presents[i][j]>upperbound[j]){
+                    presents[i][j]=upperbound[j];
+
+                ///if it goes below the lower bound
+                } else if (presents[i][j]< lowerbound[j]){
+                    presents[i][j]=lowerbound[j];
+                }
+
             }
 
-            fitnesses[0][i] = fitness(presents[i]);
+            fitnesses[i] = fitness(presents[i]);
 
 
-            if(fitnesses[0][i]>pfitnesses[0][i]){
-                pfitnesses[0][i]=fitnesses[0][i];
+            if(fitnesses[i]>pfitnesses[i]){
+                pfitnesses[i]=fitnesses[i];
 
                 for(j=0;j<dimnum;++j){
                     pbests[i][j]=presents[i][j];
                 }
 
-                if(fitnesses[0][i]>gfitness){
-                    gfitness=fitnesses[0][i];
+                if(fitnesses[i]>gfitness){
+                    gfitness=fitnesses[i];
 
                     for(j=0;j<dimnum;++j){
-                    gbest[0][j]=presents[i][j];
+                    gbest[j]=presents[i][j];
                     }
                 }
 
@@ -206,7 +189,12 @@ void swarm::update(int times, double (*fitness) (std::vector<double>)){
     }
 }
 
+///returns best position of the swarm
 std::vector<double> swarm::getgbest(){
-    return gbest[0];
+    return gbest;
 }   
 
+///returns the fitness of the best particle
+double swarm::getgfitness(){
+    return gfitness;
+}
