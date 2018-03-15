@@ -11,7 +11,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #define _SWARM_HPP_
 
 #include <vector>
-#include <iostream>
+#include <cmath>
 #include <random>
 
 #define DEFAULT_DIM 1
@@ -30,7 +30,8 @@ class swarm {
         ///best particle dimensions, its fitness, swarm bounds
         std::vector<double> gbest, upperbound, lowerbound;
 
-        double gfitness;
+        ///set that so all fitness numbers will show up
+        double gfitness=-HUGE_VAL;
 
         ///inertial weight and 2 behavioral constants
         float w=DEFAULT_W, c1=C1, c2=C2;
@@ -38,7 +39,6 @@ class swarm {
         ///particle data
         std::vector<std::vector<double>> presents, pbests,v;
         std::vector<double> pfitnesses, fitnesses;
-
 
     public:
         ///defaults to 100 particles and 1 dimension

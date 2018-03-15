@@ -8,7 +8,7 @@
 #include <vector>
 
 double fitness(std::vector<double> in){
-	return -((in[0]-2)*(in[0]-2));
+	return -(in[0]-2)*(in[0]-2);
 }
 
 int main(){

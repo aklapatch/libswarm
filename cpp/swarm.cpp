@@ -9,6 +9,8 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 
 #include "swarm.hpp"
 
+#include <iostream>
+
 ///sets dimensions to 1 and number of particles to 100 and w to 1.5
 swarm::swarm(){
 
@@ -16,8 +18,7 @@ swarm::swarm(){
     partnum=DEFAULT_PARTNUM;
     dimnum=DEFAULT_DIM;
     w = DEFAULT_W;
-
-    
+    gfitness=-HUGE_VAL;    
   
     ///set all vector sizes to default sizes
     gbest.resize(DEFAULT_DIM);
@@ -36,6 +37,7 @@ swarm::swarm(){
         presents[i].resize(DEFAULT_DIM);
         pbests[i].resize(DEFAULT_DIM);
         v[i].resize(DEFAULT_DIM);
+        pfitnesses[i]=-HUGE_VAL;
     }
 }
 
@@ -46,6 +48,7 @@ swarm::swarm(int numdims, int numparts,float inw){
     partnum=numparts;
     dimnum=numdims;
     w= inw;
+    gfitness=-HUGE_VAL; 
 
     ///set all vector sizes to default sizes
     gbest.resize(dimnum);
@@ -63,6 +66,7 @@ swarm::swarm(int numdims, int numparts,float inw){
         presents[i].resize(dimnum);
         pbests[i].resize(dimnum);
         v[i].resize(dimnum);
+        pfitnesses[i]=-HUGE_VAL;
     }
 }
 
@@ -117,7 +121,7 @@ void swarm::setconstants(float nc1,float nc2){
     c2=nc2;
 }
 
-
+///distribute particle linearly from lower bound to upper bound
 void swarm::distribute(std::vector<double> lower, std::vector<double> upper){
     
     ///store bounds for later
@@ -135,7 +139,7 @@ void swarm::distribute(std::vector<double> lower, std::vector<double> upper){
         
         for(j=0;j<partnum;++j){
             presents[j][i]=j*delta[i] + lowerbound[i];
-            pbests[i][j]=0;
+            pbests[j][i]=0;
             v[j][i]=0;
         }
     }
@@ -168,7 +172,6 @@ void swarm::update(int times, double (*fitness) (std::vector<double>)){
                 } else if (presents[i][j]< lowerbound[j]){
                     presents[i][j]=lowerbound[j];
                 }
-
             }
 
             ///get fitness
@@ -179,7 +182,7 @@ void swarm::update(int times, double (*fitness) (std::vector<double>)){
                 
                 ///set new fitness
                 pfitnesses[i]=fitnesses[i];
-
+                
                 ///store position
                 for(j=0;j<dimnum;++j){
                     pbests[i][j]=presents[i][j];
@@ -196,7 +199,6 @@ void swarm::update(int times, double (*fitness) (std::vector<double>)){
                         gbest[j]=presents[i][j];
                     }
                 }
-
             }
         }
     }
