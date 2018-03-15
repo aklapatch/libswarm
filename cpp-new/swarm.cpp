@@ -11,7 +11,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 
 #include <iostream>
 
-///sets dimensions to 1 and number of particles to 100 and w to 1.5
+///sets dimensions to 1 and number of particles to 100 and w to 1.0
 swarm::swarm(){
 
     ///set swarm characteristics to defaults

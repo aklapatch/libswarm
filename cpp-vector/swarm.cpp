@@ -213,3 +213,8 @@ std::vector<double> swarm::getgbest(){
 double swarm::getgfitness(){
     return gfitness;
 }
+
+std::vector<double> getvec(int size){
+    std::vector<double> ret (size);
+    return ret;
+}

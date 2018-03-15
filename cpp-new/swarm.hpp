@@ -28,7 +28,7 @@ class swarm {
         int partnum=DEFAULT_PARTNUM, dimnum=DEFAULT_DIM;
 
         ///best particle dimensions, its fitness, swarm bounds
-        std::vector<double> gbest, upperbound, lowerbound;
+        double * gbest, * upperbound, * lowerbound;
 
         ///set that so all fitness numbers will show up
         double gfitness=-HUGE_VAL;
