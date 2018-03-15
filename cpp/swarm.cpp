@@ -15,7 +15,7 @@ swarm::swarm(){
     ///set swarm characteristics to defaults
     partnum=DEFAULT_PARTNUM;
     dimnum=DEFAULT_DIM;
-    w= DEFAULT_W;
+    w = DEFAULT_W;
 
     
     ///get the gbest coordinates for the swarm
@@ -132,6 +132,12 @@ void swarm::setweight(float nw){
     w=nw;
 }
 
+void swarm::setconstants(float nc1,float nc2){
+    c1=nc1;
+    c2=nc2;
+}
+
+
 void swarm::distribute(std::vector<double> lower, std::vector<double> upper){
     
     upperbound= new std::vector<double>;
@@ -170,7 +176,7 @@ void swarm::update(int times, double (*fitness) (std::vector<double>)){
             for(j=0;j<dimnum;++j){
 
                 ///update velocity                
-                v[i][j]=w*v[i][j] + C1*distr(gen)*(pbests[i][j]-presents[i][j]) +C2*distr(gen)*(gbest[0][j]-presents[i][j]);
+                v[i][j]=w*v[i][j] + c1*distr(gen)*(pbests[i][j]-presents[i][j]) +c2*distr(gen)*(gbest[0][j]-presents[i][j]);
 
                 ///update position
                 presents[i][j]=presents[i][j]+v[i][j];

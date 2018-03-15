@@ -16,8 +16,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 
 #define DEFAULT_DIM 1
 #define DEFAULT_PARTNUM 100
-#define DEFAULT_W 1.5
-
+#define DEFAULT_W 1
 #define C1 1.492
 #define C2 2
 
@@ -26,15 +25,15 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 class swarm {
     private:
         /// no. of particles, no. of dimensions
-        int partnum, dimnum;
+        int partnum=DEFAULT_PARTNUM, dimnum=DEFAULT_DIM;
 
         ///best particle dimensions, its fitness, swarm bounds
         std::vector<double> *gbest, *upperbound, *lowerbound;
 
         double gfitness;
 
-        ///inertial weight
-        float w;
+        ///inertial weight and 2 behavioral constants
+        float w=DEFAULT_W, c1=C1, c2=C2;
 
         ///particle data
         std::vector<double> *presents, *pbests, *pfitnesses, *fitnesses, *v;
@@ -58,6 +57,9 @@ class swarm {
 
         ///sets inertial weight
         void setweight(float);
+
+        ///sets 2 behavioral constants of the swarm
+        void setconstants(float, float);
 
         /// sets upper and lower bounds and distributes linearly between them
         void distribute(std::vector<double> , std::vector<double> );
