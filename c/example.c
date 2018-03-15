@@ -6,7 +6,6 @@ of a function
 #include<stdio.h>
 #include<stdlib.h>
 #include<time.h>
-#include"pso.h"
 #include <math.h>
 
 //example one dimension fitness function
@@ -15,17 +14,5 @@ double fitness(double* input) {
 }
 
 int main(){
-    swarm *one = initswarm(1,1000,1);
-    double *answer;
-    double bound[2]={-100,100};
 
-    distributeparticles(one,bound);
-
-    runswarm(2000,one,fitness);
-
-    answer=returnbest(one);
-
-    printf("Answer is %f\n",answer[0]);
-
-    releaseswarm(one);
 }

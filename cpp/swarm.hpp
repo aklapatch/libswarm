@@ -44,7 +44,7 @@ class swarm {
         ///defaults to 100 particles and 1 dimension
         swarm();
 
-        ///sets no. particles and no. dimensions
+        ///sets no. particles and no. dimensions and w
         swarm(int, int,float);
 
         ///frees all swarm memory
