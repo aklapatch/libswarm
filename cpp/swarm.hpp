@@ -63,6 +63,7 @@ class swarm {
         void setconstants(float, float);
 
         /// sets upper and lower bounds and distributes linearly between them
+        /** lower bound is first argument, upper bound is second argument */
         void distribute(std::vector<double> , std::vector<double> );
 
         /// updates (int) number of times with *fitness as a fitness function

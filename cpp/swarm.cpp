@@ -30,7 +30,7 @@ swarm::swarm(){
     v.resize(DEFAULT_PARTNUM);
 
 
-  
+    ///set all vectors to proper dimensions
     int i;
     for(i=0;i<DEFAULT_PARTNUM;++i){
         presents[i].resize(DEFAULT_DIM);
@@ -70,6 +70,7 @@ swarm::~swarm(){
 
 }
 
+///sets number of particles
 void swarm::setpartnum(int num){
     ///reset particle swarm #
     partnum=num;
@@ -90,7 +91,9 @@ void swarm::setpartnum(int num){
     }
 }
 
+///sets number of dimensions
 void swarm::setdimnum(int num){
+    
     dimnum=num;
     
     gbest.resize(dimnum);
@@ -100,14 +103,15 @@ void swarm::setdimnum(int num){
         presents[i].resize(dimnum);
         pbests[i].resize(dimnum);
         v[i].resize(dimnum);
-    }
-    
+    }  
 }
 
+///set inertial weight
 void swarm::setweight(float nw){
     w=nw;
 }
 
+///set behavioral constants
 void swarm::setconstants(float nc1,float nc2){
     c1=nc1;
     c2=nc2;
@@ -137,6 +141,7 @@ void swarm::distribute(std::vector<double> lower, std::vector<double> upper){
     }
 }
 
+///run the position and velocity update equation
 void swarm::update(int times, double (*fitness) (std::vector<double>)){
         
     int i,j;
@@ -166,21 +171,29 @@ void swarm::update(int times, double (*fitness) (std::vector<double>)){
 
             }
 
+            ///get fitness
             fitnesses[i] = fitness(presents[i]);
 
-
+            ///if the fitness is better than the particle best store the best position
             if(fitnesses[i]>pfitnesses[i]){
+                
+                ///set new fitness
                 pfitnesses[i]=fitnesses[i];
 
+                ///store position
                 for(j=0;j<dimnum;++j){
                     pbests[i][j]=presents[i][j];
                 }
 
+                ///if fitness is better than global fitness
                 if(fitnesses[i]>gfitness){
+                    
+                    ///set new fitness
                     gfitness=fitnesses[i];
 
+                    ///store best position
                     for(j=0;j<dimnum;++j){
-                    gbest[j]=presents[i][j];
+                        gbest[j]=presents[i][j];
                     }
                 }
 
