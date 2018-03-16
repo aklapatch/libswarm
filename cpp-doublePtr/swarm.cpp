@@ -20,23 +20,27 @@ swarm::swarm(){
     w = DEFAULT_W;
     gfitness=-HUGE_VAL;    
   
-    ///set all vector sizes to default sizes
-    gbest = new double[DEFAULT_DIM];
+    try {
+        ///set all vector sizes to default sizes
+        gbest = new double[DEFAULT_DIM];
     
-    pfitnesses = new double [DEFAULT_PARTNUM];
-    fitnesses= new double [DEFAULT_PARTNUM];
+        pfitnesses = new double [DEFAULT_PARTNUM];
+        fitnesses= new double [DEFAULT_PARTNUM];
     
-    pbests= new double * [DEFAULT_PARTNUM];
-    presents= new double * [DEFAULT_PARTNUM];    
-    v= new double * [DEFAULT_PARTNUM];
+        pbests= new double * [DEFAULT_PARTNUM];
+        presents= new double * [DEFAULT_PARTNUM];    
+        v= new double * [DEFAULT_PARTNUM];
 
-    ///set all vectors to proper dimensions
-    int i;
-    for(i=0;i<DEFAULT_PARTNUM;++i){
-        presents[i]= new double [DEFAULT_DIM];
-        pbests[i]= new double [DEFAULT_DIM];
-        v[i]= new double [DEFAULT_DIM];
-        pfitnesses[i]=-HUGE_VAL;
+        ///set all vectors to proper dimensions
+        int i;
+        for(i=0;i<DEFAULT_PARTNUM;++i){
+            presents[i]= new double [DEFAULT_DIM];
+            pbests[i]= new double [DEFAULT_DIM];
+            v[i]= new double [DEFAULT_DIM];
+            pfitnesses[i]=-HUGE_VAL;
+        }
+    } catch (std::bad_alloc& ac) {
+        std::cerr << "Memory allocation failed: "<<ac.what() <<std::endl;
     }
 }
 
@@ -49,23 +53,27 @@ swarm::swarm(int numdims, int numparts,float inw){
     w = DEFAULT_W;
     gfitness=-HUGE_VAL;    
   
-    ///set all vector sizes to default sizes
-    gbest = new double[dimnum];
-    
-    pfitnesses = new double [numparts];
-    fitnesses= new double [numparts];
-    
-    pbests= new double * [numparts];
-    presents= new double * [numparts];    
-    v= new double * [numparts];
+    try {
+        ///set all vector sizes to default sizes
+        gbest = new double[dimnum];
+        
+        pfitnesses = new double [numparts];
+        fitnesses= new double [numparts];
+        
+        pbests= new double * [numparts];
+        presents= new double * [numparts];    
+        v= new double * [numparts];
 
-    ///set all vectors to proper dimensions
-    while(numparts--){
-        presents[numparts]= new double [dimnum];
-        pbests[numparts]= new double [dimnum];
-        v[numparts]= new double [dimnum];
-        pfitnesses[numparts]=-HUGE_VAL;
-    }
+        ///set all vectors to proper dimensions
+        while(numparts--){
+            presents[numparts]= new double [dimnum];
+            pbests[numparts]= new double [dimnum];
+            v[numparts]= new double [dimnum];
+            pfitnesses[numparts]=-HUGE_VAL;
+        }
+    } catch (std::bad_alloc& ac) {
+        std::cerr << "Memory allocation failed: "<<ac.what() <<std::endl;
+    }   
 }
 
 ///deallocate all memory
@@ -84,8 +92,6 @@ swarm::~swarm(){
     delete [] pbests;
     delete [] presents;
     delete [] v;
-
-
 }
 
 ///sets number of particles
@@ -104,24 +110,27 @@ void swarm::setpartnum(int num){
     delete [] presents;
     delete [] v;
 
+    try {
+        ///reset particle swarm #
+        partnum=num;
 
-    ///reset particle swarm #
-    partnum=num;
+        pfitnesses = new double [num];
+        fitnesses= new double [num];
+        
+        pbests= new double * [num];
+        presents= new double * [num];    
+        v= new double * [num];
 
-    pfitnesses = new double [num];
-    fitnesses= new double [num];
-    
-    pbests= new double * [num];
-    presents= new double * [num];    
-    v= new double * [num];
-
-    ///set all vectors to proper dimensions
-    while(num--){
-        presents[num]= new double [dimnum];
-        pbests[num]= new double [dimnum];
-        v[num]= new double [dimnum];
-        pfitnesses[num]=-HUGE_VAL;
-    }
+        ///set all vectors to proper dimensions
+        while(num--){
+            presents[num]= new double [dimnum];
+            pbests[num]= new double [dimnum];
+            v[num]= new double [dimnum];
+            pfitnesses[num]=-HUGE_VAL;
+        }
+    } catch (std::bad_alloc& ac) {
+        std::cerr << "Memory allocation failed: "<<ac.what() <<std::endl;
+    }    
 }
 
 ///sets number of dimensions
@@ -129,19 +138,24 @@ void swarm::setdimnum(int num){
     
     dimnum=num;
     
-    delete [] gbest;
-    gbest = new double [num];
-    
-    int i;
-    for(i=0;i<partnum;++i){
-        delete [] presents[i];
-        delete [] pbests[i];
-        delete [] v[i];
+    try {    
 
-        presents[i] = new double [num];
-        pbests[i] = new double [num];
-        v[i] = new double [num];
-    }  
+        delete [] gbest;
+        gbest = new double [num];
+        
+        int i;
+        for(i=0;i<partnum;++i){
+            delete [] presents[i];
+            delete [] pbests[i];
+            delete [] v[i];
+
+            presents[i] = new double [num];
+            pbests[i] = new double [num];
+            v[i] = new double [num];
+        }  
+    } catch (std::bad_alloc& ac) {
+        std::cerr << "Memory allocation failed: "<<ac.what() <<std::endl;
+    } 
 }
 
 ///set inertial weight
@@ -164,20 +178,25 @@ void swarm::distribute(double * lower, double * upper){
     
     int i,j;
     
-    double * delta = new double [dimnum];
-    
-    for(i=0; i<dimnum; ++i){
-        delta[i]=(upperbound[i] - lowerbound[i])/(partnum-1);
-        gbest[i]=0;
+    try{
+        double * delta = new double [dimnum];
         
-        for(j=0;j<partnum;++j){
-            presents[j][i]=j*delta[i] + lowerbound[i];
-            pbests[j][i]=0;
-            v[j][i]=0;
+        for(i=0; i<dimnum; ++i){
+            delta[i]=(upperbound[i] - lowerbound[i])/(partnum-1);
+            gbest[i]=0;
+            
+            for(j=0;j<partnum;++j){
+                presents[j][i]=j*delta[i] + lowerbound[i];
+                pbests[j][i]=0;
+                v[j][i]=0;
+            }
         }
-    }
 
-    delete [] delta;
+        delete [] delta;
+
+    } catch (std::bad_alloc& ac) {
+        std::cerr << "Memory allocation failed: "<<ac.what() <<std::endl;
+    } 
 }
 
 ///run the position and velocity update equation
