@@ -41,6 +41,7 @@ swarm::swarm(){
         }
     } catch (std::bad_alloc& ac) {
         std::cerr << "Memory allocation failed: "<<ac.what() <<std::endl;
+        exit(1);
     }
 }
 
@@ -73,6 +74,7 @@ swarm::swarm(int numdims, int numparts,float inw){
         }
     } catch (std::bad_alloc& ac) {
         std::cerr << "Memory allocation failed: "<<ac.what() <<std::endl;
+        exit(1);
     }   
 }
 
@@ -130,6 +132,7 @@ void swarm::setpartnum(int num){
         }
     } catch (std::bad_alloc& ac) {
         std::cerr << "Memory allocation failed: "<<ac.what() <<std::endl;
+        exit(1);
     }    
 }
 
@@ -155,6 +158,7 @@ void swarm::setdimnum(int num){
         }  
     } catch (std::bad_alloc& ac) {
         std::cerr << "Memory allocation failed: "<<ac.what() <<std::endl;
+        exit(1);
     } 
 }
 
@@ -196,6 +200,7 @@ void swarm::distribute(double * lower, double * upper){
 
     } catch (std::bad_alloc& ac) {
         std::cerr << "Memory allocation failed: "<<ac.what() <<std::endl;
+        exit(1);
     } 
 }
 
