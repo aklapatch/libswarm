@@ -4,7 +4,7 @@ example:
 	g++ example.cpp swarm.cpp -o example.exe
 	
 debug:
-	g++ -c example.cpp swarm.cpp d_example.exe
+	g++ -g example.cpp swarm.cpp -o d_example.exe
 	
 clean:
 	del *.exe || rm *.exe

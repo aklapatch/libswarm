@@ -6,13 +6,21 @@
 #include <vector>
 #include <chrono>
 
+std::vector<double> gecvec(int size){
+    std::vector<double> ret (size);
+    return ret;
+}
+
+#define SIZE 10000000
+
 int main(){
 
     std::vector<double> test (1);
 
     auto start =std::chrono::high_resolution_clock::now();
 
-    test.resize(1000);
+    ///fastestish
+    test.resize(SIZE);
 
     auto finish = std::chrono::high_resolution_clock::now();
 
@@ -22,21 +30,47 @@ int main(){
 
     test.resize(1);
 
-    
+    start =std::chrono::high_resolution_clock::now();
 
-    auto start =std::chrono::high_resolution_clock::now();
+    ///the slowest
+    test=gecvec(SIZE);
 
-    test=gecvec(1000);
-
-    auto finish = std::chrono::high_resolution_clock::now();
+    finish = std::chrono::high_resolution_clock::now();
 
     elapsed = finish-start;
 
     std::cout << "Time for new allocation " << elapsed.count() << " \n";
 
+    test.resize(1);
+
+    start =std::chrono::high_resolution_clock::now();
+
+    ///second slowest
+    std::vector<double> temp (SIZE);
+    test=temp;
+
+    finish = std::chrono::high_resolution_clock::now();
+
+    elapsed = finish-start;
+
+    std::cout << "Time for temp swap " << elapsed.count() << " \n";
+
+    double * testptr= new double[SIZE];
+
+    start =std::chrono::high_resolution_clock::now();
+
+    ///the fastest by an lot of magnitude
+    delete [] testptr;
+    testptr= new double [SIZE];
+
+    finish = std::chrono::high_resolution_clock::now();
+
+    elapsed = finish-start;
+
+    std::cout << "Time for double realloc " << elapsed.count() << " \n";
+
+    delete [] testptr;
+
+
 }
 
-std::vector<double> gecvec(int size){
-    std::vector<double> ret (size);
-    return ret;
-}

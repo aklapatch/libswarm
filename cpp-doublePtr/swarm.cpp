@@ -21,22 +21,21 @@ swarm::swarm(){
     gfitness=-HUGE_VAL;    
   
     ///set all vector sizes to default sizes
-    gbest.resize(DEFAULT_DIM);
+    gbest = new double[DEFAULT_DIM];
     
-    pfitnesses.resize(DEFAULT_PARTNUM);
-    fitnesses.resize(DEFAULT_PARTNUM);
+    pfitnesses = new double [DEFAULT_PARTNUM];
+    fitnesses= new double [DEFAULT_PARTNUM];
     
-    pbests.resize(DEFAULT_PARTNUM);
-    presents.resize(DEFAULT_PARTNUM);    
-    v.resize(DEFAULT_PARTNUM);
-
+    pbests= new double * [DEFAULT_PARTNUM];
+    presents= new double * [DEFAULT_PARTNUM];    
+    v= new double * [DEFAULT_PARTNUM];
 
     ///set all vectors to proper dimensions
     int i;
     for(i=0;i<DEFAULT_PARTNUM;++i){
-        presents[i].resize(DEFAULT_DIM);
-        pbests[i].resize(DEFAULT_DIM);
-        v[i].resize(DEFAULT_DIM);
+        presents[i]= new double [DEFAULT_DIM];
+        pbests[i]= new double [DEFAULT_DIM];
+        v[i]= new double [DEFAULT_DIM];
         pfitnesses[i]=-HUGE_VAL;
     }
 }
@@ -45,53 +44,83 @@ swarm::swarm(){
 swarm::swarm(int numdims, int numparts,float inw){
 
     ///set swarm characteristics to defaults
-    partnum=numparts;
+    partnum=DEFAULT_PARTNUM;
     dimnum=numdims;
-    w= inw;
-    gfitness=-HUGE_VAL; 
-
+    w = DEFAULT_W;
+    gfitness=-HUGE_VAL;    
+  
     ///set all vector sizes to default sizes
-    gbest.resize(dimnum);
+    gbest = new double[dimnum];
     
-    pfitnesses.resize(numparts);
-    fitnesses.resize(numparts);
+    pfitnesses = new double [numparts];
+    fitnesses= new double [numparts];
     
-    pbests.resize(numparts);
-    presents.resize(numparts);    
-    v.resize(numparts);
+    pbests= new double * [numparts];
+    presents= new double * [numparts];    
+    v= new double * [numparts];
 
-    ///set all arrays to the proper size
-    int i;
-    for(i=0;i<partnum;++i){
-        presents[i].resize(dimnum);
-        pbests[i].resize(dimnum);
-        v[i].resize(dimnum);
-        pfitnesses[i]=-HUGE_VAL;
+    ///set all vectors to proper dimensions
+    while(numparts--){
+        presents[numparts]= new double [dimnum];
+        pbests[numparts]= new double [dimnum];
+        v[numparts]= new double [dimnum];
+        pfitnesses[numparts]=-HUGE_VAL;
     }
 }
 
+///deallocate all memory
 swarm::~swarm(){
+    
+    delete [] gbest;
+    delete [] pfitnesses;
+    delete [] fitnesses;
+    
+    while(partnum--){
+        delete [] presents[partnum];
+        delete [] pbests[partnum];
+        delete [] v[partnum];
+    }
+
+    delete [] pbests;
+    delete [] presents;
+    delete [] v;
+
 
 }
 
 ///sets number of particles
 void swarm::setpartnum(int num){
+    
+    delete [] pfitnesses;
+    delete [] fitnesses;
+    
+    while(partnum--){
+        delete [] presents[partnum];
+        delete [] pbests[partnum];
+        delete [] v[partnum];
+    }
+
+    delete [] pbests;
+    delete [] presents;
+    delete [] v;
+
+
     ///reset particle swarm #
     partnum=num;
+
+    pfitnesses = new double [num];
+    fitnesses= new double [num];
     
-    ///resize all internal vectors
-    pfitnesses.resize(partnum);
-    fitnesses.resize(partnum);
-    pbests.resize(partnum);
-    presents.resize(partnum);    
-    v.resize(partnum);
-    
-    ///ensure all contained vectors are the right size
-    int i;
-    for(i=0;i<partnum;++i){
-        presents[i].resize(dimnum);
-        pbests[i].resize(dimnum);
-        v[i].resize(dimnum);
+    pbests= new double * [num];
+    presents= new double * [num];    
+    v= new double * [num];
+
+    ///set all vectors to proper dimensions
+    while(num--){
+        presents[num]= new double [dimnum];
+        pbests[num]= new double [dimnum];
+        v[num]= new double [dimnum];
+        pfitnesses[num]=-HUGE_VAL;
     }
 }
 
@@ -100,13 +129,18 @@ void swarm::setdimnum(int num){
     
     dimnum=num;
     
-    gbest.resize(dimnum);
+    delete [] gbest;
+    gbest = new double [num];
     
     int i;
     for(i=0;i<partnum;++i){
-        presents[i].resize(dimnum);
-        pbests[i].resize(dimnum);
-        v[i].resize(dimnum);
+        delete [] presents[i];
+        delete [] pbests[i];
+        delete [] v[i];
+
+        presents[i] = new double [num];
+        pbests[i] = new double [num];
+        v[i] = new double [num];
     }  
 }
 
@@ -122,7 +156,7 @@ void swarm::setconstants(float nc1,float nc2){
 }
 
 ///distribute particle linearly from lower bound to upper bound
-void swarm::distribute(std::vector<double> lower, std::vector<double> upper){
+void swarm::distribute(double * lower, double * upper){
     
     ///store bounds for later
     upperbound=upper;
@@ -130,8 +164,7 @@ void swarm::distribute(std::vector<double> lower, std::vector<double> upper){
     
     int i,j;
     
-    std::vector<double> delta;
-    delta.resize(dimnum);
+    double * delta = new double [dimnum];
     
     for(i=0; i<dimnum; ++i){
         delta[i]=(upperbound[i] - lowerbound[i])/(partnum-1);
@@ -143,10 +176,12 @@ void swarm::distribute(std::vector<double> lower, std::vector<double> upper){
             v[j][i]=0;
         }
     }
+
+    delete [] delta;
 }
 
 ///run the position and velocity update equation
-void swarm::update(int times, double (*fitness) (std::vector<double>)){
+void swarm::update(int times, double (*fitness) (double*)){
         
     int i,j;
 
@@ -205,7 +240,7 @@ void swarm::update(int times, double (*fitness) (std::vector<double>)){
 }
 
 ///returns best position of the swarm
-std::vector<double> swarm::getgbest(){
+double * swarm::getgbest(){
     return gbest;
 }   
 
