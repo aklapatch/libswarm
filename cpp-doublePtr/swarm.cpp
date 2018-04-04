@@ -49,7 +49,7 @@ swarm::swarm(){
 swarm::swarm(int numdims, int numparts,float inw){
 
     ///set swarm characteristics to defaults
-    partnum=DEFAULT_PARTNUM;
+    partnum=numparts;
     dimnum=numdims;
     w = DEFAULT_W;
     gfitness=-HUGE_VAL;    

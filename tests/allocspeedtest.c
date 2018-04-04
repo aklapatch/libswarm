@@ -41,8 +41,8 @@ int main() {
 	fclose(fp);
 	
 	///get device info
-	ret = clGetPlatformIDs(1, &platform_id, &ret_num_platforms);	
-	ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU, 1, &device_id, &ret_num_devices);
+	ret = clGetPlatformIDs(2, &platform_id, &ret_num_platforms);	
+	ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_ALL, 2, &device_id, &ret_num_devices);
 	
 	///compile kernel and get context
 	context = clCreateContext(NULL, 1, &device_id, NULL, NULL, &ret);

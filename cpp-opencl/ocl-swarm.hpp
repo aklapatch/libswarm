@@ -20,8 +20,6 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include <CL/cl.h>	
 #endif	
 
-#include "error.hpp"
-
 #define PLATFORM_NUM 3
 #define DEVICE_NUM 3
 #define DEFAULT_DIM 1
@@ -35,20 +33,22 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 class swarm {
     private:
         /// no. of particles, no. of dimensions
-        cl_int partnum=DEFAULT_PARTNUM, dimnum=DEFAULT_DIM;
+        unsigned int partnum=DEFAULT_PARTNUM, dimnum=DEFAULT_DIM;
 
         ///best particle dimensions, its fitness, swarm bounds
-        cl_mem gbest, upperbound, lowerbound;
+        cl_mem gbestbuf, upperboundbuf, lowerboundbuf;
 
         ///set that so all fitness numbers will show up
         cl_float gfitness=-HUGE_VAL;
+        cl_mem gfitbuf;
 
         ///inertial weight and 2 behavioral constants
         cl_float w=DEFAULT_W, c1=C1, c2=C2;
+        cl_mem wbuf, c1buf, c2buf;
 
         ///particle data
-        cl_mem presents, pbests, v;
-        cl_mem pfitnesses, fitnesses;
+        cl_mem presentbuf, pbestbuf, vbuf;
+        cl_mem pfitnessbuf, fitnessbuf;
 		
 		///all the opencl stuff
 		cl_platform_id platform_id = NULL;
@@ -66,16 +66,16 @@ class swarm {
         swarm();
 
         ///sets no. particles and no. dimensions and w
-        swarm(int, int,float);
+        swarm(unsigned int, unsigned int,cl_float);
 
         ///frees all swarm memory
         ~swarm();
 
         ///sets the number of particles
-        void setpartnum(int);
+        void setpartnum(unsigned int);
 
         ///sets no. of dimensions
-        void setdimnum(int);
+        void setdimnum(unsigned int);
 
         ///sets inertial weight
         void setweight(cl_float);
