@@ -14,8 +14,6 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include <cmath>
 #include <random>
 
-#include "error.hpp"
-
 #define DEFAULT_DIM 1
 #define DEFAULT_PARTNUM 100
 #define DEFAULT_W 1

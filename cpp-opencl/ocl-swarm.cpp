@@ -7,7 +7,7 @@ code derived from http://www.swarmintelligence.org/tutorials.php
 along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
-#include "swarm.hpp"
+#include "ocl-swarm.hpp"
 
 #include <iostream>
 
@@ -63,7 +63,7 @@ swarm::swarm(){
 }
 
 ///sets dimensions to 1 and number of particles to 100 and w to 1.5
-swarm::swarm(uint numdims, uint numparts,cl_float inw){
+swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
 
     ///set swarm characteristics to defaults
     partnum=numparts;
@@ -182,7 +182,7 @@ void swarm::setpartnum(int num){
 }
 
 ///sets number of dimensions
-void swarm::setdimnum(int num){
+void swarm::setdimnum(unsigned int num){
     
     dimnum=num;
     
