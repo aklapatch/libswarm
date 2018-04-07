@@ -23,18 +23,18 @@ swarm::swarm(){
     c2=C2;
     gfitness=-HUGE_VAL;    
     std::cout << "ret at "<< __LINE__ << " " << ret << "\n";
-    ///get platform information
-    ret = clGetPlatformIDs(1, &platform_id, &ret_num_platforms);
-    std::cout << "ret at "<< __LINE__ << " " << ret << "\n";
-	ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU, 1, &device_id, &ret_num_devices);
+    
+    ///gets up to 3 platforms
+	ret = clGetPlatformIDs(PLATFORM_NUM, &platform_id, &ret_num_platforms);
 	
-    std::cout << "ret at "<< __LINE__ << " " << ret << "\n";
-
-	///get context and command queue
-	context = clCreateContext(NULL, 1, &device_id, NULL, NULL, &ret);
+	///gets up to 3 devices
+	ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_ALL, DEVICE_NUM, &device_id, &ret_num_devices);
+	
+	///gets a context with up to 3 devices
+	context = clCreateContext(NULL, ret_num_devices, &device_id, NULL, NULL, &ret);
+	
+	///get command queue
 	command_queue = clCreateCommandQueue(context, device_id, 0, &ret);
-	
-    std::cout << "ret at "<< __LINE__ << " " << ret << "\n";
 
     char src[KER_SIZE];
 
@@ -47,10 +47,8 @@ swarm::swarm(){
 
 	size_t src_size=fread(src, 1, KER_SIZE, fp);
 	fclose(fp);
-
-    std::cout << "ret at "<< __LINE__ << " " << ret << "\n";
     
-    ///build fresh kernel
+    ///build program
     program = clCreateProgramWithSource(context, 1, (const char **)&src, NULL, &ret);
 		
 	std::cout << "ret at 40 " << ret << "\n";
@@ -61,58 +59,13 @@ swarm::swarm(){
 	
 	distr = clCreateKernel(program, "distribute", &ret);
 
+    cmpre= clCreateKernel(program, "compare", &ret);
 
-    ///open kernel
-	FILE * fp2 = fopen("udpate.cl", "r");
-	if(!fp){
-		fprintf(stderr, "Failed to load kernel.48\n");	
-		exit(1);
-	}	
-
-	src_size=fread(src, 1, KER_SIZE, fp);
-	fclose(fp2);
-    
-    ///build fresh kernel
-    program = clCreateProgramWithSource(context, 1, (const char **)&src, (const size_t *)&src_size, &ret);
-		
-	ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
-
-    std::cout << "ret at 202 " << ret << "\n";
-	
-	updte = clCreateKernel(program, "update", &ret);
+    updte=clCreateKernel(program, "update", &ret);
 
     updte2=clCreateKernel(program, "update2", &ret);
 
-    ///open kernel
-	FILE * fp3 = fopen("compare.cl", "r");
-	if(!fp){
-		fprintf(stderr, "Failed to load kernel.65\n");	
-		exit(1);
-	}	
-
-	src_size=fread(src, 1, KER_SIZE, fp);
-	fclose(fp3);
-    
-    ///build fresh kernel
-    program = clCreateProgramWithSource(context, 1, (const char **)&src, (const size_t *)&src_size, &ret);
-		
-	ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
-	
-	cmpre = clCreateKernel(program, "compare", &ret);
-
     std::cout << "ret at 202 " << ret << "\n";
-	
-	///gets up to 3 platforms
-	ret = clGetPlatformIDs(PLATFORM_NUM, &platform_id, &ret_num_platforms);
-	
-	///gets up to 3 devices
-	ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_ALL, DEVICE_NUM, &device_id, &ret_num_devices);
-	
-	///gets a context with up to 3 devices
-	context = clCreateContext(NULL, ret_num_devices, &device_id, NULL, NULL, &ret);
-	
-	///get command queue
-	command_queue = clCreateCommandQueue(context, device_id, 0, &ret);
 
     ///create memory buffer fro gfit and write to it
     gfitbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,sizeof(cl_float), NULL, &ret);
@@ -142,7 +95,7 @@ swarm::swarm(){
     cl_float * passin = new cl_float[partnum];
 
     ///make an array to pass -INF values to kernel
-    int i;
+    unsigned int i;
     for(i=0;i<partnum;++i){
         passin[i]=-HUGE_VALF;
     }
@@ -182,83 +135,57 @@ swarm::swarm(){
 ///sets dimensions to 1 and number of particles to 100 and w to 1.5
 swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
 
+    std::cerr << __LINE__ << "ret " << ret << "\n";
     ///set swarm characteristics to defaults
     partnum=numparts;
     dimnum=numdims;
-    w = DEFAULT_W;
+    w = inw;
     gfitness=-HUGE_VAL;    
     c1=C1;
     c2=C2;
 
-    char src[KER_SIZE];
+    std::cerr << __LINE__ << "ret " << ret << "\n";
 
-    ///open kernel
-	FILE * fp = fopen("distribute.cl", "r");
-	if(!fp){
-		fprintf(stderr, "Failed to load kernel.\n");	
-		exit(1);
-	}	
-
-	size_t src_size=fread(src, 1, KER_SIZE, fp);
-	fclose(fp);
-    
-    ///build fresh kernel
-    program = clCreateProgramWithSource(context, 1, (const char **)&src, (const size_t *)&src_size, &ret);
-		
-	ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
-	
-	distr = clCreateKernel(program, "distribute", &ret);
-
-
-    ///open kernel
-	fp = fopen("udpate.cl", "r");
-	if(!fp){
-		fprintf(stderr, "Failed to load kernel.\n");	
-		exit(1);
-	}	
-
-	src_size=fread(src, 1, KER_SIZE, fp);
-	fclose(fp);
-    
-    ///build fresh kernel
-    program = clCreateProgramWithSource(context, 1, (const char **)&src, (const size_t *)&src_size, &ret);
-		
-	ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
-
-    std::cout << "ret at 202 " << ret << "\n";
-	
-	updte = clCreateKernel(program, "update", &ret);
-
-    updte2=clCreateKernel(program, "update2", &ret);
-
-    ///open kernel
-	fp = fopen("compare.cl", "r");
-	if(!fp){
-		fprintf(stderr, "Failed to load kernel.\n");	
-		exit(1);
-	}	
-
-	src_size=fread(src, 1, KER_SIZE, fp);
-	fclose(fp);
-    
-    ///build fresh kernel
-    program = clCreateProgramWithSource(context, 1, (const char **)&src, (const size_t *)&src_size, &ret);
-		
-	ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
-	
-	cmpre = clCreateKernel(program, "compare", &ret);
-  
     ///gets up to 3 platforms
-	ret = clGetPlatformIDs(PLATFORM_NUM, &platform_id, &ret_num_platforms);
+	ret = clGetPlatformIDs(1, &platform_id, &ret_num_platforms);
 	
 	///gets up to 3 devices
-	ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_ALL, DEVICE_NUM, &device_id, &ret_num_devices);
+	ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU, DEVICE_NUM, &device_id, NULL);
 	
 	///gets a context with up to 3 devices
 	context = clCreateContext(NULL, ret_num_devices, &device_id, NULL, NULL, &ret);
 	
 	///get command queue
 	command_queue = clCreateCommandQueue(context, device_id, 0, &ret);
+
+    char src[KER_SIZE];
+
+    ///open kernel
+	FILE * fp = fopen("distribute.cl", "r");
+	if(!fp){
+		fprintf(stderr, "Failed to load kernel. 30\n");	
+		exit(1);
+	}	
+
+	size_t src_size=fread(src, 1, KER_SIZE, fp);
+	fclose(fp);
+    
+    ///build program
+    program = clCreateProgramWithSource(context, 1, (const char **)&src, NULL, &ret);
+		
+	std::cout << "ret at 40 " << ret << "\n";
+    
+    ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
+
+    std::cout << "ret at 44 " << ret << "\n";
+	
+	distr = clCreateKernel(program, "distribute", &ret);
+
+    cmpre= clCreateKernel(program, "compare", &ret);
+
+    updte=clCreateKernel(program, "update", &ret);
+
+    updte2=clCreateKernel(program, "update2", &ret);
 
     ///create memory buffer fro gfit and write to it
     gfitbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,sizeof(cl_float), NULL, &ret);
@@ -290,7 +217,7 @@ swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
     cl_float * passin = new cl_float[partnum];
 
     ///make an array to pass -INF values to kernel
-    int i;
+    unsigned int i;
     for(i=0;i<partnum;++i){
         passin[i]=-HUGE_VALF;
     }
@@ -409,12 +336,8 @@ void swarm::distribute(cl_float * lower, cl_float * upper){
     ret=clEnqueueWriteBuffer(command_queue, upperboundbuf, CL_TRUE, 0, sizeof(cl_float), upper, 0, NULL, NULL);
     ret=clEnqueueWriteBuffer(command_queue, lowerboundbuf, CL_TRUE, 0, sizeof(cl_float), lower, 0, NULL, NULL);
 
-    cl_float * delta = new cl_float[partnum];
-
     ///allocate memory for delta buffer
     cl_mem deltabuf= clCreateBuffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float), NULL, &ret);
-    ret=clEnqueueWriteBuffer(command_queue, deltabuf, CL_TRUE, 0, sizeof(cl_float), lower, 0, NULL, NULL);
-
 
     int oneless=partnum-1;
 
@@ -431,7 +354,7 @@ void swarm::distribute(cl_float * lower, cl_float * upper){
 
     size_t gworksize=partnum*dimnum;
     size_t * lworksize= new size_t[partnum];
-    int i;
+    unsigned int i;
     for(i=0;i<partnum;++i){
         lworksize[i]=(size_t)dimnum;
     }
@@ -448,21 +371,18 @@ void swarm::update(unsigned int times){
     ///ready the parameters for the ndkernelrange
     size_t gworksize=partnum*dimnum;
     size_t * lworksize= new size_t[partnum];
-    int i;
+    unsigned int i;
     for(i=0;i<partnum;++i){
         lworksize[i]=(size_t)dimnum;
     }
 
     ///make random number generator C++11
     std::random_device gen;
-    std::uniform_real_distribution<cl_float> distr(1,0);
+    std::uniform_real_distribution<float> distr(1,0);
 
     ///set up memory to take the random array
-    cl_float * ran = new cl_float [(1+dimnum)*partnum];
-    cl_mem ranbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,(dimnum+1)*partnum*sizeof(cl_float), NULL, &ret);
-
-    ///event for waiting later
-    cl_event ev;
+    cl_float * ran = new float [(1+dimnum)*partnum];
+    cl_mem ranbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,(dimnum+1)*partnum*sizeof(float), NULL, &ret);
 
     std::cout <<__LINE__ << "\n";
 

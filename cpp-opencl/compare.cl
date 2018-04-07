@@ -26,4 +26,3 @@ __kernel void compare( __global float *presents,
         }
     }
 }
-    
