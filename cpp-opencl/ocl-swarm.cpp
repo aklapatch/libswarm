@@ -401,7 +401,7 @@ void swarm::update(cl_uint times, cl_float (*fitness) (cl_float*)){
 
     ///make random number generator C++11
     std::random_device gen;
-    std:: uniform_real_distribution<cl_float> distr(1,0);
+    std::uniform_real_distribution<cl_float> distr(1,0);
 
     ///set up memory to take the random array
     cl_float * ran = new cl_float [dimnum*partnum];
@@ -456,7 +456,6 @@ void swarm::update(cl_uint times, cl_float (*fitness) (cl_float*)){
         ret=clSetKernelArg(updte,5,sizeof(cl_mem), (void *)&dimnumbuf);
 
         ret= clEnqueueTask(command_queue, cmpre,1,&ev,NULL);
-
     }    
 }
 

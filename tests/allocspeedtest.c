@@ -45,7 +45,7 @@ int main() {
 	ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_ALL, 2, &device_id, &ret_num_devices);
 	
 	///compile kernel and get context
-	context = clCreateContext(NULL, 1, &device_id, NULL, NULL, &ret);
+	context = clCreateContext(NULL, 2, &device_id, NULL, NULL, &ret);
 	command_queue = clCreateCommandQueue(context, device_id, 0, &ret);
 	
 	program = clCreateProgramWithSource(context, 1, (const char **)&src, (const size_t *)&src_size, &ret);
@@ -53,8 +53,6 @@ int main() {
 	ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
 	
 	kernel = clCreateKernel(program, "add", &ret);
-	
-	
 	
 	///make result buffer
 	resbuffer=clCreateBuffer(context, CL_MEM_READ_WRITE,sizeof(float), NULL, &ret);
@@ -77,9 +75,7 @@ int main() {
 	PRINTRET;
 	ret=clSetKernelArg(kernel,2,sizeof(cl_mem), (void *)&databuf);
 	PRINTRET;
-	
-	
-	
+		
 	///execute
 	ret = clEnqueueTask(command_queue, kernel, 0, NULL,NULL);
 	
@@ -106,7 +102,4 @@ int main() {
 	free(src);
 	
 	return 0;
-}
-	
-	
-	
+}	
