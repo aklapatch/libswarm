@@ -135,7 +135,7 @@ swarm::swarm(){
 ///sets dimensions to 1 and number of particles to 100 and w to 1.5
 swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
 
-    std::cerr << __LINE__ << "ret " << ret << "\n";
+
     ///set swarm characteristics to defaults
     partnum=numparts;
     dimnum=numdims;
@@ -144,27 +144,31 @@ swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
     c1=C1;
     c2=C2;
 
-    std::cerr << __LINE__ << "ret " << ret << "\n";
-
     ///gets up to 3 platforms
 	ret = clGetPlatformIDs(1, &platform_id, &ret_num_platforms);
+
+    std::cerr << __LINE__ << "ret " << ret << "\n";
 	
-	///gets up to 3 devices
-	ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU, DEVICE_NUM, &device_id, NULL);
+	///gets a  device
+	ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU, 1, &device_id, NULL);
 	
+    std::cerr << __LINE__ << "ret " << ret << "\n";
+
 	///gets a context with up to 3 devices
-	context = clCreateContext(NULL, ret_num_devices, &device_id, NULL, NULL, &ret);
+	context = clCreateContext(NULL, 1, &device_id, NULL, NULL, &ret);
 	
+    std::cerr << __LINE__ << "ret " << ret << "\n";
+
 	///get command queue
 	command_queue = clCreateCommandQueue(context, device_id, 0, &ret);
 
-    char src[KER_SIZE];
+    char * src=new char[KER_SIZE];
 
     ///open kernel
-	FILE * fp = fopen("distribute.cl", "r");
+	FILE * fp = fopen("kernels.cl", "r");
 	if(!fp){
-		fprintf(stderr, "Failed to load kernel. 30\n");	
-		exit(1);
+		fprintf(stderr, "Failed to load kernel.\n");	
+		exit(1); 
 	}	
 
 	size_t src_size=fread(src, 1, KER_SIZE, fp);
@@ -177,6 +181,8 @@ swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
     
     ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
 
+    ret =  clGetProgramBuildInfo(program, device_id,CL_PROGRAM_BUILD_LOG ,KER_SIZE, src,NULL);
+
     std::cout << "ret at 44 " << ret << "\n";
 	
 	distr = clCreateKernel(program, "distribute", &ret);
@@ -186,6 +192,8 @@ swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
     updte=clCreateKernel(program, "update", &ret);
 
     updte2=clCreateKernel(program, "update2", &ret);
+
+    delete [] src;
 
     ///create memory buffer fro gfit and write to it
     gfitbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,sizeof(cl_float), NULL, &ret);
@@ -425,8 +433,8 @@ void swarm::update(unsigned int times){
         ret=clSetKernelArg(updte2,1,sizeof(cl_mem), (void *)&dimnumbuf);
         ret=clSetKernelArg(updte2,2,sizeof(cl_mem), (void *)&pfitnessbuf);
         ret=clSetKernelArg(updte2,3,sizeof(cl_mem), (void *)&presentbuf);
-        ret=clSetKernelArg(updte2,2,sizeof(cl_mem), (void *)&pbestbuf);
-        ret=clSetKernelArg(updte2,2,sizeof(cl_mem), (void *)&partnumbuf);
+        ret=clSetKernelArg(updte2,4,sizeof(cl_mem), (void *)&pbestbuf);
+        ret=clSetKernelArg(updte2,5,sizeof(cl_mem), (void *)&partnumbuf);
 
         ret= clEnqueueNDRangeKernel(command_queue, updte2,1,NULL,(const size_t*)&partnum,NULL,1, &ev,&ev);
 
