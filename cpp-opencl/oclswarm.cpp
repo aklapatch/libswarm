@@ -173,6 +173,7 @@ swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
 
 	size_t src_size=fread(src, 1, KER_SIZE, fp);
 	fclose(fp);
+    puts(src);
     
     ///build program
     program = clCreateProgramWithSource(context, 1, (const char **)&src, NULL, &ret);
@@ -182,6 +183,8 @@ swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
     ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
 
     ret =  clGetProgramBuildInfo(program, device_id,CL_PROGRAM_BUILD_LOG ,KER_SIZE, src,NULL);
+
+    puts(src);
 
     std::cout << "ret at 44 " << ret << "\n";
 	

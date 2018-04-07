@@ -20,7 +20,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include <CL/cl.h>	
 #endif	
 
-#define KER_SIZE 0x1000000
+#define KER_SIZE 0x100000
 #define PLATFORM_NUM 1
 #define DEVICE_NUM 1
 #define DEFAULT_DIM 1
