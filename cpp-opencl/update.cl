@@ -49,6 +49,7 @@ __kernel void update2(__global float * fitnesses,
     int j=get_global_id(0);
     ///if the fitness is better than the pfitness, copy the values to pbest array
     if(fitnesses[j]>pfitnesses[j]){
+        
         int i=*dimnum;
         while(i--){
             pbest[i]=presents[j*partnum+i];

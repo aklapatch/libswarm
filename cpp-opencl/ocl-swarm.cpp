@@ -445,7 +445,7 @@ void swarm::update(cl_uint times, cl_float (*fitness) (cl_float*)){
         ret=clSetKernelArg(updte2,1,sizeof(cl_mem), (void *)&dimnumbuf);
         ret=clSetKernelArg(updte2,2,sizeof(cl_mem), (void *)&pfitnessbuf);
 
-        ret= clEnqueueTask(command_queue, updte2,1,&ev,&ev);
+        ret= clEnqueueNDRangeKernel(command_queue, updte2,1,NULL,(const size_t*)&partnum,NULL,1, &ev,&ev);
 
         ///set kernel args
 	    ret=clSetKernelArg(updte,0,sizeof(cl_mem), (void *)&presentbuf);
