@@ -8,25 +8,23 @@
 
 int get_global_id(int);
 
-__kernel void psoadd( __global float * presents,
+__kernel void update( __global float * presents,
                       __global float * v,
-                      float w, 
+                      __global float * w, 
                       __global float * rand,
                       __global float * pfitnesses,
                       __global float *upperbound,
-					  __global float * gfitness,
                       __global float * pbest, 
                       __global float * gbest, 
                       __global float * lowerbound,
                       __global float * fitnesses, 
-                      int dimnum, 
-                      int partnum) {
+                      __global int * partnum) {
 
     ///id(0) is partnum, id(1) is dimiension number
     //velocity update
-    v[id(0)*partnum +id(1)]=w*v[id(0)*partnum +id(1)]
-     + rand[id(1)]*(pbest[id(0)*partnum +id(1)]- presents[id(0)*partnum +id(1)])
-     + rand[id(1)+1]*(gbest[id(1)]-presents[id(0)*partnum +id(1)]);
+    v[id(0)*partnum +id(1)]=*w*v[id(0)*partnum +id(1)]
+     + rand[id(0)*partnum +id(1)]*(pbest[id(0)*partnum +id(1)]- presents[id(0)*partnum +id(1)])
+     + rand[id(0)*partnum +id(1)+1]*(gbest[id(1)]-presents[id(0)*partnum +id(1)]);
 
     //position update
     presents[id(0)*partnum +id(1)]=presents[id(0)*partnum +id(1)]+v[id(0)*partnum +id(1)];
@@ -42,23 +40,11 @@ __kernel void psoadd( __global float * presents,
           
     //evaluating how fit the particle is with passed function
     fitnesses[id(0)]= fitness(presents);
-            
-    //setting particle's best position based on fitness
-    if(fitnesses[id(0)]>pfitnesses[id(0)]) {
-        int fr;
-        pfitnesses[id(0)] = fitnesses[id(0)];
 
-        for(fr=0;fr<dimnum;++fr){
-            pbest[fr]=presents[id(0)*partnum +fr];
+    ///if the fitness is better than the pfitness, copy the values to pbest array
+    if(fitnesses[id(0)]>pfitnesses[id(0)]){
+        int i=*dimnum;
+        while(i--){
+            pbest[i]=presents[id(0)*partnum+i];
         }
-
-        //setting new best particle in the swarm
-        if(fitnesses[id(0)]>(*gfitness)){
-            *gfitness=fitnesses[id(0)];   
-
-            for(fr=0;fr<dimnum;++fr){
-                gbest[fr]=presents[id(0)*partnum +fr];
-            }
-        }
-    }    
 }

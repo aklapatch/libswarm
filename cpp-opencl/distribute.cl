@@ -9,14 +9,11 @@ int get_global_id(int);
 
 __kernel void distribute(__global float * lowerbound, 
                          __global float * upperbound,
-                         __global float * gbest,
                          __global float * delta,
-                         __global float * presents,
-                         __global float * pbests,
-                         __global float * v,
-                         int partnum){
+                         __global float * presents
+                         __global int * partnum){
     ///id(1) is dimension number, id(0) is particle number
-    delta[id(1)]=(upperbound[id(1)]-lowerbound[id(1)])/(partnum-1);
+    delta[id(1)]=(upperbound[id(1)]-lowerbound[id(1)])/(*partnum);
     ///set initial gbest position to 0
     gbest[id(1)]=0;
 

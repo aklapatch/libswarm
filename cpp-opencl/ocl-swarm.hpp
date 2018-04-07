@@ -20,6 +20,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include <CL/cl.h>	
 #endif	
 
+#define KER_SIZE 0x100000
 #define PLATFORM_NUM 3
 #define DEVICE_NUM 3
 #define DEFAULT_DIM 1
@@ -33,7 +34,8 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 class swarm {
     private:
         /// no. of particles, no. of dimensions
-        unsigned int partnum=DEFAULT_PARTNUM, dimnum=DEFAULT_DIM;
+        cl_uint dimnum=DEFAULT_DIM,partnum=DEFAULT_PARTNUM;
+        cl_mem dimnumbuf, partnumbuf;
 
         ///best particle dimensions, its fitness, swarm bounds
         cl_mem gbestbuf, upperboundbuf, lowerboundbuf;
@@ -56,7 +58,7 @@ class swarm {
 		cl_context context = NULL;
 		cl_command_queue command_queue = NULL;
 		cl_program program = NULL;
-		cl_kernel kernel = NULL;
+		cl_kernel distr = NULL, updte=NULL,cmpre=NULL;
 		cl_uint ret_num_devices;
 		cl_uint ret_num_platforms;
 		cl_int ret;
@@ -88,7 +90,7 @@ class swarm {
         void distribute(cl_float* , cl_float* );
 
         /// updates (int) number of times with *fitness as a fitness function
-        void update(cl_int, cl_float (*fitness)(float*) );
+        void update(cl_uint, cl_float (*fitness)(float*) );
 
         ///returns the best position in the swarm.
         cl_float* getgbest();
