@@ -4,7 +4,7 @@
 
 #define id(x) (get_global_id(x))
 
-#define fitness(x) -(x[id(0)*partnum+ id(1)]*x[id(0)*partnum+ id(1)])
+#define fitness(x) -((x[id(0)*partnum+ id(1)]-2)*(x[id(0)*partnum+ id(1)]-2))
 
 int get_global_id(int);
 

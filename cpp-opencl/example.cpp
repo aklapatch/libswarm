@@ -3,11 +3,11 @@
  * Copyright 2018 Aaron Klapatch
  */
 
-#include "swarm.hpp"
+#include "oclswarm.hpp"
 #include <iostream>
 #include <vector>
 
-double fitness(std::vector<double> in){
+double fitness(double * in){
 	return -(in[0]-2)*(in[0]-2);
 }
 
@@ -16,23 +16,24 @@ int main(){
 	swarm test;
 
 	///make upper and lower bounds and set them
-	std::vector<double> lower, upper;
-	lower.push_back(-32);
-	upper.push_back(45);
+	cl_float lower=-32,  upper=45;
 	
 	///set the swarm properties
 	test.setpartnum(100);
+	std::cout <<__LINE__ << "\n";
 	test.setdimnum(1);
+	std::cout <<__LINE__ << "\n";
 	test.setweight(1);
+	std::cout <<__LINE__ << "\n";
 	
 	///distribute particles
-	test.distribute(lower, upper);
+	test.distribute(&lower, &upper);
 	
 	///run the swarm
-	test.update(100, fitness);
+	test.update(100);
 	
 	///get the answer and get it to the user
-	std::vector<double> answer = test.getgbest();
+	float * answer = test.getgbest();
 	std::cout<< "The answer is " << answer[0] <<std:: endl;
 	
 	return 0;

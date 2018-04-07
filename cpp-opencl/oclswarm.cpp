@@ -7,7 +7,7 @@ code derived from http://www.swarmintelligence.org/tutorials.php
 along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
-#include "ocl-swarm.hpp"
+#include "oclswarm.hpp"
 
 #include <iostream>
 
@@ -27,7 +27,7 @@ swarm::swarm(){
     ///open kernel
 	FILE * fp = fopen("distribute.cl", "r");
 	if(!fp){
-		fprintf(stderr, "Failed to load kernel.\n");	
+		fprintf(stderr, "Failed to load kernel. 30\n");	
 		exit(1);
 	}	
 
@@ -43,14 +43,14 @@ swarm::swarm(){
 
 
     ///open kernel
-	fp = fopen("udpate.cl", "r");
+	FILE * fp2 = fopen("udpate.cl", "r");
 	if(!fp){
-		fprintf(stderr, "Failed to load kernel.\n");	
+		fprintf(stderr, "Failed to load kernel.48\n");	
 		exit(1);
 	}	
 
 	src_size=fread(src, 1, KER_SIZE, fp);
-	fclose(fp);
+	fclose(fp2);
     
     ///build fresh kernel
     program = clCreateProgramWithSource(context, 1, (const char **)&src, (const size_t *)&src_size, &ret);
@@ -60,14 +60,14 @@ swarm::swarm(){
 	updte = clCreateKernel(program, "update", &ret);
 
     ///open kernel
-	fp = fopen("compare.cl", "r");
+	FILE * fp3 = fopen("compare.cl", "r");
 	if(!fp){
-		fprintf(stderr, "Failed to load kernel.\n");	
+		fprintf(stderr, "Failed to load kernel.65\n");	
 		exit(1);
 	}	
 
 	src_size=fread(src, 1, KER_SIZE, fp);
-	fclose(fp);
+	fclose(fp3);
     
     ///build fresh kernel
     program = clCreateProgramWithSource(context, 1, (const char **)&src, (const size_t *)&src_size, &ret);
@@ -126,6 +126,33 @@ swarm::swarm(){
     ret=clEnqueueWriteBuffer(command_queue, pfitnessbuf, CL_TRUE, 0, sizeof(cl_float), &passin, 0, NULL, NULL);
 
     delete [] passin;
+
+    passin = new cl_float[dimnum];
+
+    ///make an array to pass 0's to kernel
+    for(i=0;i<dimnum;++i){
+        passin[i]=0;
+    }
+
+
+    gbestbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float), NULL, &ret);
+    ret=clEnqueueWriteBuffer(command_queue, gbestbuf, CL_TRUE, 0, dimnum*sizeof(cl_float), &passin, 0, NULL, NULL);
+
+
+    delete [] passin;
+
+    passin = new cl_float[dimnum*partnum];
+
+    ///make an array to pass 0's to kernel
+    for(i=0;i<dimnum;++i){
+        passin[i]=0;
+    }
+
+    pbestbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float), NULL, &ret);
+    ret=clEnqueueWriteBuffer(command_queue, pbestbuf, CL_TRUE, 0, partnum*dimnum*sizeof(cl_float), &passin, 0, NULL, NULL);
+
+
+
 }
 
 ///sets dimensions to 1 and number of particles to 100 and w to 1.5
@@ -259,6 +286,7 @@ swarm::~swarm(){
     ///get rid of kernels and program
 	ret = clReleaseKernel(distr);
     ret = clReleaseKernel(updte);
+    ret = clReleaseKernel(updte2);
     ret = clReleaseKernel(cmpre);
 	ret = clReleaseProgram(program);
 
@@ -313,10 +341,13 @@ void swarm::setdimnum(unsigned int num){
 
     ///free gpu memory
     ret = clReleaseMemObject(pbestbuf);
+    std::cout <<__LINE__ << "\n";
     ret = clReleaseMemObject(vbuf);
+    std::cout <<__LINE__ << "\n";
     ret = clReleaseMemObject(presentbuf);
-
+    std::cout <<__LINE__ << "\n";
     ret = clReleaseMemObject(gbestbuf);
+    std::cout <<__LINE__ << "\n";
 
     ///recreates buffers for every resource
     gbestbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float), NULL, &ret);
@@ -389,7 +420,7 @@ void swarm::distribute(cl_float * lower, cl_float * upper){
 }
 
 ///run the position and velocity update equation
-void swarm::update(cl_uint times, cl_float (*fitness) (cl_float*)){
+void swarm::update(unsigned int times){
 
     ///ready the parameters for the ndkernelrange
     size_t gworksize=partnum*dimnum;
