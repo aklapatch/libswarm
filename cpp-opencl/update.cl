@@ -40,11 +40,18 @@ __kernel void update( __global float * presents,
           
     //evaluating how fit the particle is with passed function
     fitnesses[id(0)]= fitness(presents);
+}
 
+///compares and copies a good 
+__kernel void update2(__global float * fitnesses,
+                      __global int * dimnum,
+                      __global float * pfitnesses){
+    int j=get_global_id(0);
     ///if the fitness is better than the pfitness, copy the values to pbest array
-    if(fitnesses[id(0)]>pfitnesses[id(0)]){
+    if(fitnesses[j]>pfitnesses[j]){
         int i=*dimnum;
         while(i--){
-            pbest[i]=presents[id(0)*partnum+i];
+            pbest[i]=presents[j*partnum+i];
         }
+    }
 }

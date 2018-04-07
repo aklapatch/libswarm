@@ -58,7 +58,7 @@ class swarm {
 		cl_context context = NULL;
 		cl_command_queue command_queue = NULL;
 		cl_program program = NULL;
-		cl_kernel distr = NULL, updte=NULL,cmpre=NULL;
+		cl_kernel distr = NULL, updte=NULL,cmpre=NULL,updte2=NULL;
 		cl_uint ret_num_devices;
 		cl_uint ret_num_platforms;
 		cl_int ret;

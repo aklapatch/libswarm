@@ -139,7 +139,7 @@ swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
     c1=C1;
     c2=C2;
 
-      char src[KER_SIZE];
+    char src[KER_SIZE];
 
     ///open kernel
 	FILE * fp = fopen("distribute.cl", "r");
@@ -175,6 +175,8 @@ swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
 	ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
 	
 	updte = clCreateKernel(program, "update", &ret);
+
+    updte2=clCreateKernel(program, "update2", &ret);
 
     ///open kernel
 	fp = fopen("compare.cl", "r");
@@ -388,17 +390,6 @@ void swarm::distribute(cl_float * lower, cl_float * upper){
 
 ///run the position and velocity update equation
 void swarm::update(cl_uint times, cl_float (*fitness) (cl_float*)){
-        
-    ///open kernel
-	FILE * fp = fopen("distribute.cl", "r");
-	if(!fp){
-		fprintf(stderr, "Failed to load kernel.\n");	
-		exit(1);
-	}	
-
-    char src[KER_SIZE];
-	size_t src_size=fread(src, 1, KER_SIZE, fp);
-	fclose(fp);
 
     ///ready the parameters for the ndkernelrange
     size_t gworksize=partnum*dimnum;
@@ -449,14 +440,24 @@ void swarm::update(cl_uint times, cl_float (*fitness) (cl_float*)){
         ///execute kernel
         ret = clEnqueueNDRangeKernel(command_queue, updte, 2, NULL,&gworksize,lworksize, 0,&ev,NULL);
 
-        clWaitForEvents(1,&ev);
+        ///set args for compare kernel
+        ret=clSetKernelArg(updte2,0,sizeof(cl_mem), (void *)&fitnessbuf);
+        ret=clSetKernelArg(updte2,1,sizeof(cl_mem), (void *)&dimnumbuf);
+        ret=clSetKernelArg(updte2,2,sizeof(cl_mem), (void *)&pfitnessbuf);
 
+        ret= clEnqueueTask(command_queue, updte2,1,&ev,&ev);
 
+        ///set kernel args
+	    ret=clSetKernelArg(updte,0,sizeof(cl_mem), (void *)&presentbuf);
+        ret=clSetKernelArg(updte,1,sizeof(cl_mem), (void *)&gbestbuf);
+        ret=clSetKernelArg(updte,2,sizeof(cl_mem), (void *)&fitnessbuf);
+        ret=clSetKernelArg(updte,3,sizeof(cl_mem), (void *)&gfitness);
+        ret=clSetKernelArg(updte,4,sizeof(cl_mem), (void *)&partnumbuf);
+        ret=clSetKernelArg(updte,5,sizeof(cl_mem), (void *)&dimnumbuf);
 
-    }
-    
+        ret= clEnqueueTask(command_queue, cmpre,1,&ev,NULL);
 
-    
+    }    
 }
 
 ///returns best position of the swarm
