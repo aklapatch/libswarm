@@ -20,7 +20,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include <CL/cl.h>	
 #endif	
 
-#define KER_SIZE 0x100000
+#define KER_SIZE 0x1000000
 #define PLATFORM_NUM 3
 #define DEVICE_NUM 3
 #define DEFAULT_DIM 1
@@ -34,18 +34,18 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 class swarm {
     private:
         /// no. of particles, no. of dimensions
-        cl_uint dimnum=DEFAULT_DIM,partnum=DEFAULT_PARTNUM;
+        cl_uint dimnum,partnum;
         cl_mem dimnumbuf, partnumbuf;
 
         ///best particle dimensions, its fitness, swarm bounds
         cl_mem gbestbuf, upperboundbuf, lowerboundbuf;
 
         ///set that so all fitness numbers will show up
-        cl_float gfitness=-HUGE_VAL;
+        cl_float gfitness;
         cl_mem gfitbuf;
 
         ///inertial weight and 2 behavioral constants
-        cl_float w=DEFAULT_W, c1=C1, c2=C2;
+        cl_float w, c1, c2;
         cl_mem wbuf, c1buf, c2buf;
 
         ///particle data
@@ -53,12 +53,12 @@ class swarm {
         cl_mem pfitnessbuf, fitnessbuf;
 		
 		///all the opencl stuff
-		cl_platform_id platform_id = NULL;
-		cl_device_id device_id = NULL;
-		cl_context context = NULL;
-		cl_command_queue command_queue = NULL;
-		cl_program program = NULL;
-		cl_kernel distr = NULL, updte=NULL,cmpre=NULL,updte2=NULL;
+		cl_platform_id platform_id;
+		cl_device_id device_id;
+		cl_context context;
+		cl_command_queue command_queue;
+		cl_program program;
+		cl_kernel distr, updte,cmpre,updte2;
 		cl_uint ret_num_devices;
 		cl_uint ret_num_platforms;
 		cl_int ret;

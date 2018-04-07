@@ -15,12 +15,26 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 swarm::swarm(){
 
     ///set swarm characteristics to defaults
+    std::cout << "ret at "<< __LINE__ << " " << ret << "\n";
     partnum=DEFAULT_PARTNUM;
     dimnum=DEFAULT_DIM;
     w = DEFAULT_W;
     c1=C1;
     c2=C2;
     gfitness=-HUGE_VAL;    
+    std::cout << "ret at "<< __LINE__ << " " << ret << "\n";
+    ///get platform information
+    ret = clGetPlatformIDs(1, &platform_id, &ret_num_platforms);
+    std::cout << "ret at "<< __LINE__ << " " << ret << "\n";
+	ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU, 1, &device_id, &ret_num_devices);
+	
+    std::cout << "ret at "<< __LINE__ << " " << ret << "\n";
+
+	///get context and command queue
+	context = clCreateContext(NULL, 1, &device_id, NULL, NULL, &ret);
+	command_queue = clCreateCommandQueue(context, device_id, 0, &ret);
+	
+    std::cout << "ret at "<< __LINE__ << " " << ret << "\n";
 
     char src[KER_SIZE];
 
@@ -33,11 +47,17 @@ swarm::swarm(){
 
 	size_t src_size=fread(src, 1, KER_SIZE, fp);
 	fclose(fp);
+
+    std::cout << "ret at "<< __LINE__ << " " << ret << "\n";
     
     ///build fresh kernel
-    program = clCreateProgramWithSource(context, 1, (const char **)&src, (const size_t *)&src_size, &ret);
+    program = clCreateProgramWithSource(context, 1, (const char **)&src, NULL, &ret);
 		
-	ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
+	std::cout << "ret at 40 " << ret << "\n";
+    
+    ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
+
+    std::cout << "ret at 44 " << ret << "\n";
 	
 	distr = clCreateKernel(program, "distribute", &ret);
 
@@ -56,8 +76,12 @@ swarm::swarm(){
     program = clCreateProgramWithSource(context, 1, (const char **)&src, (const size_t *)&src_size, &ret);
 		
 	ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
+
+    std::cout << "ret at 202 " << ret << "\n";
 	
 	updte = clCreateKernel(program, "update", &ret);
+
+    updte2=clCreateKernel(program, "update2", &ret);
 
     ///open kernel
 	FILE * fp3 = fopen("compare.cl", "r");
@@ -75,6 +99,8 @@ swarm::swarm(){
 	ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
 	
 	cmpre = clCreateKernel(program, "compare", &ret);
+
+    std::cout << "ret at 202 " << ret << "\n";
 	
 	///gets up to 3 platforms
 	ret = clGetPlatformIDs(PLATFORM_NUM, &platform_id, &ret_num_platforms);
@@ -151,8 +177,6 @@ swarm::swarm(){
     pbestbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float), NULL, &ret);
     ret=clEnqueueWriteBuffer(command_queue, pbestbuf, CL_TRUE, 0, partnum*dimnum*sizeof(cl_float), &passin, 0, NULL, NULL);
 
-
-
 }
 
 ///sets dimensions to 1 and number of particles to 100 and w to 1.5
@@ -200,6 +224,8 @@ swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
     program = clCreateProgramWithSource(context, 1, (const char **)&src, (const size_t *)&src_size, &ret);
 		
 	ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
+
+    std::cout << "ret at 202 " << ret << "\n";
 	
 	updte = clCreateKernel(program, "update", &ret);
 
@@ -341,13 +367,9 @@ void swarm::setdimnum(unsigned int num){
 
     ///free gpu memory
     ret = clReleaseMemObject(pbestbuf);
-    std::cout <<__LINE__ << "\n";
     ret = clReleaseMemObject(vbuf);
-    std::cout <<__LINE__ << "\n";
     ret = clReleaseMemObject(presentbuf);
-    std::cout <<__LINE__ << "\n";
     ret = clReleaseMemObject(gbestbuf);
-    std::cout <<__LINE__ << "\n";
 
     ///recreates buffers for every resource
     gbestbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float), NULL, &ret);
@@ -404,7 +426,8 @@ void swarm::distribute(cl_float * lower, cl_float * upper){
     ret=clSetKernelArg(distr,1,sizeof(cl_mem), (void *)&upperboundbuf);
     ret=clSetKernelArg(distr,2,sizeof(cl_mem), (void *)&deltabuf);
     ret=clSetKernelArg(distr,3,sizeof(cl_mem), (void *)&presentbuf);
-    ret=clSetKernelArg(distr,4,sizeof(cl_mem), (void *)&partnumbuf);
+    ret=clSetKernelArg(distr,4,sizeof(cl_mem), (void *)&pbestbuf);
+    ret=clSetKernelArg(distr,5,sizeof(cl_mem), (void *)&partnumbuf);
 
     size_t gworksize=partnum*dimnum;
     size_t * lworksize= new size_t[partnum];
@@ -435,24 +458,27 @@ void swarm::update(unsigned int times){
     std::uniform_real_distribution<cl_float> distr(1,0);
 
     ///set up memory to take the random array
-    cl_float * ran = new cl_float [dimnum*partnum];
+    cl_float * ran = new cl_float [(1+dimnum)*partnum];
     cl_mem ranbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,(dimnum+1)*partnum*sizeof(cl_float), NULL, &ret);
-
-    ///write to buffer
-    ret=clEnqueueWriteBuffer(command_queue, ranbuf, CL_TRUE, 0, (dimnum+1)*partnum*sizeof(cl_float), ran, 0, NULL, NULL);
 
     ///event for waiting later
     cl_event ev;
 
-    ///stores all fitnesses
-    cl_float * fitnesses= new cl_float [partnum];
- 
+    std::cout <<__LINE__ << "\n";
+
     while(times--){
 
         ///make a array of random numbers
         for(i=0;i<(dimnum+1)*partnum;++i){
             ran[i]= distr(gen);
         }
+
+        std::cout <<__LINE__ <<" ret "<< ret<< "\n";
+
+        ///write random numbers to buffer
+        ret=clEnqueueWriteBuffer(command_queue, ranbuf, CL_TRUE, 0, (dimnum+1)*partnum*sizeof(cl_float), ran, 0, NULL, NULL);
+
+        std::cout <<__LINE__ <<" ret "<< ret<< "\n";
 
         ///set kernel args
 	    ret=clSetKernelArg(updte,0,sizeof(cl_mem), (void *)&presentbuf);
@@ -461,22 +487,30 @@ void swarm::update(unsigned int times){
         ret=clSetKernelArg(updte,3,sizeof(cl_mem), (void *)&ranbuf);
         ret=clSetKernelArg(updte,4,sizeof(cl_mem), (void *)&pfitnessbuf);
         ret=clSetKernelArg(updte,5,sizeof(cl_mem), (void *)&upperboundbuf);
-        ret=clSetKernelArg(updte,6,sizeof(cl_mem), (void *)&gfitbuf);
-        ret=clSetKernelArg(updte,7,sizeof(cl_mem), (void *)&pbestbuf);
-        ret=clSetKernelArg(updte,8,sizeof(cl_mem), (void *)&gbestbuf);
-        ret=clSetKernelArg(updte,9,sizeof(cl_mem), (void *)&lowerboundbuf);
-        ret=clSetKernelArg(updte,10,sizeof(cl_mem), (void *)&fitnessbuf);
-        ret=clSetKernelArg(updte,11,sizeof(cl_mem), (void *)&partnumbuf);
+        ret=clSetKernelArg(updte,6,sizeof(cl_mem), (void *)&pbestbuf);
+        ret=clSetKernelArg(updte,7,sizeof(cl_mem), (void *)&gbestbuf);
+        ret=clSetKernelArg(updte,8,sizeof(cl_mem), (void *)&lowerboundbuf);
+        ret=clSetKernelArg(updte,9,sizeof(cl_mem), (void *)&fitnessbuf);
+        ret=clSetKernelArg(updte,10,sizeof(cl_mem), (void *)&partnumbuf);
+
+        std::cout <<__LINE__ <<" ret "<< ret<< "\n";
 
         ///execute kernel
         ret = clEnqueueNDRangeKernel(command_queue, updte, 2, NULL,&gworksize,lworksize, 0,&ev,NULL);
+
+        std::cout <<__LINE__ <<" ret "<< ret<< "\n";
 
         ///set args for compare kernel
         ret=clSetKernelArg(updte2,0,sizeof(cl_mem), (void *)&fitnessbuf);
         ret=clSetKernelArg(updte2,1,sizeof(cl_mem), (void *)&dimnumbuf);
         ret=clSetKernelArg(updte2,2,sizeof(cl_mem), (void *)&pfitnessbuf);
+        ret=clSetKernelArg(updte2,3,sizeof(cl_mem), (void *)&presentbuf);
+        ret=clSetKernelArg(updte2,2,sizeof(cl_mem), (void *)&pbestbuf);
+        ret=clSetKernelArg(updte2,2,sizeof(cl_mem), (void *)&partnumbuf);
 
         ret= clEnqueueNDRangeKernel(command_queue, updte2,1,NULL,(const size_t*)&partnum,NULL,1, &ev,&ev);
+
+        std::cout <<__LINE__ <<" ret "<< ret<< "\n";
 
         ///set kernel args
 	    ret=clSetKernelArg(updte,0,sizeof(cl_mem), (void *)&presentbuf);
@@ -486,8 +520,20 @@ void swarm::update(unsigned int times){
         ret=clSetKernelArg(updte,4,sizeof(cl_mem), (void *)&partnumbuf);
         ret=clSetKernelArg(updte,5,sizeof(cl_mem), (void *)&dimnumbuf);
 
+        std::cout <<__LINE__ <<" ret "<< ret<< "\n";
+
         ret= clEnqueueTask(command_queue, cmpre,1,&ev,NULL);
+
+        std::cout <<__LINE__ <<" ret "<< ret<< "\n";
     }    
+
+    ///release the buffer
+    ret = clReleaseMemObject(ranbuf);
+
+    std::cout <<__LINE__ <<" ret "<< ret<< "\n";
+
+    delete [] ran;
+    delete [] lworksize;
 }
 
 ///returns best position of the swarm
