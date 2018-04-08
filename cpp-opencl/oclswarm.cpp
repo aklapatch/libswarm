@@ -15,15 +15,13 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 swarm::swarm(){
 
     ///set swarm characteristics to defaults
-    std::cout << "ret at "<< __LINE__ << " " << ret << "\n";
     partnum=DEFAULT_PARTNUM;
     dimnum=DEFAULT_DIM;
     w = DEFAULT_W;
     c1=C1;
     c2=C2;
     gfitness=-HUGE_VAL;    
-    std::cout << "ret at "<< __LINE__ << " " << ret << "\n";
-    
+
     ///gets up to 3 platforms
 	ret = clGetPlatformIDs(PLATFORM_NUM, &platform_id, &ret_num_platforms);
 	
@@ -122,7 +120,6 @@ swarm::swarm(){
 
     pbestbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float), NULL, &ret);
     ret=clEnqueueWriteBuffer(command_queue, pbestbuf, CL_TRUE, 0, partnum*dimnum*sizeof(cl_float), &passin, 0, NULL, NULL);
-
 }
 
 ///sets dimensions to 1 and number of particles to 100 and w to 1.5
@@ -139,18 +136,12 @@ swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
 
     ///gets up to 3 platforms
 	ret = clGetPlatformIDs(1, &platform_id, &ret_num_platforms);
-
-    std::cerr << __LINE__ << "ret " << ret << "\n";
 	
 	///gets a  device
 	ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU, 1, &device_id, NULL);
-	
-    std::cerr << __LINE__ << "ret " << ret << "\n";
 
 	///gets a context with up to 3 devices
 	context = clCreateContext(NULL, 1, &device_id, NULL, NULL, &ret);
-	
-    std::cerr << __LINE__ << "ret " << ret << "\n";
 
 	///get command queue
 	command_queue = clCreateCommandQueue(context, device_id, 0, &ret);
@@ -162,16 +153,8 @@ swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
     
     ///build program
     program = clCreateProgramWithSource(context, 1, (const char **)&src, NULL, &ret);
-		
-	std::cout << "ret at 40 " << ret << "\n";
     
     ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
-
-    //ret =  clGetProgramBuildInfo(program, device_id,CL_PROGRAM_BUILD_LOG ,KER_SIZE, src,NULL);
-
-    puts(src);
-
-    std::cout << "ret at 44 " << ret << "\n";
 	
 	distr = clCreateKernel(program, "distribute", &ret);
 
@@ -378,8 +361,6 @@ void swarm::update(unsigned int times){
     cl_float * ran = new float [(1+dimnum)*partnum];
     cl_mem ranbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,(dimnum+1)*partnum*sizeof(float), NULL, &ret);
 
-    std::cout <<__LINE__ << "\n";
-
     while(times--){
 
         ///make a array of random numbers
@@ -387,12 +368,8 @@ void swarm::update(unsigned int times){
             ran[i]= distr(gen);
         }
 
-        std::cout <<__LINE__ <<" ret "<< ret<< "\n";
-
         ///write random numbers to buffer
         ret=clEnqueueWriteBuffer(command_queue, ranbuf, CL_TRUE, 0, (dimnum+1)*partnum*sizeof(cl_float), ran, 0, NULL, NULL);
-
-        std::cout <<__LINE__ <<" ret "<< ret<< "\n";
 
         ///set kernel args
 	    ret=clSetKernelArg(updte,0,sizeof(cl_mem), (void *)&presentbuf);
@@ -407,12 +384,8 @@ void swarm::update(unsigned int times){
         ret=clSetKernelArg(updte,9,sizeof(cl_mem), (void *)&fitnessbuf);
         ret=clSetKernelArg(updte,10,sizeof(cl_mem), (void *)&partnumbuf);
 
-        std::cout <<__LINE__ <<" ret "<< ret<< "\n";
-
         ///execute kernel
         ret = clEnqueueNDRangeKernel(command_queue, updte, 2, NULL,&gworksize,lworksize, 0,&ev,NULL);
-
-        std::cout <<__LINE__ <<" ret "<< ret<< "\n";
 
         ///set args for compare kernel
         ret=clSetKernelArg(updte2,0,sizeof(cl_mem), (void *)&fitnessbuf);
@@ -424,8 +397,6 @@ void swarm::update(unsigned int times){
 
         ret= clEnqueueNDRangeKernel(command_queue, updte2,1,NULL,(const size_t*)&partnum,NULL,1, &ev,&ev);
 
-        std::cout <<__LINE__ <<" ret "<< ret<< "\n";
-
         ///set kernel args
 	    ret=clSetKernelArg(updte,0,sizeof(cl_mem), (void *)&presentbuf);
         ret=clSetKernelArg(updte,1,sizeof(cl_mem), (void *)&gbestbuf);
@@ -434,17 +405,11 @@ void swarm::update(unsigned int times){
         ret=clSetKernelArg(updte,4,sizeof(cl_mem), (void *)&partnumbuf);
         ret=clSetKernelArg(updte,5,sizeof(cl_mem), (void *)&dimnumbuf);
 
-        std::cout <<__LINE__ <<" ret "<< ret<< "\n";
-
         ret= clEnqueueTask(command_queue, cmpre,1,&ev,NULL);
-
-        std::cout <<__LINE__ <<" ret "<< ret<< "\n";
     }    
 
     ///release the buffer
     ret = clReleaseMemObject(ranbuf);
-
-    std::cout <<__LINE__ <<" ret "<< ret<< "\n";
 
     delete [] ran;
     delete [] lworksize;
