@@ -329,17 +329,10 @@ void swarm::distribute(cl_float * lower, cl_float * upper){
     ret=clSetKernelArg(distr,4,sizeof(cl_mem), (void *)&pbestbuf);
     ret=clSetKernelArg(distr,5,sizeof(cl_mem), (void *)&partnumbuf);
 
-    size_t gworksize=partnum*dimnum;
-    size_t * lworksize= new size_t[partnum];
-    unsigned int i;
-    for(i=0;i<partnum;++i){
-        lworksize[i]=(size_t)dimnum;
-    }
+    size_t gworksize[]={partnum,dimnum};
 
     ///execute
-	ret = clEnqueueNDRangeKernel(command_queue, distr, 2, NULL,&gworksize,lworksize,0, NULL, NULL);
-
-    delete [] lworksize;
+	ret = clEnqueueNDRangeKernel(command_queue, distr, 2, NULL,gworksize, NULL,0, NULL, NULL);
 }
 
 ///run the position and velocity update equation
@@ -385,7 +378,7 @@ void swarm::update(unsigned int times){
         ret=clSetKernelArg(updte,10,sizeof(cl_mem), (void *)&partnumbuf);
 
         ///execute kernel
-        ret = clEnqueueNDRangeKernel(command_queue, updte, 2, NULL,&gworksize,lworksize, 0,&ev,NULL);
+        ret = clEnqueueNDRangeKernel(command_queue, updte, 2, NULL,&gworksize,lworksize, 0,NULL,&ev);
 
         ///set args for compare kernel
         ret=clSetKernelArg(updte2,0,sizeof(cl_mem), (void *)&fitnessbuf);
@@ -395,7 +388,7 @@ void swarm::update(unsigned int times){
         ret=clSetKernelArg(updte2,4,sizeof(cl_mem), (void *)&pbestbuf);
         ret=clSetKernelArg(updte2,5,sizeof(cl_mem), (void *)&partnumbuf);
 
-        ret= clEnqueueNDRangeKernel(command_queue, updte2,1,NULL,(const size_t*)&partnum,NULL,1, &ev,&ev);
+        ret= clEnqueueNDRangeKernel(command_queue, updte2,1,NULL,(const size_t*)&partnum,NULL,1, &ev,NULL);
 
         ///set kernel args
 	    ret=clSetKernelArg(updte,0,sizeof(cl_mem), (void *)&presentbuf);
@@ -420,7 +413,7 @@ cl_float * swarm::getgbest(){
     cl_float * gbest = new cl_float[dimnum];
 
     ///get value from buffer
-    ret = clEnqueueWriteBuffer(command_queue, gbestbuf, CL_TRUE, 0,dimnum*sizeof(cl_float), gbest, 0, NULL, NULL);
+    ret = clEnqueueReadBuffer(command_queue, gbestbuf, CL_TRUE, 0,dimnum*sizeof(cl_float), gbest, 0, NULL, NULL);
 	
     return gbest;
 }   
@@ -429,7 +422,7 @@ cl_float * swarm::getgbest(){
 cl_float swarm::getgfitness(){
 
     ///get value from GPU
-    ret = clEnqueueWriteBuffer(command_queue, gfitbuf, CL_TRUE, 0,sizeof(cl_float), &gfitness, 0, NULL, NULL);
+    ret = clEnqueueReadBuffer(command_queue, gfitbuf, CL_TRUE, 0,sizeof(cl_float), &gfitness, 0, NULL, NULL);
 
     return gfitness;
 }
