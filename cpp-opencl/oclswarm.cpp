@@ -36,17 +36,10 @@ swarm::swarm(){
 	///get command queue
 	command_queue = clCreateCommandQueue(context, device_id, 0, &ret);
 
-    char src[KER_SIZE];
-
-    ///open kernel
-	FILE * fp = fopen("distribute.cl", "r");
-	if(!fp){
-		fprintf(stderr, "Failed to load kernel. 30\n");	
-		exit(1);
-	}	
-
-	size_t src_size=fread(src, 1, KER_SIZE, fp);
-	fclose(fp);
+    ///use C++11 string literals to get kernel
+    const char * src =
+    #include "kernelstring.cl"
+    ;
     
     ///build program
     program = clCreateProgramWithSource(context, 1, (const char **)&src, NULL, &ret);
@@ -162,18 +155,10 @@ swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
 	///get command queue
 	command_queue = clCreateCommandQueue(context, device_id, 0, &ret);
 
-    char * src=new char[KER_SIZE];
-
-    ///open kernel
-	FILE * fp = fopen("kernels.cl", "r");
-	if(!fp){
-		fprintf(stderr, "Failed to load kernel.\n");	
-		exit(1); 
-	}	
-
-	size_t src_size=fread(src, 1, KER_SIZE, fp);
-	fclose(fp);
-    puts(src);
+    ///use C++11 string literals to get kernel
+    const char * src =
+    #include "kernelstring.cl"
+    ;
     
     ///build program
     program = clCreateProgramWithSource(context, 1, (const char **)&src, NULL, &ret);
@@ -182,7 +167,7 @@ swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
     
     ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
 
-    ret =  clGetProgramBuildInfo(program, device_id,CL_PROGRAM_BUILD_LOG ,KER_SIZE, src,NULL);
+    //ret =  clGetProgramBuildInfo(program, device_id,CL_PROGRAM_BUILD_LOG ,KER_SIZE, src,NULL);
 
     puts(src);
 
@@ -195,8 +180,6 @@ swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
     updte=clCreateKernel(program, "update", &ret);
 
     updte2=clCreateKernel(program, "update2", &ret);
-
-    delete [] src;
 
     ///create memory buffer fro gfit and write to it
     gfitbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,sizeof(cl_float), NULL, &ret);
