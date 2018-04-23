@@ -41,12 +41,8 @@ swarm::swarm(){
     
     ///build program
     program = clCreateProgramWithSource(context, 1, (const char **)&src, NULL, &ret);
-		
-	std::cout << "ret at 40 " << ret << "\n";
     
     ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
-
-    std::cout << "ret at 44 " << ret << "\n";
 	
 	distr = clCreateKernel(program, "distribute", &ret);
 
@@ -55,8 +51,6 @@ swarm::swarm(){
     updte=clCreateKernel(program, "update", &ret);
 
     updte2=clCreateKernel(program, "update2", &ret);
-
-    std::cout << "ret at 202 " << ret << "\n";
 
     ///make buffers for particle and dimension numbers
     dimnumbuf=clCreateBuffer(context, CL_MEM_READ_ONLY,sizeof(cl_int), NULL, &ret);
