@@ -156,7 +156,14 @@ swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
     program = clCreateProgramWithSource(context, 1, (const char **)&src, NULL, &ret);
     
     ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
-	
+
+    char errmsg[1000];
+    
+
+    ret = clGetProgramBuildInfo(program, device_id,CL_PROGRAM_BUILD_LOG,1000,errmsg,NULL);
+
+    puts(errmsg);
+
 	distr = clCreateKernel(program, "distribute", &ret);
 
     cmpre= clCreateKernel(program, "compare", &ret);
