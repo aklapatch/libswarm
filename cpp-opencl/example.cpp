@@ -14,9 +14,8 @@ double fitness(double * in){
 
 int main(){
 	///the test swarm
-	std::cout <<__LINE__ << "\n";
 	swarm * test=new swarm(1,100,.9);
-	std::cout <<__LINE__ << "\n";
+
 
 	///make upper and lower bounds and set them
 	cl_float lower=-32,  upper=45;

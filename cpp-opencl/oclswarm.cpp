@@ -58,6 +58,13 @@ swarm::swarm(){
 
     std::cout << "ret at 202 " << ret << "\n";
 
+    ///make buffers for particle and dimension numbers
+    dimnumbuf=clCreateBuffer(context, CL_MEM_READ_ONLY,sizeof(cl_int), NULL, &ret);
+    ret=clEnqueueWriteBuffer(command_queue, dimnumbuf, CL_TRUE, 0, sizeof(cl_int), &dimnum, 0, NULL, NULL);
+    partnumbuf=clCreateBuffer(context, CL_MEM_READ_ONLY,sizeof(cl_int), NULL, &ret);
+    ret=clEnqueueWriteBuffer(command_queue, partnumbuf, CL_TRUE, 0, sizeof(cl_int), &partnum, 0, NULL, NULL);
+
+
     ///create memory buffer fro gfit and write to it
     gfitbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,sizeof(cl_float), NULL, &ret);
     ret=clEnqueueWriteBuffer(command_queue, gfitbuf, CL_TRUE, 0, sizeof(cl_float), &gfitness, 0, NULL, NULL);
@@ -163,6 +170,13 @@ swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
     updte=clCreateKernel(program, "update", &ret);
 
     updte2=clCreateKernel(program, "update2", &ret);
+
+    ///make buffers for particle and dimension numbers
+    dimnumbuf=clCreateBuffer(context, CL_MEM_READ_ONLY,sizeof(cl_int), NULL, &ret);
+    ret=clEnqueueWriteBuffer(command_queue, dimnumbuf, CL_TRUE, 0, sizeof(cl_int), &dimnum, 0, NULL, NULL);
+    partnumbuf=clCreateBuffer(context, CL_MEM_READ_ONLY,sizeof(cl_int), NULL, &ret);
+    ret=clEnqueueWriteBuffer(command_queue, partnumbuf, CL_TRUE, 0, sizeof(cl_int), &partnum, 0, NULL, NULL);
+
 
     ///create memory buffer fro gfit and write to it
     gfitbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,sizeof(cl_float), NULL, &ret);
@@ -388,7 +402,7 @@ void swarm::update(unsigned int times){
         ret=clSetKernelArg(updte2,4,sizeof(cl_mem), (void *)&pbestbuf);
         ret=clSetKernelArg(updte2,5,sizeof(cl_mem), (void *)&partnumbuf);
 
-        ret= clEnqueueNDRangeKernel(command_queue, updte2,1,NULL,(const size_t*)&partnum,NULL,1, &ev,NULL);
+        ret= clEnqueueTask(command_queue, updte2,1, &ev,NULL);
 
         ///set kernel args
 	    ret=clSetKernelArg(updte,0,sizeof(cl_mem), (void *)&presentbuf);

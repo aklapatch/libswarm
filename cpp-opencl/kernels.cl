@@ -91,7 +91,7 @@ __kernel void update( __global float * presents,
 
 ///compares and copies a coordinates into a pbest if necessary
 __kernel void update2(__global float * fitnesses,
-						__constant int * dimnum,
+						__global int * dimnum,
 						__global float * pfitnesses,
 						__global float * presents,
 						__global float * pbest,
@@ -102,6 +102,9 @@ __kernel void update2(__global float * fitnesses,
 
 	///if the fitness is better than the pfitness, copy the values to pbest array
 	if(fitnesses[j]>pfitnesses[j]) {
+
+		///copy new fitness
+		pfitness[j]=fitnesses[j];
 
 		int i=dimnum[0];
 
