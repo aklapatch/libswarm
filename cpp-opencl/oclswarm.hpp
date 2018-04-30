@@ -1,6 +1,6 @@
 /*particle.hpp
 houses class and function prototypes for swarm class
-for openclless version
+for opencl version
 
 Copyright 2018 by Aaron Klapatch,
 code derived from http://www.swarmintelligence.org/tutorials.php
@@ -13,7 +13,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include <vector>
 #include <cmath>
 #include <random>
-
+#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 #ifdef __APPLE__	
 #include <OpenCL/opencl.h>	
 #else	

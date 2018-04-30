@@ -1,6 +1,6 @@
 /*swarm.cpp
 implementation for swarm
-for openclless version
+for opencl version
 
 Copyright 2018 by Aaron Klapatch,
 code derived from http://www.swarmintelligence.org/tutorials.php
@@ -8,7 +8,6 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
 #include "oclswarm.hpp"
-
 #include <iostream>
 
 ///sets dimensions to 1 and number of particles to 100 and w to 1.0
@@ -409,7 +408,7 @@ void swarm::update(unsigned int times){
 	    ret=clSetKernelArg(updte,0,sizeof(cl_mem), (void *)&presentbuf);
         ret=clSetKernelArg(updte,1,sizeof(cl_mem), (void *)&gbestbuf);
         ret=clSetKernelArg(updte,2,sizeof(cl_mem), (void *)&fitnessbuf);
-        ret=clSetKernelArg(updte,3,sizeof(cl_mem), (void *)&gfitness);
+        ret=clSetKernelArg(updte,3,sizeof(cl_mem), (void *)&gfitbuf);
         ret=clSetKernelArg(updte,4,sizeof(cl_mem), (void *)&partnumbuf);
         ret=clSetKernelArg(updte,5,sizeof(cl_mem), (void *)&dimnumbuf);
 
