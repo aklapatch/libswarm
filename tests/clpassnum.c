@@ -1,11 +1,11 @@
 ///this program is going to be used to find if it is faster to pass a float * to the kernel as an arg, or
 ///if you should allocate memory on the GPU instead.
 
-#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 #include <CL/cl.h>
 #include<stdio.h>
 #include<time.h>
 
+#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 #define SIZE (0x100000)	
 #define PRINTRET printf("ret= %d\n", ret);
 
@@ -44,7 +44,7 @@ int main() {
 	///get device info
 	ret = clGetPlatformIDs(2, &platform_id, &ret_num_platforms);
 	PRINTRET;	
-	ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU, 2, &device_id, &ret_num_devices);
+	ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU, 1, &device_id, &ret_num_devices);
 	PRINTRET;
 	
 	///compile kernel and get context
@@ -80,7 +80,7 @@ int main() {
 	ret=clSetKernelArg(kernel,0,sizeof(cl_mem), (void *)&resbuffer);
 	printf("line 73\n");
 	PRINTRET;
-	ret=clSetKernelArg(kernel,1,sizeof(cl_mem),(void*)&numbuf);
+	ret=clSetKernelArg(kernel,1,sizeof(cl_int),(void*)&num);
 	PRINTRET;
 	ret=clSetKernelArg(kernel,2,sizeof(cl_mem), (void *)&databuf);
 	PRINTRET;
