@@ -5,8 +5,9 @@
 #include<stdio.h>
 #include<time.h>
 
+#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 #define SIZE (0x100000)	
-#define PRINTRET printf("ret= %d\n", ret);
+#define PRINTRET printf("ret= %d @ %d\n", ret, __LINE__);
 
 int main() {
 	//CPU data
@@ -28,7 +29,7 @@ int main() {
 	cl_kernel kernel = NULL;	
 	cl_uint ret_num_devices;
 	cl_uint ret_num_platforms;
-	cl_int ret;	
+	cl_int ret=0;	
 	
 	///open kernel
 	FILE * fp = fopen("test.cl", "r");
@@ -39,11 +40,14 @@ int main() {
 	char * src=(char*)malloc(SIZE);
 	size_t src_size=fread(src, 1, SIZE, fp);
 	fclose(fp);
+
+	PRINTRET;
 	
 	///get device info
-	ret = clGetPlatformIDs(2, &platform_id, &ret_num_platforms);	
-	ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_ALL, 2, &device_id, &ret_num_devices);
-	
+	ret = clGetPlatformIDs(1, &platform_id, &ret_num_platforms);	
+	PRINTRET;
+	ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU, 1, &device_id, &ret_num_devices);
+	PRINTRET;
 	///compile kernel and get context
 	context = clCreateContext(NULL, 2, &device_id, NULL, NULL, &ret);
 	command_queue = clCreateCommandQueue(context, device_id, 0, &ret);
@@ -77,7 +81,8 @@ int main() {
 	PRINTRET;
 		
 	///execute
-	ret = clEnqueueTask(command_queue, kernel, 0, NULL,NULL);
+	const size_t size=1;
+	ret = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL,&size,NULL, 0,NULL,NULL);
 	
 	PRINTRET;
 	

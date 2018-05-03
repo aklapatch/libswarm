@@ -1,6 +1,9 @@
 alloctest:
 	gcc -O2 -I. allocspeedtest.c C:\Windows\System32\OpenCL.dll -o alloctest.exe
 
+unixalloctest:
+	gcc -O2 -I. allocspeedtest.c -lOpenCL -o alloctest.out
+
 passnum:
 	gcc -Og -g -I. clpassnum.c C:\Windows\System32\OpenCL.dll -o passnum.exe
 
