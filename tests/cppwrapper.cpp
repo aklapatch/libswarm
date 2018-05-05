@@ -11,7 +11,7 @@
 #endif
 #include <chrono>
 
-#define ITEMS 100000000
+#define ITEMS 100
 
 int main(){
     ///retrieve platforms
@@ -86,9 +86,28 @@ int main(){
     
 
     ///print all answers
-    /*for(i=0;i<n;++i){
+    for(i=0;i<n;++i){
         std::cout << "A["<<i<< "] " << A[i] <<"\t";
-    }*/
+    }
+
+    ///do it through the CPU method
+    ///reset data
+    for(i=0;i<n;++i){
+        A[i]=0;
+    }
+
+    start = std::chrono::high_resolution_clock::now();
+    ///run the calcuation
+    for(i=0;i<n;++i){
+        A[i]=i*i*i;
+    }
+    finish = std::chrono::high_resolution_clock::now();
+
+    msec=std::chrono::duration_cast<std::chrono::microseconds>(finish-start);
+
+    std::cout <<"\nTime to execute w cpu " << msec.count()<<"\n";
+
+
 
     return 0;
 }
