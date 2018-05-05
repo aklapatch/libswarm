@@ -5,7 +5,6 @@
 #include<stdio.h>
 #include<time.h>
 
-#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 #define SIZE (0x100000)	
 #define PRINTRET printf("ret= %d\n", ret);
 
@@ -79,8 +78,9 @@ int main() {
 	///set kernel args
 	ret=clSetKernelArg(kernel,0,sizeof(cl_mem), (void *)&resbuffer);
 	printf("line 73\n");
+	printf("sizeof cl_int %d\n", sizeof(cl_int));
 	PRINTRET;
-	ret=clSetKernelArg(kernel,1,sizeof(cl_int),(void*)&num);
+	ret=clSetKernelArg(kernel,1,sizeof(cl_mem),&numbuf);
 	PRINTRET;
 	ret=clSetKernelArg(kernel,2,sizeof(cl_mem), (void *)&databuf);
 	PRINTRET;

@@ -107,7 +107,5 @@ int main(){
 
     std::cout <<"\nTime to execute w cpu " << msec.count()<<"\n";
 
-
-
     return 0;
 }

@@ -12,3 +12,6 @@ cpp:
 
 memsize:
 	gcc -I. getclmemsize.c C:\Windows\System32\OpenCL.dll -o memsize.exe
+
+clean:
+	del *.exe
