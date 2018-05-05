@@ -5,7 +5,7 @@
 #include<stdio.h>
 #include<time.h>
 
-#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
+#define CL_USE_DEPRECATED_OPENCL_1_2_APIS 1
 #define SIZE (0x100000)	
 #define PRINTRET printf("ret= %d @ %d\n", ret, __LINE__);
 
@@ -49,8 +49,10 @@ int main() {
 	ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU, 1, &device_id, &ret_num_devices);
 	PRINTRET;
 	///compile kernel and get context
-	context = clCreateContext(NULL, 2, &device_id, NULL, NULL, &ret);
+	context = clCreateContext(NULL, 1, &device_id, NULL, NULL, &ret);
+	PRINTRET;
 	command_queue = clCreateCommandQueue(context, device_id, 0, &ret);
+	PRINTRET;
 	
 	program = clCreateProgramWithSource(context, 1, (const char **)&src, (const size_t *)&src_size, &ret);
 		
@@ -60,12 +62,13 @@ int main() {
 	
 	///make result buffer
 	resbuffer=clCreateBuffer(context, CL_MEM_READ_WRITE,sizeof(float), NULL, &ret);
+	PRINTRET;
 	ret = clEnqueueWriteBuffer(command_queue, resbuffer, CL_TRUE, 0, sizeof(float), &result, 0, NULL, NULL);
-	
+		PRINTRET;
 	///write number data to gpu
 	numbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,sizeof(int), NULL, &ret);
 	ret = clEnqueueWriteBuffer(command_queue, numbuf, CL_TRUE, 0, sizeof(int), &num, 0, NULL, NULL);
-	
+		PRINTRET;
 	//write data buffer to gpu
 	databuf=clCreateBuffer(context, CL_MEM_READ_WRITE,num*sizeof(float), NULL, &ret);
 	ret = clEnqueueWriteBuffer(command_queue, databuf, CL_TRUE, 0, num*sizeof(float), &data, 0, NULL, NULL);
