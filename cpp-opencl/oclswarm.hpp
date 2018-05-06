@@ -59,7 +59,7 @@ class swarm {
         cl::Program::Sources sources;
         cl::Program program;
         cl::CommandQueue queue;
-        cl::Kernel distr, cmpre, updte, updte2;
+        cl::Kernel distr, cmpre, updte, updte2, initpfit,initzero;
         cl_int ret;
 
     public:

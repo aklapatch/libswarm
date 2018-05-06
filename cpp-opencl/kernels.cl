@@ -1,12 +1,13 @@
 ///kernels.cl
 /** houses all kernels for this project */
 
-#define fitness(x) -(x[index]*x[index])
+#define fitness(x) -((x[index]-2)*(x[index]-2) )
+//#include<opencl-c.h>
 
 ///return the index with the biggest number
 int sort(__global float * array,int size){
 	int ret=0;
-	float biggest=-HUGE_VALF;
+	float biggest=-INFINITY;
 	while(size-->1){
 		if(array[size]>biggest){
 			biggest=array[size];
@@ -14,6 +15,16 @@ int sort(__global float * array,int size){
 		}
 	}
 	return ret;
+}
+
+///initialize pfitness array
+__kernel void initpfit( __global float * pfitnesses){
+	pfitnesses[get_global_id(0)]=-INFINITY;
+}
+
+///initialize gbest
+__kernel void initzero( __global float * array){
+	array[get_global_id(0)]=0;
 }
 
 __kernel void compare( __global float *presents,
@@ -26,7 +37,12 @@ __kernel void compare( __global float *presents,
 	///copy most fit particle into the gbest array
 	int i,index=sort(fitnesses,*partnum);
 
-	if(fitnesses[index]>*gfitness) {
+	if(fitnesses[index]>gfitness[0]) {
+
+		///copy the array fitness
+		gfitness[0]=fitnesses[index];
+
+		///copy array into gbest array
 		for(i=0;i<(*dimnum);++i) {
 			gbest[i]=presents[index*partnum[0]+i];
 		}
@@ -86,7 +102,7 @@ __kernel void update( __global float * presents,
 	}
 
 	//evaluating how fit the particle is with passed function
-	fitnesses[dex0]= presents[index];
+	fitnesses[dex0]= fitness(presents);
 }
 
 ///compares and copies a coordinates into a pbest if necessary
@@ -99,17 +115,18 @@ __kernel void update2(__global float * fitnesses,
 						 {
 
 	const unsigned int j=get_global_id(0);
+	int k=j*partnum[0];
 
 	///if the fitness is better than the pfitness, copy the values to pbest array
 	if(fitnesses[j]>pfitnesses[j]) {
 
 		///copy new fitness
-		pfitness[j]=fitnesses[j];
+		pfitnesses[j]=fitnesses[j];
 
 		int i=dimnum[0];
 
 		while(i--) {
-			pbest[j*partnum[0]+i]=presents[j*partnum[0]+i];
+			pbest[k+i]=presents[k+i];
 		}
 	}
 }

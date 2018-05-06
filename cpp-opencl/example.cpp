@@ -8,10 +8,6 @@
 #include <vector>
 #include <random>
 
-double fitness(double * in){
-	return -(in[0]-2)*(in[0]-2);
-}
-
 int main(){
 	///the test swarm
 	swarm * test=new swarm(1,100,.9);
@@ -28,6 +24,8 @@ int main(){
 	///get the answer and get it to the user
 	float * answer = test->getgbest();
 	std::cout<< "The answer is " << answer[0] <<std:: endl;
+
+	std::cout << "gfitness " << test->getgfitness() << std::endl;
 
 	delete test;
 	

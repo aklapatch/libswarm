@@ -5,6 +5,9 @@ example:
 	
 debug:
 	g++   --std=c++11 -g -Og -I. C:\Windows\System32\OpenCL.dll example.cpp oclswarm.cpp -o d_example.exe
+
+kernel:
+	clang -c -cl-std=CL2.0 -cl-single-precision-constant kernels.cl
 	
 clean:
 	del *.exe || rm *.exe

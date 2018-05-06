@@ -78,62 +78,35 @@ swarm::swarm(){
 
     ///creates buffers for every resource
     presentbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
-
     pbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float));
-
     vbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
-
     fitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
 
-    cl_float * passin = new cl_float[partnum];
-
-    ///make an array to pass -INF values to kernel
-    //! TODO: make a kernel that does initializations
-    unsigned int i;
-    for(i=0;i<partnum;++i){
-        passin[i]=-HUGE_VALF;
-    }
-
-    ///write values to memory
+    ///set buffers for pfitnesses, gbests, and pbests
     pfitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float));
-    ret=queue.enqueueWriteBuffer(pfitnessbuf, CL_TRUE, 0, partnum*sizeof(cl_float), passin);
-
-    delete [] passin;
-
-    passin = new cl_float[dimnum];
-
-    ///make an array to pass 0's to kernel
-    for(i=0;i<dimnum;++i){
-        passin[i]=0;
-    }
-
-
     gbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float));
-    ret=queue.enqueueWriteBuffer(gbestbuf, CL_TRUE, 0, dimnum*sizeof(cl_float), passin);
-
-
-    delete [] passin;
-
-    passin = new cl_float[dimnum*partnum];
-
-    ///make an array to pass 0's to kernel
-    for(i=0;i<dimnum;++i){
-        passin[i]=0;
-    }
-
     pbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
-    ret=queue.enqueueWriteBuffer(pbestbuf, CL_TRUE, 0, partnum*dimnum*sizeof(cl_float), passin);
+
+    ///set args for initialization kernel
+    initpfit.setArg(0,pfitnessbuf);
+    ret=queue.enqueueNDRangeKernel(initpfit,cl::NullRange, cl::NDRange(partnum),cl::NullRange);   
+
+    ///init bests as 0
+    initzero.setArg(0,gbestbuf);
+    ret=queue.enqueueNDRangeKernel(initzero,cl::NullRange, cl::NDRange(dimnum),cl::NullRange);
+    initzero.setArg(0,pbestbuf);    
+    ret=queue.enqueueNDRangeKernel(initzero,cl::NullRange, cl::NDRange(partnum*dimnum),cl::NullRange);
 }
 
 ///sets dimensions to 1 and number of particles to 100 and w to 1.5
 //! TODO, convert all unsigned ints to cl_uint type
-swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
+swarm::swarm(cl_uint numdims, cl_uint numparts,cl_float inw){
 
     ///set swarm characteristics
     partnum=numparts;
     dimnum=numdims;
     w = inw;
-    gfitness=-HUGE_VAL;    
+    gfitness=-HUGE_VALF;    
     c1=C1;
     c2=C2;
 
@@ -161,11 +134,18 @@ swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
     program=cl::Program(context,sources);
     ret=program.build({devices[0]});
 
+    std::string blog=program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]);
+    std::cerr << "Build Log:\n" << blog << "\n";
+
     ///get kernels
 	distr = cl::Kernel(program, "distribute");
     cmpre= cl::Kernel(program, "compare");
     updte=cl::Kernel(program, "update");
     updte2=cl::Kernel(program, "update2");
+
+    ///initialization kernels
+    initpfit=cl::Kernel(program, "initpfit");
+    initzero=cl::Kernel(program, "initzero");
 
     ///make buffers for particle and dimension numbers
     dimnumbuf=cl::Buffer(context, CL_MEM_READ_ONLY,sizeof(cl_int));
@@ -198,35 +178,22 @@ swarm::swarm(unsigned int numdims, unsigned int numparts,cl_float inw){
 
     fitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
 
-    cl_float * passin = new cl_float[partnum];
-
-    ///make an array to pass -INF values to kernel
-    //! TODO: make a kernel that does initializations
-    unsigned int i;
-    for(i=0;i<partnum;++i){
-        passin[i]=-HUGE_VALF;
-    }
-
-    ///write values to memory
+    ///set buffers for pfitnesses, gbests, and pbests
     pfitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float));
-    ret= queue.enqueueWriteBuffer(pfitnessbuf, CL_TRUE, 0, partnum*sizeof(cl_float), passin);
-
-    delete [] passin;
-
-    passin = new cl_float[dimnum];
-
-    ///make an array to pass 0's to kernel
-    for(i=0;i<dimnum;++i){
-        passin[i]=0;
-    }
-
     gbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float));
-    ret=queue.enqueueWriteBuffer(gbestbuf, CL_TRUE, 0, dimnum*sizeof(cl_float), passin);
-
     pbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
-    ret= queue.enqueueWriteBuffer(pbestbuf, CL_TRUE, 0, partnum*dimnum*sizeof(cl_float), passin);
 
-    delete [] passin;
+    ///set args for initialization kernel
+    initpfit.setArg(0,pfitnessbuf);
+    ret=queue.enqueueNDRangeKernel(initpfit,cl::NullRange, cl::NDRange(partnum),cl::NullRange);   
+
+    ///init bests as 0
+    initzero.setArg(0,gbestbuf);
+    ret=queue.enqueueNDRangeKernel(initzero,cl::NullRange, cl::NDRange(dimnum),cl::NullRange);
+    initzero.setArg(0,pbestbuf);    
+    ret=queue.enqueueNDRangeKernel(initzero,cl::NullRange, cl::NDRange(partnum*dimnum),cl::NullRange);
+    int i=3;
+    i=3*i;
 }
 
 ///the destructor

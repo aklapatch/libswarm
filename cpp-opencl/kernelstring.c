@@ -1,3 +1,2 @@
-R"(
+
 #include "kernels.cl"
-)"
