@@ -1,6 +1,6 @@
 R"(
 
-#define fitness(x) (x[index])
+#define fitness(x) -(x[index]*x[index]+17)
 
 ///return the index with the biggest number
 int sort(__global float * array,int size){
@@ -85,7 +85,7 @@ __kernel void update( __global float * presents,
 	}
 
 	//evaluating how fit the particle is with passed function
-	fitnesses[dex0]= presents[index];
+	fitnesses[dex0]= fitness(presents);
 }
 
 ///compares and copies a coordinates into a pbest if necessary

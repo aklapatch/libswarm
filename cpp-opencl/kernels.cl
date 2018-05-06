@@ -1,7 +1,7 @@
 ///kernels.cl
 /** houses all kernels for this project */
 
-#define fitness(x) (x[index])
+#define fitness(x) -(x[index]*x[index])
 
 ///return the index with the biggest number
 int sort(__global float * array,int size){
