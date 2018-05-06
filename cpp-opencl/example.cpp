@@ -16,17 +16,14 @@ int main(){
 	///the test swarm
 	swarm * test=new swarm(1,100,.9);
 
-
 	///make upper and lower bounds and set them
 	cl_float lower=-32,  upper=45;
 	
 	///distribute particles
 	test->distribute(&lower, &upper);
-	std::cout <<__LINE__ << "\n";
 	
 	///run the swarm
-	test->update(100);
-	std::cout <<__LINE__ << "\n";
+	test->update(1000);
 	
 	///get the answer and get it to the user
 	float * answer = test->getgbest();

@@ -61,7 +61,8 @@ int main(){
     }
 
     ///make buffer and write to it;
-    cl::Buffer Abuf(context, CL_MEM_READ_WRITE, sizeof(int) * n);
+    cl::Buffer Abuf;
+    Abuf=cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(int) * n);
     queue.enqueueWriteBuffer(Abuf, CL_TRUE, 0, sizeof(int)*n, A);
 
     ///set args

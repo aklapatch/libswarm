@@ -13,11 +13,11 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include <vector>
 #include <cmath>
 #include <random>
-#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
+
 #ifdef __APPLE__	
-#include <OpenCL/opencl.h>	
+#include <OpenCL/opencl.hpp>	
 #else	
-#include <CL/cl.h>	
+#include <CL/cl.hpp>	
 #endif	
 
 #define KER_SIZE 0x100000
@@ -35,34 +35,32 @@ class swarm {
     private:
         /// no. of particles, no. of dimensions
         cl_uint dimnum=DEFAULT_DIM,partnum=DEFAULT_PARTNUM;
-        cl_mem dimnumbuf, partnumbuf;
+        cl::Buffer dimnumbuf, partnumbuf;
 
         ///best particle dimensions, its fitness, swarm bounds
-        cl_mem gbestbuf, upperboundbuf, lowerboundbuf;
+        cl::Buffer gbestbuf, upperboundbuf, lowerboundbuf;
 
         ///set that so all fitness numbers will show up
-        cl_float gfitness=0;
-        cl_mem gfitbuf;
+        cl_float gfitness=-HUGE_VALF;
+        cl::Buffer gfitbuf;
 
         ///inertial weight and 2 behavioral constants
         cl_float w=DEFAULT_W, c1=C1, c2=C2;
-        cl_mem wbuf, c1buf, c2buf;
+        cl::Buffer wbuf, c1buf, c2buf;
 
         ///particle data
-        cl_mem presentbuf, pbestbuf, vbuf;
-        cl_mem pfitnessbuf, fitnessbuf;
+        cl::Buffer presentbuf, pbestbuf, vbuf;
+        cl::Buffer pfitnessbuf, fitnessbuf;
 		
 		///all the opencl stuff
-		cl_platform_id platform_id=NULL;
-		cl_device_id device_id=NULL;
-		cl_context context=NULL;
-		cl_command_queue command_queue=NULL;
-		cl_program program=NULL;
-		cl_kernel distr=NULL, updte=NULL,cmpre=NULL,updte2=NULL;
-		cl_uint ret_num_devices;
-		cl_uint ret_num_platforms;
-		cl_int ret;
-        cl_event ev=NULL;
+        std::vector<cl::Platform> platforms;
+        std::vector<cl::Device> devices;
+        cl::Context context;
+        cl::Program::Sources sources;
+        cl::Program program;
+        cl::CommandQueue queue;
+        cl::Kernel distr, cmpre, updte, updte2;
+        cl_int ret;
 
     public:
         ///defaults to 100 particles and 1 dimension
@@ -100,7 +98,7 @@ class swarm {
         cl_float getgfitness();
 		
 		///returns ret for debugging purposes
-		cl_int getRet();
+		//cl_int getRet();
 };
 
 #endif
