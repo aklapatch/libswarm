@@ -10,6 +10,31 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include "oclswarm.hpp"
 #include <iostream>
 
+///returns particle data
+cl_float ** swarm::getparts(){
+    cl_float **out=new cl_float*[partnum];
+
+    int i=partnum;
+    while(i-->1){
+        out[i]= new cl_float[dimnum];
+    }
+
+    i=partnum;
+    while(i-->1){
+        queue.enqueueReadBuffer(gbestbuf, CL_TRUE, i*dimnum,dimnum*sizeof(cl_float),out[i]);
+    }
+
+    return out;
+}
+
+cl_uint swarm::getpartnum(){
+    return partnum;
+}
+
+cl_uint swarm::getdimnum(){
+    return dimnum;
+}
+
 ///sets dimensions to 1 and number of particles to 100 and w to 1.0
 swarm::swarm(){
 
@@ -148,10 +173,10 @@ swarm::swarm(cl_uint numdims, cl_uint numparts,cl_float inw){
     initzero=cl::Kernel(program, "initzero");
 
     ///make buffers for particle and dimension numbers
-    dimnumbuf=cl::Buffer(context, CL_MEM_READ_ONLY,sizeof(cl_int));
-    ret=queue.enqueueWriteBuffer(dimnumbuf, CL_TRUE, 0, sizeof(cl_int), &dimnum);
-    partnumbuf=cl::Buffer(context, CL_MEM_READ_ONLY,sizeof(cl_int));
-    ret=queue.enqueueWriteBuffer(partnumbuf, CL_TRUE, 0, sizeof(cl_int), &partnum);
+    dimnumbuf=cl::Buffer(context, CL_MEM_READ_ONLY,sizeof(cl_uint));
+    ret=queue.enqueueWriteBuffer(dimnumbuf, CL_TRUE, 0, sizeof(cl_uint), &dimnum);
+    partnumbuf=cl::Buffer(context, CL_MEM_READ_ONLY,sizeof(cl_uint));
+    ret=queue.enqueueWriteBuffer(partnumbuf, CL_TRUE, 0, sizeof(cl_uint), &partnum);
 
     ///create memory buffer for gfit and write to it
     gfitbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float));
@@ -192,8 +217,6 @@ swarm::swarm(cl_uint numdims, cl_uint numparts,cl_float inw){
     ret=queue.enqueueNDRangeKernel(initzero,cl::NullRange, cl::NDRange(dimnum),cl::NullRange);
     initzero.setArg(0,pbestbuf);    
     ret=queue.enqueueNDRangeKernel(initzero,cl::NullRange, cl::NDRange(partnum*dimnum),cl::NullRange);
-    int i=3;
-    i=3*i;
 }
 
 ///the destructor
@@ -270,17 +293,14 @@ void swarm::distribute(cl_float * lower, cl_float * upper){
     ///allocate memory for delta buffer
     cl::Buffer deltabuf(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float));
 
-    int oneless=partnum-1;
-    partnumbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_uint));
-    ret=queue.enqueueWriteBuffer(deltabuf, CL_TRUE, 0, sizeof(cl_uint), &oneless);
-
     ///set kernel args
 	ret=distr.setArg(0,lowerboundbuf);
     ret=distr.setArg(1,upperboundbuf);
     ret=distr.setArg(2,deltabuf);
     ret=distr.setArg(3,presentbuf);
     ret=distr.setArg(4,pbestbuf);
-    ret=distr.setArg(5,partnumbuf);
+    ret=distr.setArg(5,dimnumbuf);
+    ret=distr.setArg(6,partnumbuf);
 
     ///execute
 	ret=queue.enqueueNDRangeKernel(distr,cl::NullRange, cl::NDRange(partnum,dimnum),cl::NullRange);
@@ -296,7 +316,7 @@ void swarm::update(unsigned int times){
     ///set up memory to take the random array
     cl_float * ran = new cl_float [(1+dimnum)*partnum];
     cl::Buffer ranbuf(context, CL_MEM_READ_WRITE,(dimnum+1)*partnum*sizeof(cl_float));
-    int i;
+    unsigned int i;
 
     while(times--){
 
@@ -319,7 +339,7 @@ void swarm::update(unsigned int times){
         ret=updte.setArg(7,gbestbuf);
         ret=updte.setArg(8,lowerboundbuf);
         ret=updte.setArg(9,fitnessbuf);
-        ret=updte.setArg(10,partnumbuf);
+        ret=updte.setArg(10,dimnum);
 
         ///execute kernel
         ret=queue.enqueueNDRangeKernel(updte,cl::NullRange, cl::NDRange(partnum,dimnum),cl::NullRange);

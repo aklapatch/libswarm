@@ -75,6 +75,10 @@ class swarm {
         ///sets the number of particles
         void setpartnum(unsigned int);
 
+        cl_uint getpartnum();
+
+        cl_uint getdimnum();
+
         ///sets no. of dimensions
         void setdimnum(unsigned int);
 
@@ -93,6 +97,9 @@ class swarm {
 
         ///returns the best position in the swarm.
         cl_float* getgbest();
+
+        ///returns all particle data
+        cl_float ** getparts();
 
         ///returns the fitness of the best particle
         cl_float getgfitness();

@@ -8,21 +8,46 @@
 #include <vector>
 #include <random>
 
+void printparts(swarm test){
+
+	float ** data= test.getparts();
+	float tmp=0;
+	cl_uint i=test.getpartnum();
+	cl_uint j=test.getdimnum();
+
+	while(i-->1){
+		std::cout << "\nParticle " << i << " = " "\n";
+		while(j-->1){
+			printf(" dimension %f \n", data[i][j]);
+			tmp = data[i][j];
+		}
+		j=test.getdimnum();
+	}
+}
+
 int main(){
 	///the test swarm
-	swarm * test=new swarm(1,100,.9);
+	swarm * test=new swarm(1,20,.9);
 
 	///make upper and lower bounds and set them
 	cl_float lower=-32,  upper=45;
 	
 	///distribute particles
 	test->distribute(&lower, &upper);
-	
-	///run the swarm
-	test->update(1000);
-	
+
+	printparts(*test);
+
+	int i=10;
+	cl_float tmp;
+	while(i-->0){
+		///run the swarm
+		test->update(1);
+		//printparts(*test);
+		tmp=test->getgfitness();
+	}
+
 	///get the answer and get it to the user
-	float * answer = test->getgbest();
+	cl_float * answer = test->getgbest();
 	std::cout<< "The answer is " << answer[0] <<std:: endl;
 
 	std::cout << "gfitness " << test->getgfitness() << std::endl;
