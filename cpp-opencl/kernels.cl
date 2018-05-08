@@ -10,7 +10,7 @@
 int sort(__global float * array,int size){
 	int ret=0;
 	float biggest=-INFINITY;
-	while(size-->1){
+	while(size-->0){
 		if(array[size]>biggest){
 			biggest=array[size];
 			ret=size;
@@ -45,7 +45,7 @@ __kernel void compare( __global float *presents,
 		gfitness[0]=fitnesses[index];
 
 		///copy array into gbest array
-		while(i-->1) {
+		while(i-->0) {
 			gbest[i]=presents[index*dimnum[0]+i];
 		}
 	}
@@ -58,10 +58,7 @@ __kernel void distribute(__global float * lowerbound,
 						 __global float * pbests,
 						 __constant int * dimnum,
 						 __constant int * partnum){
-	unsigned int dex[3];
-	dex[0]= get_global_id(1);
-	dex[1]= get_global_id(0)*(*dimnum) +get_global_id(1);
-	dex[2]= get_global_id(0);
+	unsigned int dex[3]={get_global_id(1), get_global_id(0)*(*dimnum) +get_global_id(1), get_global_id(0)} ;
 
 	///get_global_id(1) is dimension number, get_global_id(0) is particle number
 	delta[dex[0]]=(upperbound[dex[0]]-lowerbound[dex[0]])/(partnum[0]-1);
@@ -117,11 +114,11 @@ __kernel void update2(__global float * fitnesses,
 						__constant int * partnum ) {
 
 	const unsigned int j=get_global_id(0);
-	int k=j*dimnum[0];
+	unsigned int offset=j*dimnum[0];
 
 	///evaluate fitness of the particle
 	/** fitness function is in fitness.c */
-	fitnesses[j]=fitness(presents,k,*dimnum);
+	fitnesses[j]=fitness(presents,offset,*dimnum);
 
 	///if the fitness is better than the pfitness, copy the values to pbest array
 	if(fitnesses[j]>pfitnesses[j]) {
@@ -129,10 +126,10 @@ __kernel void update2(__global float * fitnesses,
 		///copy new fitness
 		pfitnesses[j]=fitnesses[j];
 
-		int i=dimnum[0];
+		unsigned int i=dimnum[0];
 
-		while(i--) {
-			pbest[k+i]=presents[k+i];
+		while(i-->0) {
+			pbest[offset+i]=presents[offset+i];
 		}
 	}
 }
