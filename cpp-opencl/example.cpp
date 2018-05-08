@@ -12,8 +12,6 @@ int main(){
 	///the test swarm
 	clswarm * test=new clswarm(1,10,.3,2, 1.492);
 
-
-
 	///make upper and lower bounds and set them
 	cl_float lower=-1623,  upper=1674;
 	
