@@ -125,15 +125,15 @@ swarm::swarm(){
 
 ///sets dimensions to 1 and number of particles to 100 and w to 1.5
 //! TODO, convert all unsigned ints to cl_uint type
-swarm::swarm(cl_uint numdims, cl_uint numparts,cl_float inw){
+swarm::swarm(cl_uint numdims, cl_uint numparts,cl_float inw, cl_float c1in, cl_float c2in){
 
     ///set swarm characteristics
     partnum=numparts;
     dimnum=numdims;
     w = inw;
     gfitness=-HUGE_VALF;    
-    c1=C1;
-    c2=C2;
+    c1=c1in;
+    c2=c2in;
 
    ///gets platforms
 	ret=cl::Platform::get(&platforms);
@@ -340,6 +340,8 @@ void swarm::update(unsigned int times){
         ret=updte.setArg(8,lowerboundbuf);
         ret=updte.setArg(9,fitnessbuf);
         ret=updte.setArg(10,dimnum);
+        ret=updte.setArg(11,c1buf);
+        ret=updte.setArg(12,c2buf);
 
         ///execute kernel
         ret=queue.enqueueNDRangeKernel(updte,cl::NullRange, cl::NDRange(partnum,dimnum),cl::NullRange);
@@ -352,7 +354,7 @@ void swarm::update(unsigned int times){
         ret=updte2.setArg(4,pbestbuf);
         ret=updte2.setArg(5,partnumbuf);
 
-        ret=queue.enqueueNDRangeKernel(updte2,cl::NullRange, cl::NDRange(partnum,dimnum),cl::NullRange);
+        ret=queue.enqueueNDRangeKernel(updte2,cl::NullRange, cl::NDRange(partnum),cl::NullRange);
 
         ///set kernel args
 	    ret=cmpre.setArg(0,presentbuf);

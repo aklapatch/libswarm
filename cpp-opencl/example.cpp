@@ -27,10 +27,13 @@ void printparts(swarm test){
 
 int main(){
 	///the test swarm
-	swarm * test=new swarm(1,20,.9);
+	swarm * test=new swarm(1,10,1,.5, 1);
+
+
 
 	///make upper and lower bounds and set them
-	cl_float lower=-32,  upper=45;
+	cl_float lower=-10,  upper=140;
+	std::cout << "lower =" << lower << "\n";
 	
 	///distribute particles
 	test->distribute(&lower, &upper);
@@ -43,7 +46,7 @@ int main(){
 		///run the swarm
 		test->update(1);
 		//printparts(*test);
-		tmp=test->getgfitness();
+		std::cout << "G fitness: " << test->getgfitness() << "\n";
 	}
 
 	///get the answer and get it to the user

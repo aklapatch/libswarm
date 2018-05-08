@@ -37,7 +37,7 @@ __kernel void compare( __global float *presents,
 						__constant int * dimnum ) {
 
 	///copy most fit particle into the gbest array
-	int i,index=sort(fitnesses,*partnum);
+	int i=dimnum[0],index=sort(fitnesses,*partnum);
 
 	if(fitnesses[index]>gfitness[0]) {
 
@@ -45,7 +45,7 @@ __kernel void compare( __global float *presents,
 		gfitness[0]=fitnesses[index];
 
 		///copy array into gbest array
-		for(i=0;i<(*dimnum);++i) {
+		while(i-->1) {
 			gbest[i]=presents[index*dimnum[0]+i];
 		}
 	}
@@ -64,7 +64,7 @@ __kernel void distribute(__global float * lowerbound,
 	dex[2]= get_global_id(0);
 
 	///get_global_id(1) is dimension number, get_global_id(0) is particle number
-	delta[dex[0]]=(upperbound[dex[0]]-lowerbound[dex[0]])/partnum[0];
+	delta[dex[0]]=(upperbound[dex[0]]-lowerbound[dex[0]])/(partnum[0]-1);
 
 	///distribute the particle between the upper and lower boundaries linearly
 	presents[dex[1]]=dex[2]*delta[dex[0]] + lowerbound[dex[0]];
@@ -81,16 +81,19 @@ __kernel void update( __global float * presents,
 					  __global float * gbest,
 					  __global float * lowerbound,
 					  __global float * fitnesses,
-					  __constant int * dimnum) {
+					  __constant int * dimnum,
+					  __constant float * c1,
+					  __constant float * c2) {
 	int index= get_global_id(0)*(*dimnum)+get_global_id(1);
+	int randex=index+*dimnum*1;
 	int dex0=get_global_id(0);
 	int dex1=get_global_id(1);
 
 	///get_global_id(0) is partnum, get_global_id(1) is dimiension number
 	//velocity update
 	v[index]=*w*v[index]
-	 + rand[index]*(pbest[index]- presents[index])
-	 + rand[index+1]*(gbest[dex1]-presents[index]);
+	 + c1[0]*rand[randex]*(pbest[index]- presents[index])
+	 + c2[0]*rand[randex+1]*(gbest[dex1]-presents[index]);
 
 	//position update
 	presents[index]=presents[index]+v[index];
@@ -111,8 +114,7 @@ __kernel void update2(__global float * fitnesses,
 						__global float * pfitnesses,
 						__global float * presents,
 						__global float * pbest,
-						__constant int * partnum ) 
-						 {
+						__constant int * partnum ) {
 
 	const unsigned int j=get_global_id(0);
 	int k=j*dimnum[0];

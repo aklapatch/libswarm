@@ -67,20 +67,20 @@ class swarm {
         swarm();
 
         ///sets no. particles and no. dimensions and w
-        swarm(unsigned int, unsigned int,cl_float);
+        swarm(cl_uint, cl_uint,cl_float,cl_float,cl_float);
 
         ///frees all swarm memory
         ~swarm();
 
         ///sets the number of particles
-        void setpartnum(unsigned int);
+        void setpartnum(cl_uint);
 
         cl_uint getpartnum();
 
         cl_uint getdimnum();
 
         ///sets no. of dimensions
-        void setdimnum(unsigned int);
+        void setdimnum(cl_uint);
 
         ///sets inertial weight
         void setweight(cl_float);
