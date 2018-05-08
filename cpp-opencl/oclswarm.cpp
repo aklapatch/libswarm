@@ -339,7 +339,7 @@ void swarm::update(unsigned int times){
         ret=updte.setArg(7,gbestbuf);
         ret=updte.setArg(8,lowerboundbuf);
         ret=updte.setArg(9,fitnessbuf);
-        ret=updte.setArg(10,dimnum);
+        ret=updte.setArg(10,dimnumbuf);
         ret=updte.setArg(11,c1buf);
         ret=updte.setArg(12,c2buf);
 

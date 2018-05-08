@@ -33,12 +33,13 @@ int main(){
 
 	///make upper and lower bounds and set them
 	cl_float lower=-10,  upper=140;
-	std::cout << "lower =" << lower << "\n";
+	cl_float array[10] ={7,45};
+	std::cout << " array[1]" << array[1] << "\n";
 	
 	///distribute particles
 	test->distribute(&lower, &upper);
 
-	printparts(*test);
+	//printparts(*test);
 
 	int i=10;
 	cl_float tmp;
