@@ -1,4 +1,4 @@
-/*particle.hpp
+/*clswarm.hpp
 houses class and function prototypes for swarm class
 for opencl version
 
@@ -7,8 +7,8 @@ code derived from http://www.swarmintelligence.org/tutorials.php
 along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
-#ifndef _OCLSWARM_HPP_
-#define _OCLSWARM_HPP_
+#ifndef _CLSWARM_HPP_
+#define _CLSWARM_HPP_
 
 #include <vector>
 #include <cmath>
@@ -31,7 +31,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 
 ///there is no particle class, the swarm class has all the data
 ///that might change later on
-class swarm {
+class clswarm {
     private:
         /// no. of particles, no. of dimensions
         cl_uint dimnum=DEFAULT_DIM,partnum=DEFAULT_PARTNUM;
@@ -64,29 +64,29 @@ class swarm {
 
     public:
         ///defaults to 100 particles and 1 dimension
-        swarm();
+        clswarm();
 
         ///sets no. particles and no. dimensions and w
-        swarm(cl_uint, cl_uint,cl_float,cl_float,cl_float);
+        clswarm(cl_uint, cl_uint,cl_float,cl_float,cl_float);
 
         ///frees all swarm memory
-        ~swarm();
+        ~clswarm();
 
         ///sets the number of particles
-        void setpartnum(cl_uint);
+        void setPartNum(cl_uint);
 
-        cl_uint getpartnum();
+        cl_uint getPartNum();
 
-        cl_uint getdimnum();
+        cl_uint getDimNum();
 
         ///sets no. of dimensions
-        void setdimnum(cl_uint);
+        void setDimNum(cl_uint);
 
         ///sets inertial weight
-        void setweight(cl_float);
+        void setWeight(cl_float);
 
         ///sets 2 behavioral constants of the swarm
-        void setconstants(cl_float, cl_float);
+        void setConstants(cl_float, cl_float);
 
         /// sets upper and lower bounds and distributes linearly between them
         /** lower bound is first argument, upper bound is second argument */
@@ -96,16 +96,13 @@ class swarm {
         void update(unsigned int);
 
         ///returns the best position in the swarm.
-        cl_float* getgbest();
+        cl_float* getGBest();
 
         ///returns all particle data
-        cl_float ** getparts();
+        cl_float ** getParts();
 
         ///returns the fitness of the best particle
-        cl_float getgfitness();
-		
-		///returns ret for debugging purposes
-		//cl_int getRet();
+        cl_float getGFitness();
 };
 
 #endif

@@ -3,14 +3,14 @@
  * Copyright 2018 Aaron Klapatch
  */
 
-#include "oclswarm.hpp"
+#include "clswarm.hpp"
 #include <iostream>
 #include <vector>
 #include <random>
 
 int main(){
 	///the test swarm
-	swarm * test=new swarm(1,10,.4,2, 1.492);
+	clswarm * test=new clswarm(1,10,.3,2, 1.492);
 
 
 
@@ -27,9 +27,9 @@ int main(){
 		///run the swarm
 		test->update(1);
 
-		std::cout << "G fitness: " << test->getgfitness() << "\n";
+		std::cout << "G fitness: " << test->getGFitness() << "\n";
 
-		answer = test->getgbest();
+		answer = test->getGBest();
 		std::cout<< "The answer is " << answer[0] <<std:: endl;
 	}
 
@@ -37,7 +37,7 @@ int main(){
 	 
 	std::cout<< "The answer is " << answer[0] <<std:: endl;
 
-	std::cout << "gfitness " << test->getgfitness() << std::endl;
+	std::cout << "gfitness " << test->getGFitness() << std::endl;
 
 	delete test;
 	

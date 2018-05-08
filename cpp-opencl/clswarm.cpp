@@ -1,4 +1,4 @@
-/*swarm.cpp
+/*clswarm.cpp
 implementation for swarm
 for opencl version
 
@@ -7,11 +7,11 @@ code derived from http://www.swarmintelligence.org/tutorials.php
 along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
-#include "oclswarm.hpp"
+#include "clswarm.hpp"
 #include <iostream>
 
 ///returns particle data
-cl_float ** swarm::getparts(){
+cl_float ** clswarm::getParts(){
     cl_float **out=new cl_float*[partnum];
 
     int i=partnum;
@@ -27,16 +27,16 @@ cl_float ** swarm::getparts(){
     return out;
 }
 
-cl_uint swarm::getpartnum(){
+cl_uint clswarm::getPartNum(){
     return partnum;
 }
 
-cl_uint swarm::getdimnum(){
+cl_uint clswarm::getDimNum(){
     return dimnum;
 }
 
 ///sets dimensions to 1 and number of particles to 100 and w to 1.0
-swarm::swarm(){
+clswarm::clswarm(){
 
     ///set swarm characteristics to defaults
     partnum=DEFAULT_PARTNUM;
@@ -125,7 +125,7 @@ swarm::swarm(){
 
 ///sets dimensions to 1 and number of particles to 100 and w to 1.5
 //! TODO, convert all unsigned ints to cl_uint type
-swarm::swarm(cl_uint numdims, cl_uint numparts,cl_float inw, cl_float c1in, cl_float c2in){
+clswarm::clswarm(cl_uint numdims, cl_uint numparts,cl_float inw, cl_float c1in, cl_float c2in){
 
     ///set swarm characteristics
     partnum=numparts;
@@ -220,7 +220,7 @@ swarm::swarm(cl_uint numdims, cl_uint numparts,cl_float inw, cl_float c1in, cl_f
 }
 
 ///the destructor
-swarm::~swarm(){
+clswarm::~clswarm(){
 
     //finish and flush out queue
     queue.flush();
@@ -228,7 +228,7 @@ swarm::~swarm(){
 }
 
 ///sets number of particles
-void swarm::setpartnum(unsigned int num){
+void clswarm::setPartNum(unsigned int num){
 
     ///reset particle swarm #
     partnum=num;
@@ -249,7 +249,7 @@ void swarm::setpartnum(unsigned int num){
 }
 
 ///sets number of dimensions
-void swarm::setdimnum(unsigned int num){
+void clswarm::setDimNum(unsigned int num){
 
     ///set dimension number    
     dimnum=num;
@@ -266,21 +266,21 @@ void swarm::setdimnum(unsigned int num){
 }
 
 ///set inertial weight
-void swarm::setweight(cl_float nw){
+void clswarm::setWeight(cl_float nw){
 
     ///create and write w to memory
     queue.enqueueWriteBuffer(wbuf, CL_TRUE, 0, sizeof(cl_float), &nw);
 }
 
 ///set behavioral constants
-void swarm::setconstants(cl_float nc1,cl_float nc2){
+void clswarm::setConstants(cl_float nc1,cl_float nc2){
     ///write to new constants to buffers
     queue.enqueueWriteBuffer(c1buf, CL_TRUE, 0, sizeof(cl_float), &nc1);
     queue.enqueueWriteBuffer(c2buf, CL_TRUE, 0, sizeof(cl_float), &nc2);
 }
 
 ///distribute particle linearly from lower bound to upper bound
-void swarm::distribute(cl_float * lower, cl_float * upper){
+void clswarm::distribute(cl_float * lower, cl_float * upper){
     
     ///make memory pool
     upperboundbuf=cl::Buffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float));
@@ -307,7 +307,7 @@ void swarm::distribute(cl_float * lower, cl_float * upper){
 }
 
 ///run the position and velocity update equation
-void swarm::update(unsigned int times){
+void clswarm::update(unsigned int times){
 
     ///make random number generator C++11
     std::random_device gen;
@@ -370,8 +370,8 @@ void swarm::update(unsigned int times){
     delete [] ran;
 }
 
-///returns best position of the swarm
-cl_float * swarm::getgbest(){
+///returns best position of the clswarm
+cl_float * clswarm::getGBest(){
     cl_float * gbest = new cl_float[dimnum];
 
     ///get value from buffer
@@ -381,7 +381,7 @@ cl_float * swarm::getgbest(){
 }   
 
 ///returns the fitness of the best particle
-cl_float swarm::getgfitness(){
+cl_float clswarm::getGFitness(){
 
     ///get value from GPU
     ret=queue.enqueueReadBuffer(gfitbuf, CL_TRUE, 0,sizeof(cl_float), &gfitness);
