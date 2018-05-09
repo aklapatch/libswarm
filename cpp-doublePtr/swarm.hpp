@@ -45,7 +45,7 @@ class swarm {
         swarm();
 
         ///sets no. particles and no. dimensions and w
-        swarm(int, int,float);
+        swarm(int, int,float,float,float);
 
         ///frees all swarm memory
         ~swarm();
@@ -53,14 +53,26 @@ class swarm {
         ///sets the number of particles
         void setPartNum(int);
 
+        ///get number of particles
+        int getPartNum();
+
         ///sets no. of dimensions
         void setDimNum(int);
+
+        ///return dimension number
+        unsigned int getDimNum();
 
         ///sets inertial weight
         void setWeight(float);
 
-        ///sets 2 behavioral constants of the swarm
+        ///return the inertial weight
+        float getWeight();
+
+        ///set the 2 behavior constants
         void setConstants(float, float);
+
+        ///gets 2 behavioral constants of the swarm
+        float * getConstants();
 
         /// sets upper and lower bounds and distributes linearly between them
         /** lower bound is first argument, upper bound is second argument */

@@ -13,15 +13,10 @@ double fitness(double * in){
 
 int main(){
 	///the test swarm
-	swarm test;
+	swarm test(100,1,.5,1,1);
 
 	///make upper and lower bounds and set them
 	double lower=-32,  upper=45;
-	
-	///set the swarm properties
-	test.setPartNum(100);
-	test.setDimNum(1);
-	test.setWeight(1);
 	
 	///distribute particles
 	test.distribute(&lower, &upper);

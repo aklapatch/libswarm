@@ -8,7 +8,6 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
 #include "swarm.hpp"
-
 #include <iostream>
 
 ///sets dimensions to 1 and number of particles to 100 and w to 1.0
@@ -18,7 +17,9 @@ swarm::swarm(){
     partnum=DEFAULT_PARTNUM;
     dimnum=DEFAULT_DIM;
     w = DEFAULT_W;
-    gfitness=-HUGE_VAL;    
+    gfitness=-HUGE_VAL; 
+    c1=C1;
+    c2=C2;   
   
     try {
         ///set all vector sizes to default sizes
@@ -46,13 +47,15 @@ swarm::swarm(){
 }
 
 ///sets dimensions to 1 and number of particles to 100 and w to 1.5
-swarm::swarm(int numdims, int numparts,float inw){
+swarm::swarm(int numparts, int numdims,float inw, float c1in, float c2in){
 
     ///set swarm characteristics to defaults
     partnum=numparts;
     dimnum=numdims;
     w = DEFAULT_W;
-    gfitness=-HUGE_VAL;    
+    gfitness=-HUGE_VAL;   
+    c1=c1in;
+    c2=c2in; 
   
     try {
         ///set all vector sizes to default sizes
@@ -136,6 +139,11 @@ void swarm::setPartNum(int num){
     }    
 }
 
+///get number of particles
+int swarm::getPartNum(){
+    return partnum;
+}
+
 ///sets number of dimensions
 void swarm::setDimNum(int num){
     
@@ -162,15 +170,32 @@ void swarm::setDimNum(int num){
     } 
 }
 
+///return no. of dimensions
+unsigned int swarm::getDimNum(){
+    return dimnum;
+}
+
 ///set inertial weight
 void swarm::setWeight(float nw){
     w=nw;
+}
+
+float swarm::getWeight(){
+    return w;
 }
 
 ///set behavioral constants
 void swarm::setConstants(float nc1,float nc2){
     c1=nc1;
     c2=nc2;
+}
+
+///return constant array
+float * swarm::getConstants(){
+    float * out=new float[2];
+    out[0]=c1;
+    out[1]=c2;
+    return out;
 }
 
 ///distribute particle linearly from lower bound to upper bound
