@@ -4,7 +4,6 @@
  */
 
 #include "swarm.hpp"
-#include <iostream>
 #include <vector>
 
 double fitness(double * in){

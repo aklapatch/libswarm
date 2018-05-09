@@ -13,6 +13,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include <vector>
 #include <cmath>
 #include <random>
+#include <iostream>
 
 #define DEFAULT_DIM 1
 #define DEFAULT_PARTNUM 100

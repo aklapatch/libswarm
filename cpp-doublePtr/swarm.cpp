@@ -49,24 +49,24 @@ swarm::swarm(){
 ///sets dimensions to 1 and number of particles to 100 and w to 1.5
 swarm::swarm(int numparts, int numdims,float inw, float c1in, float c2in){
 
-    ///set swarm characteristics to defaults
+    ///set swarm characteristics
     partnum=numparts;
     dimnum=numdims;
-    w = DEFAULT_W;
+    w = inw;
     gfitness=-HUGE_VAL;   
     c1=c1in;
     c2=c2in; 
   
     try {
-        ///set all vector sizes to default sizes
+        ///set all vector sizes
         gbest = new double[dimnum];
         
-        pfitnesses = new double [numparts];
-        fitnesses= new double [numparts];
+        pfitnesses = new double [partnum];
+        fitnesses= new double [partnum];
         
-        pbests= new double * [numparts];
-        presents= new double * [numparts];    
-        v= new double * [numparts];
+        pbests= new double * [partnum];
+        presents= new double * [partnum];    
+        v= new double * [partnum];
 
         ///set all vectors to proper dimensions
         while(numparts--){
@@ -207,6 +207,7 @@ void swarm::distribute(double * lower, double * upper){
     
     int i,j;
     
+    ///allocate memory for and distribute particles
     try{
         double * delta = new double [dimnum];
         
