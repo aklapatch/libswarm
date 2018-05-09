@@ -275,6 +275,7 @@ void clswarm::setWeight(cl_float nw){
     queue.enqueueWriteBuffer(wbuf, CL_TRUE, 0, sizeof(cl_float), &nw);
 }
 
+///return inertial weight
 cl_float clswarm::getWeight(){
 	return w;
 }
