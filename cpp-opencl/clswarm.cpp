@@ -10,19 +10,17 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include "clswarm.hpp"
 #include <iostream>
 
-
-
+///sets particle data
 void clswarm::setPartData(cl_float * in){
-	queue.enqueueReadBuffer(presentbuf,CL_TRUE, 0,partnum*dimnum*sizeof(cl_float),in);
+	queue.enqueueWriteBuffer(presentbuf,CL_TRUE, 0,partnum*dimnum*sizeof(cl_float),in);
 }
-
 
 ///returns particle data
 cl_float * clswarm::getPartData(){
 
 	///store particle data
     cl_float *out=new cl_float [partnum*dimnum];
-    queue.enqueueReadBuffer(gbestbuf, CL_TRUE, 0,partnum*dimnum*sizeof(cl_float),out);
+    queue.enqueueReadBuffer(presentbuf, CL_TRUE, 0,partnum*dimnum*sizeof(cl_float),out);
 
     return out;
 }
@@ -295,7 +293,7 @@ void clswarm::setConstants(cl_float nc1,cl_float nc2){
 
 //return constants
 cl_float * clswarm::getConstants(){
-	cl_float * out =new cl_float[2];
+	cl_float * out = new cl_float[2];
 	out[0]=c1;
 	out[1]=c2;
 	return out;

@@ -27,16 +27,16 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 class swarm {
     private:
         /// no. of particles, no. of dimensions
-        int partnum=DEFAULT_PARTNUM, dimnum=DEFAULT_DIM;
+        int partnum, dimnum;
 
         ///best particle dimensions, its fitness, swarm bounds
         double * gbest, * upperbound, * lowerbound;
 
         ///set that so all fitness numbers will show up
-        double gfitness=-HUGE_VAL;
+        double gfitness;
 
         ///inertial weight and 2 behavioral constants
-        float w=DEFAULT_W, c1=C1, c2=C2;
+        float w, c1, c2;
 
         ///particle data
         double ** presents, ** pbests, **v;

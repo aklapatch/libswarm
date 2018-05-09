@@ -23,34 +23,33 @@ int main(){
 	test->setPartNum(PARTNUM);
 
 	///get particle number and test it
-	if (test->getPartNum()!=PARTNUM){
-		std::cerr << "Function getPartNum returned an incorrect value.\n";
+	if (test->getPartNum()>PARTNUM+ERRMARGIN||test->getPartNum()<PARTNUM-ERRMARGIN){
+		std::cerr << "Function getPartNum returned " << test->getPartNum() << " not " << PARTNUM << "\n";
 	}
 
 	//set dimension number
 	test->setDimNum(DIMNUM);
 
 	///test result
-	if (test->getDimNum()!=DIMNUM){
-		std::cerr << "Function getDimNum returned an incorrect value.\n";
+	if (test->getDimNum()>PARTNUM+ERRMARGIN||test->getDimNum()<PARTNUM-ERRMARGIN){
+		std::cerr << "Function getDimNum returned "<< test->getDimNum() << " not " << DIMNUM << "\n" ;
 	}
 
 	//set weight number
 	test->setWeight(WEIGHT);
 
 	///test result
-	if (test->getWeight()!=WEIGHT){
+	if (test->getWeight()>WEIGHT+ERRMARGIN||test->getWeight()<WEIGHT-ERRMARGIN){
 		std::cerr << "Function getWeight returned " << test->getWeight()<< " and not " << WEIGHT << "\n";
 	}
 
 	//set constants
 	test->setConstants(CONST1,CONST2);
 
-
 	cl_float * ans = test->getConstants();
 
 	///test result
-	if (ans[0]!=CONST1||ans[1]!=CONST2){
+	if (ans[0]>CONST1+ERRMARGIN||ans[0]<CONST1-ERRMARGIN||ans[1]>CONST2+ERRMARGIN||ans[1]<CONST2-ERRMARGIN){
 		std::cerr << "Function getConstants returned " << ans[0] << " and not " << CONST1 << "\n";
 		std::cerr << "and " << ans[1] << " and not " << CONST2 << "\n";
 	}
@@ -66,6 +65,8 @@ int main(){
 	///write data to particles
 	test->setPartData(pdata);
 
+	delete[] pdata;
+
 	//get particle data
 	pdata=test->getPartData();
 
@@ -73,6 +74,7 @@ int main(){
 	i=PARTNUM*DIMNUM;
 	bool failed=false;
 	while (i-->0){
+		std::cout << "data[" << i << "] = " << pdata[i] << "\n";
 		if(pdata[i]!=PDATA){
 			failed=true;
 		}
@@ -83,7 +85,9 @@ int main(){
 		std::cerr << "Function getPartData returned an incorrect value\n";
 	}
 
-	delete [] pdata;
+	delete[] pdata;
+	delete[] ans;
+	delete test;
 
-	delete [] ans;
+	return 0;
 }
