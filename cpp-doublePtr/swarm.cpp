@@ -298,3 +298,27 @@ double * swarm::getGBest(){
 double swarm::getGFitness(){
     return gfitness;
 }
+
+///take in array and set particle data from it.
+void swarm::setPartData(double ** in){
+    unsigned int j, i=partnum;
+    while (i--){
+        for(j=0;j<dimnum;++j){
+            presents[i][j]=in[i][j];
+        }
+    }
+}
+
+///return the particle data
+double ** swarm::getPartData(){
+    
+    double ** out = new double * [partnum];
+
+    unsigned int i=partnum;
+    while(i--){
+        out[i]=new double[dimnum];
+        memcpy(out[i],presents[i],sizeof(double)*dimnum);
+    }
+
+    return out;
+}

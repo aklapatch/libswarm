@@ -14,6 +14,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include <cmath>
 #include <random>
 #include <iostream>
+#include <cstring>
 
 #define DEFAULT_DIM 1
 #define DEFAULT_PARTNUM 100
@@ -87,6 +88,12 @@ class swarm {
 
         ///returns the fitness of the best particle
         double getGFitness();
+
+        ///sets particle data
+        void setPartData(double **);
+
+        ///returns particle data
+        double ** getPartData();
 };
 
 #endif
