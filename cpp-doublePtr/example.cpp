@@ -19,9 +19,9 @@ int main(){
 	double lower=-32,  upper=45;
 	
 	///set the swarm properties
-	test.setpartnum(100);
-	test.setdimnum(1);
-	test.setweight(1);
+	test.setPartNum(100);
+	test.setDimNum(1);
+	test.setWeight(1);
 	
 	///distribute particles
 	test.distribute(&lower, &upper);
@@ -30,7 +30,7 @@ int main(){
 	test.update(100, fitness);
 	
 	///get the answer and get it to the user
-	double * answer = test.getgbest();
+	double * answer = test.getGBest();
 	std::cout<< "The answer is " << answer[0] <<std:: endl;
 	
 	return 0;

@@ -51,16 +51,16 @@ class swarm {
         ~swarm();
 
         ///sets the number of particles
-        void setpartnum(int);
+        void setPartNum(int);
 
         ///sets no. of dimensions
-        void setdimnum(int);
+        void setDimNum(int);
 
         ///sets inertial weight
-        void setweight(float);
+        void setWeight(float);
 
         ///sets 2 behavioral constants of the swarm
-        void setconstants(float, float);
+        void setConstants(float, float);
 
         /// sets upper and lower bounds and distributes linearly between them
         /** lower bound is first argument, upper bound is second argument */
@@ -70,10 +70,10 @@ class swarm {
         void update(int, double (*fitness)(double*) );
 
         ///returns the best position in the swarm.
-        double* getgbest();
+        double * getGBest();
 
         ///returns the fitness of the best particle
-        double getgfitness();
+        double getGFitness();
 };
 
 #endif

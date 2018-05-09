@@ -97,7 +97,7 @@ swarm::~swarm(){
 }
 
 ///sets number of particles
-void swarm::setpartnum(int num){
+void swarm::setPartNum(int num){
     
     delete [] pfitnesses;
     delete [] fitnesses;
@@ -137,7 +137,7 @@ void swarm::setpartnum(int num){
 }
 
 ///sets number of dimensions
-void swarm::setdimnum(int num){
+void swarm::setDimNum(int num){
     
     dimnum=num;
     
@@ -163,12 +163,12 @@ void swarm::setdimnum(int num){
 }
 
 ///set inertial weight
-void swarm::setweight(float nw){
+void swarm::setWeight(float nw){
     w=nw;
 }
 
 ///set behavioral constants
-void swarm::setconstants(float nc1,float nc2){
+void swarm::setConstants(float nc1,float nc2){
     c1=nc1;
     c2=nc2;
 }
@@ -264,11 +264,11 @@ void swarm::update(int times, double (*fitness) (double*)){
 }
 
 ///returns best position of the swarm
-double * swarm::getgbest(){
+double * swarm::getGBest(){
     return gbest;
 }   
 
 ///returns the fitness of the best particle
-double swarm::getgfitness(){
+double swarm::getGFitness(){
     return gfitness;
 }
