@@ -75,22 +75,30 @@ class clswarm {
         ///sets the number of particles
         void setPartNum(cl_uint);
 
+		///get particle numbers
         cl_uint getPartNum();
-
-        cl_uint getDimNum();
 
         ///sets no. of dimensions
         void setDimNum(cl_uint);
 
+		///get dimension number
+		cl_uint getDimNum();
+
         ///sets inertial weight
         void setWeight(cl_float);
+
+		///returns inertial weight
+		cl_float getWeight();
 
         ///sets 2 behavioral constants of the swarm
         void setConstants(cl_float, cl_float);
 
+		///returns array with two those 2 constants
+		cl_float * getConstants();
+
         /// sets upper and lower bounds and distributes linearly between them
         /** lower bound is first argument, upper bound is second argument */
-        void distribute(cl_float* , cl_float* );
+        void distribute(cl_float * , cl_float* );
 
         /// updates (int) number of times with *fitness as a fitness function
         void update(unsigned int);
@@ -98,8 +106,11 @@ class clswarm {
         ///returns the best position in the swarm.
         cl_float* getGBest();
 
+		///sets particle data
+		void setPartData(cl_float *);
+
         ///returns all particle data
-        cl_float ** getParts();
+        cl_float * getPartData();
 
         ///returns the fitness of the best particle
         cl_float getGFitness();

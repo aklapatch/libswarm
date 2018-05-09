@@ -11,3 +11,6 @@ kernel:
 	
 clean:
 	del *.exe || rm *.exe
+
+test:
+	g++ -Wall --std=c++11 -I. C:\Windows\System32\OpenCL.dll testsuite/setsandgets.cpp clswarm.cpp -o setsandgets.exe

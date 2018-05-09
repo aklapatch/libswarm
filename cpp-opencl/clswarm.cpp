@@ -10,11 +10,18 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include "clswarm.hpp"
 #include <iostream>
 
+
+
+void clswarm::setPartData(cl_float * in){
+	queue.enqueueReadBuffer(presentbuf,CL_TRUE, 0,partnum*dimnum*sizeof(cl_float),in);
+}
+
+
 ///returns particle data
-cl_float * clswarm::getParts(){
+cl_float * clswarm::getPartData(){
 
 	///store particle data
-    cl_float *out=new cl_float * [partnum*dimnum];
+    cl_float *out=new cl_float [partnum*dimnum];
     queue.enqueueReadBuffer(gbestbuf, CL_TRUE, 0,partnum*dimnum*sizeof(cl_float),out);
 
     return out;
@@ -244,7 +251,7 @@ void clswarm::setPartNum(cl_uint num){
 }
 
 ///sets number of dimensions
-void clswarm::setDimNum(unsigned int num){
+void clswarm::setDimNum(cl_uint num){
 
     ///set dimension number    
     dimnum=num;
@@ -270,6 +277,10 @@ void clswarm::setWeight(cl_float nw){
     queue.enqueueWriteBuffer(wbuf, CL_TRUE, 0, sizeof(cl_float), &nw);
 }
 
+cl_float clswarm::getWeight(){
+	return w;
+}
+
 ///set behavioral constants
 void clswarm::setConstants(cl_float nc1,cl_float nc2){
     
@@ -280,6 +291,14 @@ void clswarm::setConstants(cl_float nc1,cl_float nc2){
 	///write to new constants to buffers
     queue.enqueueWriteBuffer(c1buf, CL_TRUE, 0, sizeof(cl_float), &nc1);
     queue.enqueueWriteBuffer(c2buf, CL_TRUE, 0, sizeof(cl_float), &nc2);
+}
+
+//return constants
+cl_float * clswarm::getConstants(){
+	cl_float * out =new cl_float[2];
+	out[0]=c1;
+	out[1]=c2;
+	return out;
 }
 
 ///distribute particle linearly from lower bound to upper bound

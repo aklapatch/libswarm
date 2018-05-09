@@ -1,16 +1,14 @@
 ///example.cpp
-/** a dead simple example of using particle swarm acceleration 
+/** a dead simple example of using particle swarm optimization
  * Copyright 2018 Aaron Klapatch
  */
 
 #include "clswarm.hpp"
 #include <iostream>
-#include <vector>
-#include <random>
 
 int main(){
 	///the test swarm
-	clswarm * test=new clswarm(1,10,.3,2, 1.492);
+	clswarm * test=new clswarm(1,10,.2,2, 1.492);
 
 	///make upper and lower bounds and set them
 	cl_float lower=-1623,  upper=1674;
@@ -20,7 +18,6 @@ int main(){
 	cl_float * answer;
 
 	int i=20;
-	cl_float tmp;
 	while(i-->0){
 		///run the swarm
 		test->update(1);
@@ -32,7 +29,7 @@ int main(){
 	}
 
 	///get the answer and get it to the user
-	std::cout<< "The answer is " << answer[0] <<std:: endl;
+	std::cout<< "The answer is " << answer[0] << std::endl;
 
 	std::cout << "gfitness " << test->getGFitness() << std::endl;
 
