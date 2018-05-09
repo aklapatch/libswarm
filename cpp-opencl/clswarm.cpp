@@ -11,26 +11,21 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include <iostream>
 
 ///returns particle data
-cl_float ** clswarm::getParts(){
-    cl_float **out=new cl_float*[partnum];
+cl_float * clswarm::getParts(){
 
-    int i=partnum;
-    while(i-->1){
-        out[i]= new cl_float[dimnum];
-    }
-
-    i=partnum;
-    while(i-->1){
-        queue.enqueueReadBuffer(gbestbuf, CL_TRUE, i*dimnum,dimnum*sizeof(cl_float),out[i]);
-    }
+	///store particle data
+    cl_float *out=new cl_float * [partnum*dimnum];
+    queue.enqueueReadBuffer(gbestbuf, CL_TRUE, 0,partnum*dimnum*sizeof(cl_float),out);
 
     return out;
 }
 
+///returns particle number
 cl_uint clswarm::getPartNum(){
     return partnum;
 }
 
+///returns dimension number
 cl_uint clswarm::getDimNum(){
     return dimnum;
 }
@@ -228,7 +223,7 @@ clswarm::~clswarm(){
 }
 
 ///sets number of particles
-void clswarm::setPartNum(unsigned int num){
+void clswarm::setPartNum(cl_uint num){
 
     ///reset particle swarm #
     partnum=num;
@@ -268,13 +263,21 @@ void clswarm::setDimNum(unsigned int num){
 ///set inertial weight
 void clswarm::setWeight(cl_float nw){
 
-    ///create and write w to memory
+	///store the inertial weight
+	w=nw;
+
+    ///write w to memory
     queue.enqueueWriteBuffer(wbuf, CL_TRUE, 0, sizeof(cl_float), &nw);
 }
 
 ///set behavioral constants
 void clswarm::setConstants(cl_float nc1,cl_float nc2){
-    ///write to new constants to buffers
+    
+	///store constants
+	c1=nc1;
+	c2=nc2;
+	
+	///write to new constants to buffers
     queue.enqueueWriteBuffer(c1buf, CL_TRUE, 0, sizeof(cl_float), &nc1);
     queue.enqueueWriteBuffer(c2buf, CL_TRUE, 0, sizeof(cl_float), &nc2);
 }

@@ -32,7 +32,6 @@ int main(){
 	}
 
 	///get the answer and get it to the user
-	 
 	std::cout<< "The answer is " << answer[0] <<std:: endl;
 
 	std::cout << "gfitness " << test->getGFitness() << std::endl;
