@@ -1,22 +1,20 @@
 ///kernels.cl
 /** houses all kernels for this project */
 
-///the fitness function is inside fitness.c
+///include fitness function
 #include "fitness.c"
-
-//#include<opencl-c.h>
 
 ///return the index with the biggest number
 int sort(__global float * array,int size){
-	int ret=0;
+	int out=0;
 	float biggest=-INFINITY;
 	while(size-->0){
 		if(array[size]>biggest){
 			biggest=array[size];
-			ret=size;
+			out=size;
 		}
 	}
-	return ret;
+	return out;
 }
 
 ///initialize pfitness array

@@ -4,10 +4,10 @@ example:
 	g++ -Wall --std=c++11 -I. C:\Windows\System32\OpenCL.dll example.cpp clswarm.cpp -o example.exe
 	
 debug:
-	g++   --std=c++11 -g -I. C:\Windows\System32\OpenCL.dll example.cpp clswarm.cpp -o d_example.exe
+	g++   --std=c++11 -g -Og -I. C:\Windows\System32\OpenCL.dll example.cpp clswarm.cpp -o d_example.exe
 
 kernel:
-	clang -c -cl-std=CL2.0 -cl-single-precision-constant kernels.cl
+	clang -c -cl-std=CL2.0 -cl-single-precision-constant binary_kernel_source.cl
 	
 clean:
 	del *.exe || rm *.exe
