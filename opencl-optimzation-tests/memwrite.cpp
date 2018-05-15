@@ -10,8 +10,9 @@
     #include <CL/cl.hpp>
 #endif
 #include <chrono>
+#include <vector>
 
-#define ITEMS 100000
+#define ITEMS 1000
 
 int main(){
     ///retrieve platforms
@@ -64,22 +65,23 @@ int main(){
     cl::Buffer Abuf;
     Abuf=cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(int) * n);
     queue.enqueueWriteBuffer(Abuf, CL_TRUE, 0, sizeof(int)*n, A);
+    std::vector<cl::Event> wlist(1);
 
-
+    cl::Kernel add=cl::Kernel(program,"add");
 
     ///measure time
     auto start = std::chrono::high_resolution_clock::now();
 
     ///set args
-    cl::Kernel add=cl::Kernel(program,"add");
     add.setArg(0,Abuf);
     
     ///run kernel + read buffer answer
-    queue.enqueueNDRangeKernel(add,cl::NullRange, cl::NDRange(n),cl::NullRange );
+    queue.enqueueNDRangeKernel(add,cl::NullRange, cl::NDRange(n),cl::NullRange, NULL, &wlist[0]);
+    cl::WaitForEvents(wlist);
     
     auto finish = std::chrono::high_resolution_clock::now();
 
-    queue.enqueueReadBuffer(Abuf, CL_TRUE, 0, sizeof(int)*n, A);
+    queue.enqueueReadBuffer(Abuf, CL_TRUE, 0, sizeof(int)*n,A, NULL,NULL);
 
     ///std::chrono::duration elapsed = finish - start;
 
@@ -87,19 +89,20 @@ int main(){
 
     std::cout <<"Time to execute value setting through kernel " << msec.count()<<"\n";
 
-    ///reset data
+    start = std::chrono::high_resolution_clock::now();
+
+        ///reset data
     for(i=0;i<n;++i){
         //std::cout << "i= " << i << "  A[i]= " << A[i] << "\n";
         A[i]=502;
     }
-
-    start = std::chrono::high_resolution_clock::now();
  
-    queue.enqueueWriteBuffer(Abuf, CL_TRUE, 0, sizeof(int)*n, A);
+    queue.enqueueWriteBuffer(Abuf, CL_TRUE, 0, sizeof(int)*n, A,NULL,&wlist[0]);
+    cl::WaitForEvents(wlist);
 
     finish = std::chrono::high_resolution_clock::now();
 
-    msec=std::chrono::duration_cast<std::chrono::nanoseconds>(finish-start);
+    msec=std::chrono::duration_cast<std::chrono::milliseconds>(finish-start);
 
     std::cout <<"\nTime to execute write value to memory " << msec.count()<<"\n";
 

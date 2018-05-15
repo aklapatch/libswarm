@@ -8,23 +8,13 @@
 int sort(__global float * array,int size){
 	int out=0;
 	float biggest=-INFINITY;
-	while(size-->0){
+	while(size--){
 		if(array[size]>biggest){
 			biggest=array[size];
 			out=size;
 		}
 	}
 	return out;
-}
-
-///initialize pfitness array
-__kernel void initpfit( __global float * pfitnesses){
-	pfitnesses[get_global_id(0)]=-INFINITY;
-}
-
-///initialize gbest
-__kernel void initzero( __global float * array){
-	array[get_global_id(0)]=0;
 }
 
 __kernel void compare( __global float *presents,
@@ -43,7 +33,7 @@ __kernel void compare( __global float *presents,
 		gfitness[0]=fitnesses[index];
 
 		///copy array into gbest array
-		while(i-->0) {
+		while(i--) {
 			gbest[i]=presents[index*dimnum[0]+i];
 		}
 	}
@@ -77,16 +67,18 @@ __kernel void update( __global float * presents,
 					  __global float * lowerbound,
 					  __global float * fitnesses,
 					  __constant int * dimnum,
+					  __constant int * partnum,
 					  __constant float * c1,
 					  __constant float * c2) {
+					  
 	int index= get_global_id(0)*(*dimnum)+get_global_id(1);
-	int randex=index+*dimnum*1;
+	int randex = index*2;
 	int dex0=get_global_id(0);
 	int dex1=get_global_id(1);
 
 	///get_global_id(0) is partnum, get_global_id(1) is dimiension number
 	//velocity update
-	v[index]=*w*v[index]
+	v[index]=(*w)*v[index]
 	 + c1[0]*rand[randex]*(pbest[index]- presents[index])
 	 + c2[0]*rand[randex+1]*(gbest[dex1]-presents[index]);
 
@@ -126,7 +118,7 @@ __kernel void update2(__global float * fitnesses,
 
 		unsigned int i=dimnum[0];
 
-		while(i-->0) {
+		while(i--) {
 			pbest[offset+i]=presents[offset+i];
 		}
 	}

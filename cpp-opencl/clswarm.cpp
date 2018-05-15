@@ -15,6 +15,14 @@ void clswarm::setPartData(cl_float * in){
 	queue.enqueueWriteBuffer(presentbuf,CL_TRUE, 0,partnum*dimnum*sizeof(cl_float),in);
 }
 
+cl_float * getarray(unsigned int size, cl_float value){
+    cl_float * out=new cl_float[size];
+    while(size--)
+        out[size]=value;
+
+    return out;
+}
+
 ///returns particle data
 cl_float * clswarm::getPartData(){
 
@@ -85,10 +93,6 @@ clswarm::clswarm(){
     partnumbuf=cl::Buffer(context, CL_MEM_READ_ONLY,sizeof(cl_int));
     ret=queue.enqueueWriteBuffer(partnumbuf, CL_TRUE, 0, sizeof(cl_int), &partnum);
 
-    ///create memory buffer for gfit and write to it
-    gfitbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float));
-    ret=queue.enqueueWriteBuffer(gfitbuf, CL_TRUE, 0, sizeof(cl_float), &gfitness);
-
     ///create and write w to memory
     wbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float));
     ret=queue.enqueueWriteBuffer(wbuf, CL_TRUE, 0, sizeof(cl_float), &w);
@@ -112,19 +116,32 @@ clswarm::clswarm(){
     gbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float));
     pbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
 
-    ///set args for initialization kernel
-    initpfit.setArg(0,pfitnessbuf);
-    ret=queue.enqueueNDRangeKernel(initpfit,cl::NullRange, cl::NDRange(partnum),cl::NullRange);   
+    cl_float *tmp=new cl_float[partnum];
+    int i=partnum;
+    while (i-->0)
+        tmp[i]=-HUGE_VALF; 
 
-    ///init bests as 0
-    initzero.setArg(0,gbestbuf);
-    ret=queue.enqueueNDRangeKernel(initzero,cl::NullRange, cl::NDRange(dimnum),cl::NullRange);
-    initzero.setArg(0,pbestbuf);    
-    ret=queue.enqueueNDRangeKernel(initzero,cl::NullRange, cl::NDRange(partnum*dimnum),cl::NullRange);
+    ///create memory buffer for gfit and write to it
+    gfitbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float));
+    queue.enqueueWriteBuffer(gfitbuf, CL_TRUE, 0, sizeof(cl_float), tmp);
+
+    ///write to pfitness buffer
+    queue.enqueueWriteBuffer(pfitnessbuf,CL_TRUE,0, partnum*sizeof(cl_float),tmp);
+   
+    delete [] tmp;
+
+    tmp=new cl_float[partnum*dimnum];
+    i=partnum*dimnum;
+    while(i--)
+        tmp[i]=0;
+
+    queue.enqueueWriteBuffer(gbestbuf,CL_TRUE,0, dimnum*sizeof(cl_float),tmp);
+    queue.enqueueWriteBuffer(pbestbuf,CL_TRUE,0, partnum*dimnum*sizeof(cl_float),tmp);
+
+    delete[] tmp;
 }
 
-///sets dimensions to 1 and number of particles to 100 and w to 1.5
-//! TODO, convert all unsigned ints to cl_uint type
+///sets all properties according to arguments
 clswarm::clswarm(cl_uint numdims, cl_uint numparts,cl_float inw, cl_float c1in, cl_float c2in){
 
     ///set swarm characteristics
@@ -168,21 +185,13 @@ clswarm::clswarm(cl_uint numdims, cl_uint numparts,cl_float inw, cl_float c1in, 
     updte=cl::Kernel(program, "update");
     updte2=cl::Kernel(program, "update2");
 
-    ///initialization kernels
-    initpfit=cl::Kernel(program, "initpfit");
-    initzero=cl::Kernel(program, "initzero");
-
     ///make buffers for particle and dimension numbers
     dimnumbuf=cl::Buffer(context, CL_MEM_READ_ONLY,sizeof(cl_uint));
     ret=queue.enqueueWriteBuffer(dimnumbuf, CL_TRUE, 0, sizeof(cl_uint), &dimnum);
     partnumbuf=cl::Buffer(context, CL_MEM_READ_ONLY,sizeof(cl_uint));
     ret=queue.enqueueWriteBuffer(partnumbuf, CL_TRUE, 0, sizeof(cl_uint), &partnum);
 
-    ///create memory buffer for gfit and write to it
-    gfitbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float));
-    ret=queue.enqueueWriteBuffer(gfitbuf, CL_TRUE, 0, sizeof(cl_float), &gfitness);
-
-    ///create and write w to memory
+    ///create buffer and write w to memory
     wbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float));
     ret=queue.enqueueWriteBuffer(wbuf, CL_TRUE, 0, sizeof(cl_float), &w);
 
@@ -194,29 +203,33 @@ clswarm::clswarm(cl_uint numdims, cl_uint numparts,cl_float inw, cl_float c1in, 
     c2buf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float));
     ret=queue.enqueueWriteBuffer(c2buf, CL_TRUE, 0, sizeof(cl_float), &c2);
 
-    ///creates buffers for every resource
+    ///create buffers for particle positions, velocities, velocities, fitnesses
     presentbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
-
     pbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float));
-
     vbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
-
     fitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
 
-    ///set buffers for pfitnesses, gbests, and pbests
+    ///get values to pass to fitness arrays
+    cl_float *tmp= getarray(dimnum, -HUGE_VALF);
+
+    ///create memory buffer for nonparticle fitnesses
+    gfitbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float));
+    queue.enqueueWriteBuffer(gfitbuf, CL_TRUE, 0, sizeof(cl_float), tmp);
     pfitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float));
+    queue.enqueueWriteBuffer(pfitnessbuf,CL_TRUE,0, partnum*sizeof(cl_float),tmp);
+   
+    delete [] tmp;
+
+    ///get array values for gbest and pbests
+    tmp=getarray(partnum*dimnum,0.000);
+
+    ///set buffers for gbests, and pbests to 0
     gbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float));
+    queue.enqueueWriteBuffer(gbestbuf,CL_TRUE,0, dimnum*sizeof(cl_float),tmp);
     pbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
+    queue.enqueueWriteBuffer(pbestbuf,CL_TRUE,0, partnum*dimnum*sizeof(cl_float),tmp);
 
-    ///set args for initialization kernel
-    initpfit.setArg(0,pfitnessbuf);
-    ret=queue.enqueueNDRangeKernel(initpfit,cl::NullRange, cl::NDRange(partnum),cl::NullRange);   
-
-    ///init bests as 0
-    initzero.setArg(0,gbestbuf);
-    ret=queue.enqueueNDRangeKernel(initzero,cl::NullRange, cl::NDRange(dimnum),cl::NullRange);
-    initzero.setArg(0,pbestbuf);    
-    ret=queue.enqueueNDRangeKernel(initzero,cl::NullRange, cl::NDRange(partnum*dimnum),cl::NullRange);
+    delete[] tmp;
 }
 
 ///the destructor
@@ -235,17 +248,12 @@ void clswarm::setPartNum(cl_uint num){
 
     ///does not need dimensions
     pfitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float));
-
     fitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float));
 
     ///needs dimension to initialize
     presentbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
-
     pbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
-
     vbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
-
-    //!TODO make kernel to reinit values for these buffers
 }
 
 ///sets number of dimensions
@@ -255,7 +263,6 @@ void clswarm::setDimNum(cl_uint num){
     dimnum=num;
 
     ///recreates buffers for every resource
-    //! TODO kernel value init here
     gbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float));
 
     presentbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
@@ -330,24 +337,45 @@ void clswarm::distribute(cl_float * lower, cl_float * upper){
 ///run the position and velocity update equation
 void clswarm::update(unsigned int times){
 
-    ///make random number generator C++11
+    ///make random number C++11 generator
     std::random_device gen;
-    std::uniform_real_distribution<float> distr(1,0);
+    std::uniform_real_distribution<cl_float> distr(1,0);
 
     ///set up memory to take the random array
-    cl_float * ran = new cl_float [(1+dimnum)*partnum];
-    cl::Buffer ranbuf(context, CL_MEM_READ_WRITE,(dimnum+1)*partnum*sizeof(cl_float));
+    unsigned int size=2*partnum*dimnum;
+    cl_float * ran = new cl_float [size];
+    cl::Buffer ranbuf(context, CL_MEM_READ_WRITE,size*sizeof(cl_float));
     unsigned int i;
 
     while(times--){
+        ///set args for fitness eval
+        ret=updte2.setArg(0,fitnessbuf);
+        ret=updte2.setArg(1,dimnumbuf);
+        ret=updte2.setArg(2,pfitnessbuf);
+        ret=updte2.setArg(3,presentbuf);
+        ret=updte2.setArg(4,pbestbuf);
+        ret=updte2.setArg(5,partnumbuf);
+
+        ///run fitness eval
+        ret=queue.enqueueNDRangeKernel(updte2,cl::NullRange, cl::NDRange(partnum),cl::NullRange);
+
+        ///set kernel args
+	    ret=cmpre.setArg(0,presentbuf);
+        ret=cmpre.setArg(1,gbestbuf);
+        ret=cmpre.setArg(2,fitnessbuf);
+        ret=cmpre.setArg(3,gfitbuf);
+        ret=cmpre.setArg(4,partnumbuf);
+        ret=cmpre.setArg(5,dimnumbuf);
+
+        ///run comparison
+        ret=queue.enqueueTask(cmpre,NULL,NULL);
 
         ///make a array of random numbers
-        for(i=0;i<(dimnum+1)*partnum;++i){
+        for(i=0;i<size;++i)
             ran[i]= distr(gen);
-        }
 
         ///write random numbers to buffer
-        queue.enqueueWriteBuffer(ranbuf, CL_TRUE, 0, (dimnum+1)*partnum*sizeof(cl_float), ran);
+        queue.enqueueWriteBuffer(ranbuf, CL_TRUE, 0, size*sizeof(cl_float), ran);
 
         ///set kernel args
 	    ret=updte.setArg(0,presentbuf);
@@ -361,33 +389,13 @@ void clswarm::update(unsigned int times){
         ret=updte.setArg(8,lowerboundbuf);
         ret=updte.setArg(9,fitnessbuf);
         ret=updte.setArg(10,dimnumbuf);
-        ret=updte.setArg(11,c1buf);
-        ret=updte.setArg(12,c2buf);
+        ret=updte.setArg(11,partnumbuf);
+        ret=updte.setArg(12,c1buf);
+        ret=updte.setArg(13,c2buf);
 
         ///execute kernel
-        ret=queue.enqueueNDRangeKernel(updte,cl::NullRange, cl::NDRange(partnum,dimnum),cl::NullRange);
-
-        ///set args for compare kernel
-        ret=updte2.setArg(0,fitnessbuf);
-        ret=updte2.setArg(1,dimnumbuf);
-        ret=updte2.setArg(2,pfitnessbuf);
-        ret=updte2.setArg(3,presentbuf);
-        ret=updte2.setArg(4,pbestbuf);
-        ret=updte2.setArg(5,partnumbuf);
-
-        ret=queue.enqueueNDRangeKernel(updte2,cl::NullRange, cl::NDRange(partnum),cl::NullRange);
-
-        ///set kernel args
-	    ret=cmpre.setArg(0,presentbuf);
-        ret=cmpre.setArg(1,gbestbuf);
-        ret=cmpre.setArg(2,fitnessbuf);
-        ret=cmpre.setArg(3,gfitbuf);
-        ret=cmpre.setArg(4,partnumbuf);
-        ret=cmpre.setArg(5,dimnumbuf);
-
-        ret=queue.enqueueTask(cmpre,NULL,NULL);
+        ret=queue.enqueueNDRangeKernel(updte,cl::NullRange, cl::NDRange(partnum,dimnum),cl::NullRange);  
     }
-
     delete [] ran;
 }
 
