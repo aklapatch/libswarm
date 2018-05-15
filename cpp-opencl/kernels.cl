@@ -67,7 +67,6 @@ __kernel void update( __global float * presents,
 					  __global float * lowerbound,
 					  __global float * fitnesses,
 					  __constant int * dimnum,
-					  __constant int * partnum,
 					  __constant float * c1,
 					  __constant float * c2) {
 					  
