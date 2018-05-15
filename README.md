@@ -6,6 +6,4 @@ Compiled and tested with mingw-w64 v5.0.3 (with mingw32-make) on windows 10.
 
 ## Status
 
-At this point, I have the CPU only example working,but its too simple to see if this implementation scales
-
-I have the OpenCL code running, but it only gets the right answer during my gdb runs in Visual studio code.
+Both the OpenCL and CPU-only examples work, but both examples are too simple to see if they scale well.
