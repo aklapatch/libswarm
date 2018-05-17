@@ -10,10 +10,10 @@ d-example:
 	g++ -I. C:\Windows\System32\OpenCL.dll swarmex.cpp swarm.cpp -o d-example.exe
 
 d-clexample:
-	g++ -I. C:\Windows\System32\OpenCL.dll clswarmex.cpp clswarm.cpp -o d-clexample.exe
+	g++ -I. clswarmex.cpp clswarm.cpp C:\Windows\System32\OpenCL.dll -o d-clexample.exe
 
 kernel:
-	clang -c -cl-std=CL2.0 -cl-single-precision-constant binary_kernel_source.cl
+	clang -c -cl-std=CL2.0 -cl-single-precision-constant kernel-binary.cl
 
 clean:
 	del *.exe *.o

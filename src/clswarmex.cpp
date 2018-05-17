@@ -1,33 +1,39 @@
 ///example.cpp
-/** a dead simple example of using particle swarm acceleration 
+/** a dead simple example of using particle swarm optimization
  * Copyright 2018 Aaron Klapatch
  */
 
-#include "swarm.hpp"
-#include <vector>
-
-double fitness(double * in){
-	return -(in[0]-2)*(in[0]-2);
-}
+#include "clswarm.hpp"
+#include <iostream>
 
 int main(){
 	///the test swarm
-	swarm test(100,1,.1,.5,1);
+	clswarm * test=new clswarm(1,10,.2,2, 1.492);
 
 	///make upper and lower bounds and set them
-	double lower=-32,  upper=45;
+	cl_float lower=-1623,  upper=1674;
 	
 	///distribute particles
-	test.distribute(&lower, &upper);
-	
-	///run the swarm
-	test.update(100, fitness);
-	
+	test->distribute(&lower, &upper);
+	cl_float * answer;
+
+	int i=20;
+	while(i-->0){
+		///run the swarm
+		test->update(1);
+
+		std::cout << "G fitness: " << test->getGFitness() << "\n";
+
+		answer = test->getGBest();
+		std::cout<< "The answer is " << answer[0] <<std:: endl;
+	}
+
 	///get the answer and get it to the user
-	double * answer = test.getGBest();
-	std::cout<< "The answer is " << answer[0] <<std:: endl;
+	std::cout<< "The answer is " << answer[0] << std::endl;
+
+	std::cout << "gfitness " << test->getGFitness() << std::endl;
+
+	delete test;
 	
 	return 0;
 }
-	
-	
