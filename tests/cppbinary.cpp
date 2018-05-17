@@ -13,6 +13,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <stdio.h>
 
 #define ITEMS 100
 
@@ -43,18 +44,23 @@ int main(){
     ///make source and push it into source
     cl::Program::Binaries binsrc;
 
-    std::ifstream in;
-    in.open("test.o", std::ios::binary|std::ios::in);
-    in.seekg(0, std::ios::end);
-    int length=in.tellg();
-    in.seekg(0,std::ios::beg);
+    FILE * inf = fopen("test.o","rb");
 
-    char * kersrc = new char [length];
+    fseek(inf,0,SEEK_END);
 
-    in.read(kersrc, length);
-    in.close();
-    
-    binsrc.push_back({kersrc, length});
+    size_t len= ftell(inf);
+
+    unsigned char * kersrc = new unsigned char[len];
+
+    std::cerr << "flength= " << len << "\n";
+
+    rewind(inf);
+
+    std::cerr << "flength= " << fread(kersrc,sizeof(unsigned char),len,inf) << "\n";
+
+    fclose(inf);
+
+    binsrc.push_back({kersrc, len});
 
     std::vector<cl_int> retvec(1);
 
@@ -63,7 +69,7 @@ int main(){
     cl::Program program(context, devices,binsrc,&retvec, &ret);
     std::cout << "ret= " << ret << "\n";
 
-    if (program.build({device}) != CL_SUCCESS) {
+    if (program.build(devices) != CL_SUCCESS) {
         std::cout << "Error building: " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device) << std::endl;
         exit(1);
     }
