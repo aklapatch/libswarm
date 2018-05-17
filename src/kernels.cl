@@ -2,7 +2,7 @@
 /** houses all kernels for this project */
 
 ///include fitness function
-#include "fitness.c"
+#include "fitness.cl"
 
 ///return the index with the biggest number
 int sort(__global float * array,int size){
