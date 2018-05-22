@@ -30,16 +30,17 @@ int main(){
     std::vector<cl::Device> devices;
     platform.getDevices(CL_DEVICE_TYPE_ALL, &devices);
 
-
-
     ///set devices
     cl::Device device=devices[0];
     cl::Device device1=devices[1];
     std::cout << "Device: " << device.getInfo<CL_DEVICE_NAME>() << "\n";
     std::cout << "Device1: " << device1.getInfo<CL_DEVICE_NAME>() << "\n";
 
+    std::vector<cl::Devices> devs(1);
+    devs[0]=device;
+
     ///get context
-    cl::Context context({device});
+    cl::Context context(devs);
 
     ///make source and push it into source
     cl::Program::Binaries binsrc;
@@ -66,11 +67,11 @@ int main(){
 
     ///build program
     cl_int ret=0;
-    cl::Program program(context, devices,binsrc,&retvec, &ret);
+    cl::Program program(context, devs,binsrc,&retvec, &ret);
     std::cout << "ret= " << ret << "\n";
 
-    if (program.build(devices) != CL_SUCCESS) {
-        std::cout << "Error building: " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device) << std::endl;
+    if (program.build(devs) != CL_SUCCESS) {
+        std::cout << "Error building: " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(0) << std::endl;
         exit(1);
     }
 

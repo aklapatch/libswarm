@@ -19,4 +19,3 @@ Both the OpenCL and CPU-only examples work, but both examples are too simple to 
 4. Make documentation.
 
 5. Test optimization flags (-O3, -O2, etc.)
-
