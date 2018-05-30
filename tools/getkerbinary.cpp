@@ -1,4 +1,4 @@
-///getkerbinary.c
+///getkerbinary.cpp
 /** this is a tool to print out the binary of a kernel source */
 
 #ifdef __APPLE__
@@ -13,8 +13,6 @@
 #include <fstream>
 #define LOGSIZE 700
 #define BUFF 1000
-
-
 
 int main(int argc, char ** argv){
 

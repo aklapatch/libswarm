@@ -36,7 +36,7 @@ int main(){
     std::cout << "Device: " << device.getInfo<CL_DEVICE_NAME>() << "\n";
     std::cout << "Device1: " << device1.getInfo<CL_DEVICE_NAME>() << "\n";
 
-    std::vector<cl::Devices> devs(1);
+    std::vector<cl::Device> devs(1);
     devs[0]=device;
 
     ///get context

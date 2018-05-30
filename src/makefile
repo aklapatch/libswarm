@@ -13,7 +13,7 @@ d-clexample:
 	g++ -I. clswarmex.cpp clswarm.cpp C:\Windows\System32\OpenCL.dll -o d-clexample.exe
 
 kernel:
-	clang -c -cl-std=CL2.0 -cl-single-precision-constant kernel-binary.cl
+	clang -cc1 -cl-std=CL2.0 -cl-single-precision-constant -finclude-default-header kernel-binary.cl
 
 clean:
 	del *.exe *.o
