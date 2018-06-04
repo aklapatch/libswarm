@@ -35,6 +35,8 @@ int main(){
     cl::Device device1=devices[1];
     std::cout << "Device: " << device.getInfo<CL_DEVICE_NAME>() << "\n";
     std::cout << "Device1: " << device1.getInfo<CL_DEVICE_NAME>() << "\n";
+	std::cout << "Device: spir extension " << device.getInfo<CL_DEVICE_SPIR_VERSIONS>() << "\n";
+    std::cout << "Device1: spir " << device1.getInfo<CL_DEVICE_SPIR_VERSIONS>() << "\n";
 
     std::vector<cl::Device> devs(1);
     devs[0]=device;
@@ -45,23 +47,25 @@ int main(){
     ///make source and push it into source
     cl::Program::Binaries binsrc;
 
-    FILE * inf = fopen("test.o","rb");
+    FILE * inf = fopen("test.bc","rb");
 
     fseek(inf,0,SEEK_END);
 
     size_t len= ftell(inf);
 
-    unsigned char * kersrc = new unsigned char[len];
+    char * kersrc = new char[len+1];
 
     std::cerr << "flength= " << len << "\n";
 
     rewind(inf);
 
-    std::cerr << "flength= " << fread(kersrc,sizeof(unsigned char),len,inf) << "\n";
+   std::cerr << "flength= " << fread(kersrc,sizeof(char),len,inf) << "\n";
+
+	kersrc[len]='\0';
 
     fclose(inf);
 
-    binsrc.push_back({kersrc, len});
+    binsrc.push_back({(const unsigned char *)kersrc, len+1});
 
     std::vector<cl_int> retvec(1);
 
@@ -70,8 +74,8 @@ int main(){
     cl::Program program(context, devs,binsrc,&retvec, &ret);
     std::cout << "ret= " << ret << "\n";
 
-    if (program.build(devs) != CL_SUCCESS) {
-        std::cout << "Error building: " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(0) << std::endl;
+    if (program.build(devs,"-x spir -spir-std=1.2") != CL_SUCCESS) {
+        std::cout << "Error building: " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devs[0],NULL) << std::endl;
         exit(1);
     }
 
