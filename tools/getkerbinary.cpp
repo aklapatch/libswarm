@@ -71,7 +71,7 @@ int main(int argc, char ** argv){
         ret = clGetProgramInfo(program, CL_PROGRAM_BINARIES,sizeof(unsigned char)*bsize,&binout,NULL);
 
         //openfile and output to file
-        file=fopen(strcat(argv[i],"bin"),"wb");
+        file=fopen(strcat(argv[i],".bin"),"wb");
         fwrite(binout,1,bsize,file);
         fclose(file);
 

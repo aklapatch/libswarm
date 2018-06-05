@@ -2,13 +2,7 @@
 /// code example usage https://github.com/Dakkers/OpenCL-examples/blob/master/example00/main.cpp
 ///timing code from https://www.pluralsight.com/blog/software-development/how-to-measure-execution-time-intervals-in-c--
 
-
-
-#ifdef __APPLE__
-    #include <OpenCL/cl.hpp>
-#else
-    #include <CL/cl2.hpp>
-#endif
+#include <CL/cl2.hpp>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -58,7 +52,7 @@ int main(){
     cl::Context context(dev[0]);
 
     ///make source and push it into source
-    cl::Program::Binaries bins=getbinary("test.clbin");
+    cl::Program::Binaries bins=getbinary("test.cl.bin");
 
     //bins.push_back();
 
@@ -68,7 +62,7 @@ int main(){
     cl::Program program=cl::Program(context, dev,bins,&retvec, &ret);
     std::cout << "ret= " << ret << " and revec[0] "<< retvec[0]<<"  \n";
 
-    if (program.build(dev,NULL) != CL_SUCCESS) {
+    if (program.build(dev,"-x spir ") != CL_SUCCESS) {
         std::cerr << "Error building: " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(dev[0],NULL) << std::endl;
         exit(1);
     }
