@@ -8,16 +8,23 @@
 #endif
 
 #include <stdio.h>
+#include <iostream>
 #include <string.h>
 #include <stdlib.h>
 #include <fstream>
-#define LOGSIZE 700
+#define LOGSIZE 400
 #define BUFF 1000
 
 int main(int argc, char ** argv){
 
+    //if there are not enough arguments
+    if(argc<2){
+        std::cout << "Usage: " <<argv[0] << "kernel.cl\n";
+        return 1;
+    }
+
     //kernel length and kernel data
-    unsigned int len=0,bsize=0, insize=0;
+    size_t len=0,bsize=0, insize=0;
     char * txtin=NULL, blog[LOGSIZE];
     unsigned char * binout = NULL;
     FILE * file;
@@ -49,21 +56,17 @@ int main(int argc, char ** argv){
         infile.read(txtin,len);
         infile.close();
         txtin[len]='\0';
-        
-        printf("size= %d\n",len);
-
-        puts(txtin);
 
         //build the program
         program = clCreateProgramWithSource(ctx,1,(const char **)&txtin,NULL, &ret);
-        ret = clBuildProgram(program, 1,&dev_id,NULL,  NULL, NULL);
+        ret = clBuildProgram(program, 1,&dev_id,"-x spir",  NULL, NULL);
 
         //get the build log and print it
         ret = clGetProgramBuildInfo(program, dev_id, CL_PROGRAM_BUILD_LOG,LOGSIZE,blog,NULL);
         puts(blog);
 
         // get kernel binary
-        ret = clGetProgramInfo(program, CL_PROGRAM_BINARY_SIZES,sizeof(unsigned int),&bsize,NULL);
+        ret = clGetProgramInfo(program, CL_PROGRAM_BINARY_SIZES,sizeof(size_t),&bsize,NULL);
         binout = (unsigned char *)malloc(sizeof(unsigned char)*bsize);
         ret = clGetProgramInfo(program, CL_PROGRAM_BINARIES,sizeof(unsigned char)*bsize,&binout,NULL);
 
@@ -80,5 +83,4 @@ int main(int argc, char ** argv){
     clReleaseProgram(program);
     clReleaseContext(ctx);
     clReleaseDevice(dev_id);
-
 }
