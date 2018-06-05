@@ -7,7 +7,7 @@
 #ifdef __APPLE__
     #include <OpenCL/cl.hpp>
 #else
-    #include <CL/cl.hpp>
+    #include <CL/cl2.hpp>
 #endif
 #include <chrono>
 #include <fstream>
@@ -16,6 +16,29 @@
 #include <stdio.h>
 
 #define ITEMS 100
+
+cl::Program::Binaries getbinary(const char * fname){
+    std::ifstream inf(fname,std::ios::in | std::ios::binary);
+
+    //get file size
+    inf.seekg(0,std::ios::end);
+    int len=inf.tellg();
+    inf.seekg(0,std::ios::beg);
+
+    std::vector<std::vector<unsigned char>> out(1);
+    if(!inf){
+        std::cerr << "file is not open\n";
+        return out;
+    }
+
+    unsigned char tmp;
+    for(int i=0;i<len;++i){
+        inf >> tmp;
+        out[0].push_back(tmp);
+    }
+
+    return out;
+}
 
 int main(){
     ///retrieve platforms
@@ -27,82 +50,43 @@ int main(){
     std::cout << "Platform: " << platform.getInfo<CL_PLATFORM_NAME>()<<"\n";
 
     ///get devices
-    std::vector<cl::Device> devices;
-    platform.getDevices(CL_DEVICE_TYPE_ALL, &devices);
-
-    ///set devices
-    cl::Device device=devices[0];
-    cl::Device device1=devices[1];
-    std::cout << "Device: " << device.getInfo<CL_DEVICE_NAME>() << "\n";
-    std::cout << "Device1: " << device1.getInfo<CL_DEVICE_NAME>() << "\n";
-	std::cout << "Device: spir extension " << device.getInfo<CL_DEVICE_SPIR_VERSIONS>() << "\n";
-    std::cout << "Device1: spir " << device1.getInfo<CL_DEVICE_SPIR_VERSIONS>() << "\n";
-
-    std::vector<cl::Device> devs(1);
-    devs[0]=device;
+    std::vector<cl::Device> dev;
+    cl_int ret= platform.getDevices(CL_DEVICE_TYPE_GPU, &dev);
+    std::cerr <<"ret= " << ret << "\n";
 
     ///get context
-    cl::Context context(devs);
+    cl::Context context(dev[0]);
 
     ///make source and push it into source
-    cl::Program::Binaries binsrc;
+    cl::Program::Binaries bins=getbinary("test.clbin");
 
-    FILE * inf = fopen("test.bc","rb");
-
-    fseek(inf,0,SEEK_END);
-
-    size_t len= ftell(inf);
-
-    char * kersrc = new char[len+1];
-
-    std::cerr << "flength= " << len << "\n";
-
-    rewind(inf);
-
-   std::cerr << "flength= " << fread(kersrc,sizeof(char),len,inf) << "\n";
-
-	kersrc[len]='\0';
-
-    fclose(inf);
-
-    binsrc.push_back({(const unsigned char *)kersrc, len+1});
+    //bins.push_back();
 
     std::vector<cl_int> retvec(1);
 
     ///build program
-    cl_int ret=0;
-    cl::Program program(context, devs,binsrc,&retvec, &ret);
-    std::cout << "ret= " << ret << "\n";
+    cl::Program program=cl::Program(context, dev,bins,&retvec, &ret);
+    std::cout << "ret= " << ret << " and revec[0] "<< retvec[0]<<"  \n";
 
-    if (program.build(devs,"-x spir -spir-std=1.2") != CL_SUCCESS) {
-        std::cout << "Error building: " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devs[0],NULL) << std::endl;
+    if (program.build(dev,NULL) != CL_SUCCESS) {
+        std::cerr << "Error building: " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(dev[0],NULL) << std::endl;
         exit(1);
     }
 
+
     ///make queue
-    cl::CommandQueue queue(context,device);
+    cl::CommandQueue queue(context,dev[0],NULL,&ret);
 
-    ///make+init data
-    cl_int n=ITEMS,i=ITEMS;
-    cl_int * A = new int [n];
-    while(i--) 
-        A[i]=i;
+    cl::Buffer resbuf(context,CL_MEM_READ_WRITE,sizeof(float));
+    cl::Kernel t(program,"t");
+    std::cout << "arg set= " <<t.setArg(0,resbuf)<< "\n";
 
-    cl_float * result=NULL;    
+    queue.enqueueNDRangeKernel(t,cl::NullRange,cl::NDRange(1),cl::NullRange);
 
-    ///make buffer and write to it;
-    cl::Buffer Abuf=cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(cl_int) * n);
-    queue.enqueueWriteBuffer(Abuf, CL_TRUE, 0, sizeof(cl_int)*n, A);
+    cl_float result=0;
+    queue.enqueueReadBuffer(resbuf,CL_TRUE,0,sizeof(cl_float),&result);
 
-    ///set args
-    cl::Kernel add=cl::Kernel(program,"add");
-    add.setArg(0,Abuf);
-
-    ///run kernel + read buffer answer
-    queue.enqueueNDRangeKernel(add,cl::NullRange, cl::NDRange(n),cl::NullRange );
-    queue.enqueueReadBuffer(Abuf, CL_TRUE, 0, sizeof(cl_int)*n, A);
-
-    delete [] kersrc;
+    std::cout << "Answer = " << result << std::endl;
 
     return 0;
 }

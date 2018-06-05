@@ -73,7 +73,7 @@ int main(){
     auto start = std::chrono::high_resolution_clock::now();
     
     ///run kernel + read buffer answer
-    queue.enqueueNDRangeKernel(add,cl::NullRange, cl::NDRange(n),cl::NullRange );
+    queue.enqueueNDRangeKernel(add,cl::NullRange, cl:: NDRange(n),cl::NullRange );
     queue.enqueueReadBuffer(Abuf, CL_TRUE, 0, sizeof(int)*n, A);
 
     auto finish = std::chrono::high_resolution_clock::now();
