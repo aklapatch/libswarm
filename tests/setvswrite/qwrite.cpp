@@ -3,23 +3,24 @@
 ///timing code from https://www.pluralsight.com/blog/software-development/how-to-measure-execution-time-intervals-in-c--
 
 
+#define CL_HPP_TARGET_OPENCL_VERSION 200
 #include <iostream>
 #ifdef __APPLE__
     #include <OpenCL/cl.hpp>
 #else
-    #include <CL/cl.hpp>
+    #include <CL/cl2.hpp>
 #endif
 #include <chrono>
 
-#define ITEMS 100
+#define ITEMS 100000
 
 int main(){
     ///retrieve platforms
     std::vector<cl::Platform> platforms;
     cl::Platform::get(&platforms);
 
-    ///get platfrom and print
- mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm                            cl::Platform platform = platforms[0];
+    ///get platfrom and print it
+    cl::Platform platform = platforms[0];
     std::cout << "Platform: " << platform.getInfo<CL_PLATFORM_NAME>()<<"\n";
 
     ///get devices
@@ -88,11 +89,6 @@ int main(){
     auto msec=std::chrono::duration_cast<std::chrono::microseconds>(finish-start);
 
     std::cout <<"Time to execute " << msec.count()<<"\n";
-
-    ///print all answers
-    for(i=0;i<n;++i){
-        std::cout << "A["<<i<< "] " << A[i] <<"\t";
-    }
 
     return 0;
 }

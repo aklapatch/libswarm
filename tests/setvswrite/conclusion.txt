@@ -1,0 +1,1 @@
+It seems like the kernel writing is just a bit faster than the queue writing on average
