@@ -94,7 +94,7 @@ class clswarm {
         void setConstants(cl_float, cl_float);
 
 		///returns array with two those 2 constants
-		cl_float * getConstants();
+		void getConstants(cl_float[2]);
 
         /// sets upper and lower bounds and distributes linearly between them
         /** lower bound is first argument, upper bound is second argument */

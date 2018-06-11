@@ -39,8 +39,37 @@ __kernel void compare( __global float *presents,
 	}
 }
 
-__kernel void distribute(__global float * lowerbound,
-						 __global float * upperbound,
+
+//TEST FUNCTION
+//get the delta array
+__kernel void getDelta(__constant float * lowerbound,
+					__constant float * upperbound,
+					__global float * delta,
+					__global float * partnum) {
+	//compute the delta
+	unsigned int i=get_global_id(0);
+	delta[i]=(upperbound[i]-lowerbound[i])/(partnum[0]-1);
+}
+
+//TEST FUNCTION
+__kernel void distrtest(__constant float * lowerbound,
+						__global float * delta,
+						__global float * presents,
+						__global float * pbests,
+						__constant int * dimnum,
+						__constant int * partnum)
+
+	///get_global_id(1) is dimension number, get_global_id(0) is particle number
+	unsigned int i[2]={get_global_id(1), get_global_id(0)*(dimnum[0])+ get_global_id(1)};
+
+	//does the distribution sets pbests=0
+	presents[i[1]]=get_global_id(0)*delta[i[0]] + lowerbound[i[0]];
+	pbests[i[1]]=0;
+}
+
+///distributes particles linearly between the bounds
+__kernel void distribute(__constant float * lowerbound,
+						 __constant float * upperbound,
 						 __global float * delta,
 						 __global float * presents,
 						 __global float * pbests,
@@ -58,13 +87,13 @@ __kernel void distribute(__global float * lowerbound,
 
 __kernel void update( __global float * presents,
 					  __global float * v,
-					  __global float * w,
+					  __constant float * w,
 					  __global float * rand,
 					  __global float * pfitnesses,
-					  __global float *upperbound,
+					  __constant float *upperbound,
 					  __global float * pbest,
 					  __global float * gbest,
-					  __global float * lowerbound,
+					  __constant float * lowerbound,
 					  __global float * fitnesses,
 					  __constant int * dimnum,
 					  __constant float * c1,

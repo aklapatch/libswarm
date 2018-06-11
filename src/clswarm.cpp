@@ -300,11 +300,9 @@ void clswarm::setConstants(cl_float nc1,cl_float nc2){
 }
 
 //return constants
-cl_float * clswarm::getConstants(){
-	cl_float * out = new cl_float[2];
-	out[0]=c1;
-	out[1]=c2;
-	return out;
+void clswarm::getConstants(cl_float in[2]){
+	in[0]=c1;
+	in[1]=c2;
 }
 
 ///distribute particle linearly from lower bound to upper bound

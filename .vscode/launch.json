@@ -4,6 +4,25 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+    {
+        "name": "qwrite Launch",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/tests/setvswrite/qwrite.out",
+        "args": [],
+        "stopAtEntry": false,
+        "cwd": "${workspaceFolder}/tests",
+        "environment": [],
+        "externalConsole": true,
+        "MIMode": "gdb",
+        "setupCommands": [
+            {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+            }
+        ]
+    },
 {
     "name": "testbin Launch",
     "type": "cppdbg",
