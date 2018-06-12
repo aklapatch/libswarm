@@ -84,7 +84,7 @@ class swarm {
         void update(int, double (*fitness)(double*) );
 
         ///returns the best position in the swarm.
-        double * getGBest();
+        void getGBest(double *);
 
         ///returns the fitness of the best particle
         double getGFitness();

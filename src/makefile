@@ -17,3 +17,6 @@ kernel:
 
 clean:
 	del *.exe *.o
+
+uex:
+	clang++ -g -Og -lOpenCL swarm.cpp swarmex.cpp -o example.out

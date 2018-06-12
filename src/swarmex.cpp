@@ -24,8 +24,11 @@ int main(){
 	test.update(100, fitness);
 	
 	///get the answer and get it to the user
-	double * answer = test.getGBest();
+	double * answer = new double[test.getDimNum()];
+	test.getGBest(answer);
 	std::cout<< "The answer is " << answer[0] <<std:: endl;
+
+	delete [] answer;
 	
 	return 0;
 }

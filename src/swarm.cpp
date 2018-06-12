@@ -288,8 +288,10 @@ void swarm::update(int times, double (*fitness) (double*)){
 }
 
 ///returns best position of the swarm
-double * swarm::getGBest(){
-    return gbest;
+void swarm::getGBest(double * out){
+    size_t i=dimnum;
+    while(i--)
+        out[i]=gbest[i];
 }   
 
 ///returns the fitness of the best particle
