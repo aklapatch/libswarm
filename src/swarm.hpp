@@ -27,7 +27,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 class swarm {
     private:
         /// no. of particles, no. of dimensions
-        int partnum, dimnum;
+        size_t partnum, dimnum;
 
         ///best particle dimensions, its fitness, swarm bounds
         double * gbest, * upperbound, * lowerbound;
@@ -47,22 +47,22 @@ class swarm {
         swarm();
 
         ///sets no. particles and no. dimensions and w
-        swarm(int, int,float,float,float);
+        swarm(size_t,size_t,float,float,float);
 
         ///frees all swarm memory
         ~swarm();
 
         ///sets the number of particles
-        void setPartNum(int);
+        void setPartNum(size_t);
 
         ///get number of particles
-        int getPartNum();
+        size_t getPartNum();
 
         ///sets no. of dimensions
-        void setDimNum(int);
+        void setDimNum(size_t);
 
         ///return dimension number
-        unsigned int getDimNum();
+        size_t getDimNum();
 
         ///sets inertial weight
         void setWeight(float);
@@ -74,7 +74,7 @@ class swarm {
         void setConstants(float, float);
 
         ///gets 2 behavioral constants of the swarm
-        float * getConstants();
+        void getConstants(float[2]);
 
         /// sets upper and lower bounds and distributes linearly between them
         /** lower bound is first argument, upper bound is second argument */
@@ -93,7 +93,7 @@ class swarm {
         void setPartData(double **);
 
         ///returns particle data
-        double ** getPartData();
+        void getPartData(double **);
 };
 
 #endif

@@ -10,6 +10,9 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #ifndef _CLSWARM_HPP_
 #define _CLSWARM_HPP_
 
+//set opencl version
+#define CL_HPP_TARGET_OPENCL_VERSION 200
+
 #include <vector>
 #include <cmath>
 #include <random>
@@ -17,7 +20,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #ifdef __APPLE__	
 #include <OpenCL/opencl.hpp>	
 #else	
-#include <CL/cl.hpp>	
+#include <CL/cl2.hpp>	
 #endif	
 
 #define KER_SIZE 0x100000
@@ -34,18 +37,18 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 class clswarm {
     private:
         /// no. of particles, no. of dimensions
-        cl_uint dimnum=DEFAULT_DIM,partnum=DEFAULT_PARTNUM;
+        cl_uint dimnum ,partnum;
         cl::Buffer dimnumbuf, partnumbuf;
 
         ///best particle dimensions, its fitness, swarm bounds
         cl::Buffer gbestbuf, upperboundbuf, lowerboundbuf;
 
         ///set that so all fitness numbers will show up
-        cl_float gfitness=-HUGE_VALF;
+        cl_float gfitness;
         cl::Buffer gfitbuf;
 
         ///inertial weight and 2 behavioral constants
-        cl_float w=DEFAULT_W, c1=C1, c2=C2;
+        cl_float w, c1, c2;
         cl::Buffer wbuf, c1buf, c2buf;
 
         ///particle data
@@ -110,10 +113,9 @@ class clswarm {
 		void setPartData(cl_float *);
 
         ///returns all particle data
-        cl_float * getPartData();
+        void getPartData(cl_float *);
 
         ///returns the fitness of the best particle
         cl_float getGFitness();
 };
-
 #endif

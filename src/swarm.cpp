@@ -47,7 +47,7 @@ swarm::swarm(){
 }
 
 ///sets dimensions to 1 and number of particles to 100 and w to 1.5
-swarm::swarm(int numparts, int numdims,float inw, float c1in, float c2in){
+swarm::swarm(size_t numparts, size_t numdims,float inw, float c1in, float c2in){
 
     ///set swarm characteristics
     partnum=numparts;
@@ -100,7 +100,7 @@ swarm::~swarm(){
 }
 
 ///sets number of particles
-void swarm::setPartNum(int num){
+void swarm::setPartNum(size_t num){
     
     delete [] pfitnesses;
     delete [] fitnesses;
@@ -140,12 +140,12 @@ void swarm::setPartNum(int num){
 }
 
 ///get number of particles
-int swarm::getPartNum(){
+size_t swarm::getPartNum(){
     return partnum;
 }
 
 ///sets number of dimensions
-void swarm::setDimNum(int num){
+void swarm::setDimNum(size_t num){
     
     dimnum=num;
     
@@ -171,7 +171,7 @@ void swarm::setDimNum(int num){
 }
 
 ///return no. of dimensions
-unsigned int swarm::getDimNum(){
+size_t swarm::getDimNum(){
     return dimnum;
 }
 
@@ -191,11 +191,9 @@ void swarm::setConstants(float nc1,float nc2){
 }
 
 ///return constant array
-float * swarm::getConstants(){
-    float * out=new float[2];
+void swarm::getConstants(float out[2]){
     out[0]=c1;
     out[1]=c2;
-    return out;
 }
 
 ///distribute particle linearly from lower bound to upper bound
@@ -205,7 +203,7 @@ void swarm::distribute(double * lower, double * upper){
     upperbound=upper;
     lowerbound=lower;
     
-    int i,j;
+    size_t i,j;
     
     ///allocate memory for and distribute particles
     try{
@@ -301,7 +299,7 @@ double swarm::getGFitness(){
 
 ///take in array and set particle data from it.
 void swarm::setPartData(double ** in){
-    unsigned int j, i=partnum;
+    size_t j, i=partnum;
     while (i--){
         for(j=0;j<dimnum;++j){
             presents[i][j]=in[i][j];
@@ -310,15 +308,9 @@ void swarm::setPartData(double ** in){
 }
 
 ///return the particle data
-double ** swarm::getPartData(){
+void swarm::getPartData(double ** out){
     
-    double ** out = new double * [partnum];
-
-    unsigned int i=partnum;
-    while(i--){
-        out[i]=new double[dimnum];
+    size_t i=partnum;
+    while(i--)
         memcpy(out[i],presents[i],sizeof(double)*dimnum);
-    }
-
-    return out;
 }

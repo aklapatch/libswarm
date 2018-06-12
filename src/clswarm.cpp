@@ -24,13 +24,10 @@ cl_float * getarray(unsigned int size, cl_float value){
 }
 
 ///returns particle data
-cl_float * clswarm::getPartData(){
+void clswarm::getPartData(cl_float * out){
 
 	///store particle data
-    cl_float *out=new cl_float [partnum*dimnum];
     queue.enqueueReadBuffer(presentbuf, CL_TRUE, 0,partnum*dimnum*sizeof(cl_float),out);
-
-    return out;
 }
 
 ///returns particle number
@@ -144,14 +141,6 @@ clswarm::clswarm(){
 ///sets all properties according to arguments
 clswarm::clswarm(cl_uint numdims, cl_uint numparts,cl_float inw, cl_float c1in, cl_float c2in){
 
-    ///set swarm characteristics
-    partnum=numparts;
-    dimnum=numdims;
-    w = inw;
-    gfitness=-HUGE_VALF;    
-    c1=c1in;
-    c2=c2in;
-
    ///gets platforms
 	ret=cl::Platform::get(&platforms);
 	
@@ -159,7 +148,7 @@ clswarm::clswarm(cl_uint numdims, cl_uint numparts,cl_float inw, cl_float c1in, 
 	ret=platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &devices);
 	
 	///gets a context with the first GPU found devices
-    context=cl::Context({devices[0]});
+    context=cl::Context(devices);
 
 	///get command queue
     queue=cl::CommandQueue(context,devices[0]);
@@ -366,7 +355,7 @@ void clswarm::update(unsigned int times){
         ret=cmpre.setArg(5,dimnumbuf);
 
         ///run comparison
-        ret=queue.enqueueTask(cmpre,NULL,NULL);
+        ret=queue.enqueueNDRangeKernel(cmpre,cl::NullRange,cl::NullRange,cl::NullRange);
 
         ///make a array of random numbers
         for(i=0;i<size;++i)
