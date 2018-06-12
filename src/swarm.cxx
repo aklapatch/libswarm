@@ -1,4 +1,4 @@
-/*swarm.cpp
+/* swarm.cpp
 implementation for swarm
 for openclless version
 
@@ -10,10 +10,10 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include "swarm.hpp"
 #include <iostream>
 
-///sets dimensions to 1 and number of particles to 100 and w to 1.0
-swarm::swarm(){
+//sets dimensions to 1 and number of particles to 100 and w to 1.0
+Swarm::Swarm(){
 
-    ///set swarm characteristics to defaults
+    //set swarm characteristics to defaults
     partnum=DEFAULT_PARTNUM;
     dimnum=DEFAULT_DIM;
     w = DEFAULT_W;
@@ -22,7 +22,7 @@ swarm::swarm(){
     c2=C2;   
   
     try {
-        ///set all vector sizes to default sizes
+        //set all vector sizes to default sizes
         gbest = new double[DEFAULT_DIM];
     
         pfitnesses = new double [DEFAULT_PARTNUM];
@@ -32,7 +32,7 @@ swarm::swarm(){
         presents= new double * [DEFAULT_PARTNUM];    
         v= new double * [DEFAULT_PARTNUM];
 
-        ///set all vectors to proper dimensions
+        //set all vectors to proper dimensions
         int i;
         for(i=0;i<DEFAULT_PARTNUM;++i){
             presents[i]= new double [DEFAULT_DIM];
@@ -46,19 +46,19 @@ swarm::swarm(){
     }
 }
 
-///sets dimensions to 1 and number of particles to 100 and w to 1.5
-swarm::swarm(size_t numparts, size_t numdims,float inw, float c1in, float c2in){
+//sets dimensions to 1 and number of particles to 100 and w to 1.5
+Swarm::Swarm(size_t numparts, size_t numdims,float inw, float inc1, float inc2){
 
-    ///set swarm characteristics
+    //set swarm characteristics
     partnum=numparts;
     dimnum=numdims;
     w = inw;
     gfitness=-HUGE_VAL;   
-    c1=c1in;
-    c2=c2in; 
+    c1=inc1;
+    c2=inc2; 
   
     try {
-        ///set all vector sizes
+        //set all vector sizes
         gbest = new double[dimnum];
         
         pfitnesses = new double [partnum];
@@ -68,7 +68,7 @@ swarm::swarm(size_t numparts, size_t numdims,float inw, float c1in, float c2in){
         presents= new double * [partnum];    
         v= new double * [partnum];
 
-        ///set all vectors to proper dimensions
+        //set all vectors to proper dimensions
         while(numparts--){
             presents[numparts]= new double [dimnum];
             pbests[numparts]= new double [dimnum];
@@ -81,8 +81,8 @@ swarm::swarm(size_t numparts, size_t numdims,float inw, float c1in, float c2in){
     }   
 }
 
-///deallocate all memory
-swarm::~swarm(){
+//deallocate all memory
+Swarm::~Swarm(){
     
     delete [] gbest;
     delete [] pfitnesses;
@@ -99,8 +99,8 @@ swarm::~swarm(){
     delete [] v;
 }
 
-///sets number of particles
-void swarm::setPartNum(size_t num){
+//sets number of particles
+void Swarm::setPartNum(size_t num){
     
     delete [] pfitnesses;
     delete [] fitnesses;
@@ -116,7 +116,7 @@ void swarm::setPartNum(size_t num){
     delete [] v;
 
     try {
-        ///reset particle swarm #
+        //reset particle swarm #
         partnum=num;
 
         pfitnesses = new double [num];
@@ -126,7 +126,7 @@ void swarm::setPartNum(size_t num){
         presents= new double * [num];    
         v= new double * [num];
 
-        ///set all vectors to proper dimensions
+        //set all vectors to proper dimensions
         while(num--){
             presents[num]= new double [dimnum];
             pbests[num]= new double [dimnum];
@@ -139,13 +139,13 @@ void swarm::setPartNum(size_t num){
     }    
 }
 
-///get number of particles
-size_t swarm::getPartNum(){
+//get number of particles
+size_t Swarm::getPartNum(){
     return partnum;
 }
 
-///sets number of dimensions
-void swarm::setDimNum(size_t num){
+//sets number of dimensions
+void Swarm::setDimNum(size_t num){
     
     dimnum=num;
     
@@ -170,42 +170,50 @@ void swarm::setDimNum(size_t num){
     } 
 }
 
-///return no. of dimensions
-size_t swarm::getDimNum(){
+//return no. of dimensions
+size_t Swarm::getDimNum(){
     return dimnum;
 }
 
-///set inertial weight
-void swarm::setWeight(float nw){
+//set inertial weight
+void Swarm::setWeight(float nw){
     w=nw;
 }
 
-float swarm::getWeight(){
+float Swarm::getWeight(){
     return w;
 }
 
-///set behavioral constants
-void swarm::setConstants(float nc1,float nc2){
-    c1=nc1;
-    c2=nc2;
+//set behavioral constants
+void Swarm::setC1(float in){
+    c1=in;
 }
 
-///return constant array
-void swarm::getConstants(float out[2]){
-    out[0]=c1;
-    out[1]=c2;
+//return constant
+float Swarm::getC1(){
+    return c1;
 }
 
-///distribute particle linearly from lower bound to upper bound
-void swarm::distribute(double * lower, double * upper){
+//set behavioral constants
+void Swarm::setC2(float in){
+    c2=in;
+}
+
+//return constant
+float Swarm::getC2(){
+    return c2;
+}
+
+//distribute particle linearly from lower bound to upper bound
+void Swarm::distribute(double * lower, double * upper){
     
-    ///store bounds for later
+    //store bounds for later
     upperbound=upper;
     lowerbound=lower;
     
     size_t i,j;
     
-    ///allocate memory for and distribute particles
+    //allocate memory for and distribute particles
     try{
         double * delta = new double [dimnum];
         
@@ -228,12 +236,12 @@ void swarm::distribute(double * lower, double * upper){
     } 
 }
 
-///run the position and velocity update equation
-void swarm::update(int times, double (*fitness) (double*)){
+//run the position and velocity update equation
+void Swarm::update(int times, double (*fitness) (double*)){
         
     int i,j;
 
-    ///make random number generator C++11
+    //make random number generator C++11
     std::random_device gen;
     std:: uniform_real_distribution<double> distr(1,0);
 
@@ -241,43 +249,43 @@ void swarm::update(int times, double (*fitness) (double*)){
         for(i=0;i<partnum;++i){
             for(j=0;j<dimnum;++j){
 
-                ///update velocity                
+                //update velocity                
                 v[i][j]=w*v[i][j] + c1*distr(gen)*(pbests[i][j]-presents[i][j]) +c2*distr(gen)*(gbest[j]-presents[i][j]);
 
-                ///update position
+                //update position
                 presents[i][j]=presents[i][j]+v[i][j];
 
-                ///if it exceeds the bounds
+                //if it exceeds the bounds
                 if(presents[i][j]>upperbound[j]){
                     presents[i][j]=upperbound[j];
 
-                ///if it goes below the lower bound
+                //if it goes below the lower bound
                 } else if (presents[i][j]< lowerbound[j]){
                     presents[i][j]=lowerbound[j];
                 }
             }
 
-            ///get fitness
+            //get fitness
             fitnesses[i] = fitness(presents[i]);
 
-            ///if the fitness is better than the particle best store the best position
+            //if the fitness is better than the particle best store the best position
             if(fitnesses[i]>pfitnesses[i]){
                 
-                ///set new fitness
+                //set new fitness
                 pfitnesses[i]=fitnesses[i];
                 
-                ///store position
+                //store position
                 for(j=0;j<dimnum;++j){
                     pbests[i][j]=presents[i][j];
                 }
 
-                ///if fitness is better than global fitness
+                //if fitness is better than global fitness
                 if(fitnesses[i]>gfitness){
                     
-                    ///set new fitness
+                    //set new fitness
                     gfitness=fitnesses[i];
 
-                    ///store best position
+                    //store best position
                     for(j=0;j<dimnum;++j){
                         gbest[j]=presents[i][j];
                     }
@@ -287,20 +295,20 @@ void swarm::update(int times, double (*fitness) (double*)){
     }
 }
 
-///returns best position of the swarm
-void swarm::getGBest(double * out){
+//returns best position of the swarm
+void Swarm::getGBest(double * out){
     size_t i=dimnum;
     while(i--)
         out[i]=gbest[i];
 }   
 
-///returns the fitness of the best particle
-double swarm::getGFitness(){
+//returns the fitness of the best particle
+double Swarm::getGFitness(){
     return gfitness;
 }
 
-///take in array and set particle data from it.
-void swarm::setPartData(double ** in){
+//copies input array data to particle array
+void Swarm::setPartData(double ** in){
     size_t j, i=partnum;
     while (i--){
         for(j=0;j<dimnum;++j){
@@ -309,8 +317,8 @@ void swarm::setPartData(double ** in){
     }
 }
 
-///return the particle data
-void swarm::getPartData(double ** out){
+//copy particle data into input argument
+void Swarm::getPartData(double ** out){
     
     size_t i=partnum;
     while(i--)

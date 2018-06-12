@@ -32,19 +32,21 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #define C1 1.492
 #define C2 2
 
-///there is no particle class, the swarm class has all the data
-///that might change later on
+
 class clswarm {
     private:
-        /// no. of particles, no. of dimensions
-        cl_uint dimnum ,partnum;
+
+        /// Number of particles and Number of dimensions for each particle
+        cl_uint partnum, dimnum;
+        
+
+        ///buffers for the particle number and dimension numbers
         cl::Buffer dimnumbuf, partnumbuf;
 
         ///best particle dimensions, its fitness, swarm bounds
         cl::Buffer gbestbuf, upperboundbuf, lowerboundbuf;
 
         ///set that so all fitness numbers will show up
-        cl_float gfitness;
         cl::Buffer gfitbuf;
 
         ///inertial weight and 2 behavioral constants
@@ -99,15 +101,15 @@ class clswarm {
 		///returns array with two those 2 constants
 		void getConstants(cl_float[2]);
 
-        /// sets upper and lower bounds and distributes linearly between them
-        /** lower bound is first argument, upper bound is second argument */
-        void distribute(cl_float * , cl_float* );
+        /// sets upper and lower bounds and distributes particles linearly between them
+        /** The lower bound is first argument, upper bound is second argument */
+        void distribute(cl_float * , cl_float *);
 
-        /// updates (int) number of times with *fitness as a fitness function
+        /// updates number of times with *fitness as a fitness function
         void update(unsigned int);
 
         ///returns the best position in the swarm.
-        cl_float* getGBest();
+        void getGBest(cl_float *);
 
 		///sets particle data
 		void setPartData(cl_float *);
@@ -118,4 +120,4 @@ class clswarm {
         ///returns the fitness of the best particle
         cl_float getGFitness();
 };
-#endif
+#endif  //CLSWARM

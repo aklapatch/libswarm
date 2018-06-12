@@ -12,7 +12,7 @@ double fitness(double * in){
 
 int main(){
 	///the test swarm
-	swarm test(100,1,.1,.5,1);
+	Swarm test(100,1,.1,.5,1);
 
 	///make upper and lower bounds and set them
 	double lower=-32,  upper=45;
