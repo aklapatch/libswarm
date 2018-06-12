@@ -7,8 +7,8 @@ code derived from http://www.swarmintelligence.org/tutorials.php
 along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
-#ifndef _SWARM_HPP_
-#define _SWARM_HPP_
+#ifndef _SWARM_HXX_
+#define _SWARM_HXX_
 
 #include <vector>
 #include <cmath>

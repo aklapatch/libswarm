@@ -7,7 +7,7 @@ code derived from http://www.swarmintelligence.org/tutorials.php
 along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
-#include "swarm.hpp"
+#include "swarm.hxx"
 #include <iostream>
 
 //sets dimensions to 1 and number of particles to 100 and w to 1.0

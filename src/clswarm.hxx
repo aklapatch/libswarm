@@ -7,8 +7,8 @@ code derived from http://www.swarmintelligence.org/tutorials.php
 along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
-#ifndef _CLSWARM_HPP_
-#define _CLSWARM_HPP_
+#ifndef _CLSWARM_HXX_
+#define _CLSWARM_HXX_
 
 //set opencl version
 #define CL_HPP_TARGET_OPENCL_VERSION 200

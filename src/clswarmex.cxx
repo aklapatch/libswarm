@@ -3,7 +3,7 @@
  * Copyright 2018 Aaron Klapatch
  */
 
-#include "clswarm.hpp"
+#include "clswarm.hxx"
 #include <iostream>
 
 int main(){
@@ -15,7 +15,7 @@ int main(){
 	
 	///distribute particles
 	test->distribute(&lower, &upper);
-	cl_float * answer;
+	cl_float answer;
 
 	int i=20;
 	while(i-->0){
@@ -24,12 +24,12 @@ int main(){
 
 		std::cout << "G fitness: " << test->getGFitness() << "\n";
 
-		answer = test->getGBest();
-		std::cout<< "The answer is " << answer[0] <<std:: endl;
+		test->getGBest(&answer);
+		std::cout<< "The answer is " << answer <<std:: endl;
 	}
 
 	///get the answer and get it to the user
-	std::cout<< "The answer is " << answer[0] << std::endl;
+	std::cout<< "The answer is " << answer << std::endl;
 
 	std::cout << "gfitness " << test->getGFitness() << std::endl;
 

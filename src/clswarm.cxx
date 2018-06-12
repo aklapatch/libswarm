@@ -7,7 +7,7 @@ code derived from http://www.swarmintelligence.org/tutorials.php
 along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
-#include "clswarm.hpp"
+#include "clswarm.hxx"
 #include <iostream>
 
 ///sets particle data
