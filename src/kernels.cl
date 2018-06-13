@@ -21,8 +21,8 @@ __kernel void compare( __global float *presents,
 						__global float * gbest,
 						__global float * fitnesses,
 						__global float * gfitness,
-						__global int * partnum,
-						__global int * dimnum ) {
+						__global unsigned int * partnum,
+						__global unsigned int * dimnum ) {
 
 	//copy most fit particle into the gbest array
 	int i=dimnum[0],index=sort(fitnesses,*partnum);
@@ -56,8 +56,8 @@ __kernel void distrtest(__global float * lowerbound,
 						__global float * delta,
 						__global float * presents,
 						__global float * pbests,
-						__global int * dimnum,
-						__global int * partnum){
+						__global unsigned int * dimnum,
+						__global unsigned int * partnum){
 
 	//get_global_id(1) is dimension number, get_global_id(0) is particle number
 	unsigned int i[2]={get_global_id(1), get_global_id(0)*(dimnum[0])+ get_global_id(1)};
@@ -73,8 +73,8 @@ __kernel void distribute(__global float * lowerbound,
 						 __global float * delta,
 						 __global float * presents,
 						 __global float * pbests,
-						 __global int * dimnum,
-						 __global int * partnum){
+						 __global unsigned int * dimnum,
+						 __global unsigned int * partnum){
 	unsigned int dex[3]={get_global_id(1), get_global_id(0)*(*dimnum) +get_global_id(1), get_global_id(0)} ;
 
 	//get_global_id(1) is dimension number, get_global_id(0) is particle number
@@ -95,7 +95,7 @@ __kernel void update( __global float * presents,
 					  __global float * gbest,
 					  __global float * lowerbound,
 					  __global float * fitnesses,
-					  __global int * dimnum,
+					  __global unsigned int * dimnum,
 					  __global float * c1,
 					  __global float * c2) {
 					  
@@ -125,18 +125,18 @@ __kernel void update( __global float * presents,
 
 //compares and copies a coordinates into a pbest if necessary
 __kernel void update2(__global float * fitnesses,
-						__global int * dimnum,
+						__global unsigned int * dimnum,
 						__global float * pfitnesses,
 						__global float * presents,
 						__global float * pbest,
-						__global int * partnum ) {
+						__global unsigned int * partnum ) {
 
 	const unsigned int j=get_global_id(0);
 	unsigned int offset=j*dimnum[0];
 
 	//evaluate fitness of the particle
-	/** fitness function is in fitness.c */
-	fitnesses[j]=fitness(presents,offset,*dimnum);
+	/** fitness function is in fitness.cl */
+	fitnesses[j]=fitness(presents,offset,dimnum[0]);
 
 	//if the fitness is better than the pfitness, copy the values to pbest array
 	if(fitnesses[j]>pfitnesses[j]) {

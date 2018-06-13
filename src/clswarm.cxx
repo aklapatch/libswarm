@@ -140,6 +140,13 @@ clswarm::clswarm(){
 //sets all properties according to arguments
 clswarm::clswarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, cl_float c2in){
 
+	
+	partnum=numparts;
+	dimnum=numdims;
+	w=inw;
+	c1=c1in;
+	c2=c2in;
+	
     //gets platforms
     ret=cl::Platform::get(&platforms);
 	
@@ -174,37 +181,37 @@ clswarm::clswarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
     updte2=cl::Kernel(program, "update2");
 
     //make buffers for particle and dimension numbers
-    dimnumbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_uint));
-    ret=queue.enqueueWriteBuffer(dimnumbuf, CL_TRUE, 0, sizeof(cl_uint), &dimnum);
-    partnumbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_uint));
-    ret=queue.enqueueWriteBuffer(partnumbuf, CL_TRUE, 0, sizeof(cl_uint), &partnum);
+    dimnumbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_uint), NULL ,&ret);
+    ret=queue.enqueueWriteBuffer(dimnumbuf, CL_TRUE, 0, sizeof(cl_uint), &numdims);
+    partnumbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_uint), NULL ,&ret);
+    ret=queue.enqueueWriteBuffer(partnumbuf, CL_TRUE, 0, sizeof(cl_uint), &numparts);
 
     //create buffer and write w to memory
-    wbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float));
-    ret=queue.enqueueWriteBuffer(wbuf, CL_TRUE, 0, sizeof(cl_float), &w);
+    wbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_uint), NULL ,&ret);
+    ret=queue.enqueueWriteBuffer(wbuf, CL_TRUE, 0, sizeof(cl_float), &inw);
 
     //get memory for and write to c1buffer
     c1buf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float));
-    ret=queue.enqueueWriteBuffer(c1buf, CL_TRUE, 0, sizeof(cl_float), &c1);
+    ret=queue.enqueueWriteBuffer(c1buf, CL_TRUE, 0, sizeof(cl_float), &c1in);
 
     //get memory for and write to c2buffer
     c2buf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float));
-    ret=queue.enqueueWriteBuffer(c2buf, CL_TRUE, 0, sizeof(cl_float), &c2);
+    ret=queue.enqueueWriteBuffer(c2buf, CL_TRUE, 0, sizeof(cl_float), &c2in);
 
     //create buffers for particle positions, velocities, velocities, fitnesses
-    presentbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
-    pbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float));
-    vbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
-    fitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
+    presentbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float),NULL,&ret);
+    pbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float),NULL,&ret);
+    vbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float),NULL,&ret);
+    fitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float),NULL,&ret);
 
     //get values to pass to fitness arrays
     cl_float *tmp= getarray(dimnum, -HUGE_VALF);
 
     //create memory buffer for nonparticle fitnesses
-    gfitbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float));
-    queue.enqueueWriteBuffer(gfitbuf, CL_TRUE, 0, sizeof(cl_float), tmp);
-    pfitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float));
-    queue.enqueueWriteBuffer(pfitnessbuf,CL_TRUE,0, partnum*sizeof(cl_float),tmp);
+    gfitbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float),NULL,&ret);
+    ret=queue.enqueueWriteBuffer(gfitbuf, CL_TRUE, 0, sizeof(cl_float), tmp);
+    pfitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float),NULL,&ret);
+    ret=queue.enqueueWriteBuffer(pfitnessbuf,CL_TRUE,0, partnum*sizeof(cl_float),tmp);
    
     delete [] tmp;
 
@@ -212,10 +219,10 @@ clswarm::clswarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
     tmp=getarray(partnum*dimnum,0.000);
 
     //set buffers for gbests, and pbests to 0
-    gbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float));
-    queue.enqueueWriteBuffer(gbestbuf,CL_TRUE,0, dimnum*sizeof(cl_float),tmp);
-    pbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
-    queue.enqueueWriteBuffer(pbestbuf,CL_TRUE,0, partnum*dimnum*sizeof(cl_float),tmp);
+    gbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float),NULL,&ret);
+    ret=queue.enqueueWriteBuffer(gbestbuf,CL_TRUE,0, dimnum*sizeof(cl_float),tmp);
+    pbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float),NULL,&ret);
+    ret=queue.enqueueWriteBuffer(pbestbuf,CL_TRUE,0, partnum*dimnum*sizeof(cl_float),tmp);
 
     delete[] tmp;
 }
@@ -297,8 +304,8 @@ void clswarm::getConstants(cl_float in[2]){
 void clswarm::distribute(cl_float * lower, cl_float * upper){
     
     //make memory pool
-    upperboundbuf=cl::Buffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float));
-    lowerboundbuf=cl::Buffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float));
+    upperboundbuf=cl::Buffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float),NULL,&ret);
+    lowerboundbuf=cl::Buffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float),NULL,&ret);
 
     //store bounds for later
     ret=queue.enqueueWriteBuffer(upperboundbuf, CL_TRUE, 0, dimnum*sizeof(cl_float), upper);
@@ -382,6 +389,28 @@ void clswarm::update(unsigned int times){
         ret=queue.enqueueNDRangeKernel(updte,cl::NullRange, cl::NDRange(partnum,dimnum),cl::NullRange);  
     }
     delete [] ran;
+	
+	//evaluate fitness one more time
+		//set args for fitness eval
+	ret=updte2.setArg(0,fitnessbuf);
+	ret=updte2.setArg(1,dimnumbuf);
+	ret=updte2.setArg(2,pfitnessbuf);
+	ret=updte2.setArg(3,presentbuf);
+	ret=updte2.setArg(4,pbestbuf);
+	ret=updte2.setArg(5,partnumbuf);
+	//run fitness eval
+	ret=queue.enqueueNDRangeKernel(updte2,cl::NullRange, cl::NDRange(partnum),cl::NullRange);
+	//set kernel args
+	ret=cmpre.setArg(0,presentbuf);
+	ret=cmpre.setArg(1,gbestbuf);
+	ret=cmpre.setArg(2,fitnessbuf);
+	ret=cmpre.setArg(3,gfitbuf);
+	ret=cmpre.setArg(4,partnumbuf);
+	ret=cmpre.setArg(5,dimnumbuf);
+
+	//run comparison
+	ret=queue.enqueueNDRangeKernel(cmpre,cl::NullRange,cl::NullRange,cl::NullRange);
+
 }
 
 //returns best position of the clswarm

@@ -20,9 +20,6 @@ int main(){
 
 	cl_float * data= new cl_float[10];
 	int j;
-	for(j=-1;++j<10;)
-			std::cout << " i= " << j << " data is " << data[j] << "\n"; 
-
 
 	test->getPartData(data);
 
@@ -40,8 +37,8 @@ int main(){
 
 		test->getPartData(data);
 
-		//for(j=-1;++j<10;)
-		//	std::cout << " i= " << j << " data is " << data[j] << "\n"; 
+		for(j=-1;++j<10;)
+			std::cout << " i= " << j << " data is " << data[j] << "\n"; 
 
 		test->getGBest(&answer);
 		std::cout<< "The answer is " << answer <<std:: endl;

@@ -10,6 +10,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #ifndef _CLSWARM_HXX_
 #define _CLSWARM_HXX_
 
+
 //set opencl version
 #define CL_HPP_TARGET_OPENCL_VERSION 200
 
@@ -23,6 +24,9 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include <CL/cl2.hpp>	
 #endif	
 
+//macro to check for opencl Errors
+#define CHK if(ret!= CL_SUCCESS) { std::cerr << "Error code " << ret << " at Line " << __LINE__ << "\n"; }
+
 #define KER_SIZE 0x100000
 #define PLATFORM_NUM 1
 #define DEVICE_NUM 1
@@ -34,7 +38,10 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 
 
 class clswarm {
-    private:
+	private:
+	
+		// used for debugging and error checking
+		cl_int ret;
 
         /// Number of particles and Number of dimensions for each particle
         cl_uint partnum, dimnum;
@@ -65,7 +72,6 @@ class clswarm {
         cl::Program program;
         cl::CommandQueue queue;
         cl::Kernel distr, cmpre, updte, updte2;
-        cl_int ret;
 
     public:
         ///defaults to 100 particles and 1 dimension
