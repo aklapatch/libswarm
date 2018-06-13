@@ -10,12 +10,12 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include "clswarm.hxx"
 #include <iostream>
 
-///sets particle data
+//sets particle data
 void clswarm::setPartData(cl_float * in){
 	queue.enqueueWriteBuffer(presentbuf,CL_TRUE, 0,partnum*dimnum*sizeof(cl_float),in);
 }
 
-cl_float * getarray(unsigned int size, cl_float value){
+cl_float * getarray(size_t size, cl_float value){
     cl_float * out=new cl_float[size];
     while(size--)
         out[size]=value;
@@ -23,24 +23,24 @@ cl_float * getarray(unsigned int size, cl_float value){
     return out;
 }
 
-///returns particle data
+//returns particle data
 void clswarm::getPartData(cl_float * out){
 
 	//store particle data
-    queue.enqueueReadBuffer(presentbuf, CL_TRUE, 0,partnum*dimnum*sizeof(cl_float),out);
+    ret= queue.enqueueReadBuffer(presentbuf, CL_TRUE, 0,partnum*dimnum*sizeof(cl_float),out);
 }
 
-///returns particle number
+//returns particle number
 cl_uint clswarm::getPartNum(){
     return partnum;
 }
 
-///returns dimension number
+//returns dimension number
 cl_uint clswarm::getDimNum(){
     return dimnum;
 }
 
-///sets dimensions to 1 and number of particles to 100 and w to 1.0
+//sets dimensions to 1 and number of particles to 100 and w to 1.0
 clswarm::clswarm(){
 
     //set swarm characteristics to defaults
@@ -51,10 +51,10 @@ clswarm::clswarm(){
     c2=C2; 
 
     //gets platforms
-	cl::Platform::get(&platforms);
+	ret =cl::Platform::get(&platforms);
 	
 	//finds gpus
-	platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &devices);
+	ret= platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &devices);
 	
 	//gets a context with the first GPU found devices
     context=cl::Context({devices[0]});
@@ -84,9 +84,9 @@ clswarm::clswarm(){
     updte2=cl::Kernel(program, "update2");
 
     //make buffers for particle and dimension numbers
-    dimnumbuf=cl::Buffer(context, CL_MEM_READ_ONLY,sizeof(cl_int));
+    dimnumbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_int));
     ret=queue.enqueueWriteBuffer(dimnumbuf, CL_TRUE, 0, sizeof(cl_int), &dimnum);
-    partnumbuf=cl::Buffer(context, CL_MEM_READ_ONLY,sizeof(cl_int));
+    partnumbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_int));
     ret=queue.enqueueWriteBuffer(partnumbuf, CL_TRUE, 0, sizeof(cl_int), &partnum);
 
     //create and write w to memory
@@ -137,8 +137,8 @@ clswarm::clswarm(){
     delete[] tmp;
 }
 
-///sets all properties according to arguments
-clswarm::clswarm(cl_uint numdims, cl_uint numparts,cl_float inw, cl_float c1in, cl_float c2in){
+//sets all properties according to arguments
+clswarm::clswarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, cl_float c2in){
 
     //gets platforms
     ret=cl::Platform::get(&platforms);
@@ -161,8 +161,8 @@ clswarm::clswarm(cl_uint numdims, cl_uint numparts,cl_float inw, cl_float c1in, 
     sources.push_back({src,sizeof(src)});    
 
     //init and build program
-    program=cl::Program(context,sources);
-    ret=program.build({devices[0]});
+    program=cl::Program(context,sources, &ret);
+    ret=program.build(devices);
 
     std::string blog=program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]);
     std::cerr << "Build Log:\n" << blog << "\n";
@@ -174,9 +174,9 @@ clswarm::clswarm(cl_uint numdims, cl_uint numparts,cl_float inw, cl_float c1in, 
     updte2=cl::Kernel(program, "update2");
 
     //make buffers for particle and dimension numbers
-    dimnumbuf=cl::Buffer(context, CL_MEM_READ_ONLY,sizeof(cl_uint));
+    dimnumbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_uint));
     ret=queue.enqueueWriteBuffer(dimnumbuf, CL_TRUE, 0, sizeof(cl_uint), &dimnum);
-    partnumbuf=cl::Buffer(context, CL_MEM_READ_ONLY,sizeof(cl_uint));
+    partnumbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_uint));
     ret=queue.enqueueWriteBuffer(partnumbuf, CL_TRUE, 0, sizeof(cl_uint), &partnum);
 
     //create buffer and write w to memory
@@ -220,7 +220,7 @@ clswarm::clswarm(cl_uint numdims, cl_uint numparts,cl_float inw, cl_float c1in, 
     delete[] tmp;
 }
 
-///the destructor
+//the destructor
 clswarm::~clswarm(){
 
     //finish and flush out queue
@@ -228,7 +228,7 @@ clswarm::~clswarm(){
     queue.finish();
 }
 
-///sets number of particles
+//sets number of particles
 void clswarm::setPartNum(cl_uint num){
 
     //reset particle swarm #
@@ -244,7 +244,7 @@ void clswarm::setPartNum(cl_uint num){
     vbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
 }
 
-///sets number of dimensions
+//sets number of dimensions
 void clswarm::setDimNum(cl_uint num){
 
     //set dimension number    
@@ -260,7 +260,7 @@ void clswarm::setDimNum(cl_uint num){
     vbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
 }
 
-///set inertial weight
+//set inertial weight
 void clswarm::setWeight(cl_float nw){
 
 	//store the inertial weight
@@ -270,12 +270,12 @@ void clswarm::setWeight(cl_float nw){
     queue.enqueueWriteBuffer(wbuf, CL_TRUE, 0, sizeof(cl_float), &nw);
 }
 
-///return inertial weight
+//return inertial weight
 cl_float clswarm::getWeight(){
 	return w;
 }
 
-///set behavioral constants
+//set behavioral constants
 void clswarm::setConstants(cl_float nc1,cl_float nc2){
     
 	//store constants
@@ -293,7 +293,7 @@ void clswarm::getConstants(cl_float in[2]){
 	in[1]=c2;
 }
 
-///distribute particle linearly from lower bound to upper bound
+//distribute particle linearly from lower bound to upper bound
 void clswarm::distribute(cl_float * lower, cl_float * upper){
     
     //make memory pool
@@ -320,7 +320,7 @@ void clswarm::distribute(cl_float * lower, cl_float * upper){
 	ret=queue.enqueueNDRangeKernel(distr,cl::NullRange, cl::NDRange(partnum,dimnum),cl::NullRange);
 }
 
-///run the position and velocity update equation
+//run the position and velocity update equation
 void clswarm::update(unsigned int times){
 
     //make random number C++11 generator
@@ -384,14 +384,14 @@ void clswarm::update(unsigned int times){
     delete [] ran;
 }
 
-///returns best position of the clswarm
+//returns best position of the clswarm
 void clswarm::getGBest(cl_float * out){
 
     //get value from buffer
     ret=queue.enqueueReadBuffer(gbestbuf, CL_TRUE, 0,dimnum*sizeof(cl_float),out);
 }   
 
-///returns the fitness of the best particle
+//returns the fitness of the best particle
 cl_float clswarm::getGFitness(){
 
     cl_float out;

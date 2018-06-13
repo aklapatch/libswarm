@@ -1,5 +1,5 @@
-///getkerbinary.cpp
-/** this is a tool to print out the binary of a kernel source */
+//getkerbinary.cpp
+/* this is a tool to print out the binary of a kernel source */
 
 #ifdef __APPLE__
     #include <OpenCL/cl.h>
@@ -24,7 +24,6 @@ int main(int argc, char ** argv){
     }
 
     //kernel length and kernel data
-    size_t len=0,bsize=0, insize=0;
     char * txtin=NULL, blog[LOGSIZE];
     unsigned char * binout = NULL;
     FILE * file;
@@ -43,6 +42,7 @@ int main(int argc, char ** argv){
     ctx=clCreateContext(NULL,1,&dev_id,NULL,NULL,&ret);
 
     //cycle through all the arguments
+	size_t len=0,bsize=0;
     unsigned int i=argc;
     while(i-->1){
         

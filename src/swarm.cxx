@@ -247,6 +247,32 @@ void Swarm::update(int times, double (*fitness) (double*)){
 
     while(times--){
         for(i=0;i<partnum;++i){
+            
+            //get fitness
+            fitnesses[i] = fitness(presents[i]);
+
+            //if the fitness is better than the particle best store the best position
+            if(fitnesses[i]>pfitnesses[i]){
+                
+                //set new fitness
+                pfitnesses[i]=fitnesses[i];
+                
+                //store position
+                for(j=0;j<dimnum;++j)
+                    pbests[i][j]=presents[i][j];
+
+                //if fitness is better than global fitness
+                if(fitnesses[i]>gfitness){
+                    
+                    //set new fitness
+                    gfitness=fitnesses[i];
+
+                    //store best position
+                    for(j=0;j<dimnum;++j)
+                        gbest[j]=presents[i][j];
+                }
+            }
+
             for(j=0;j<dimnum;++j){
 
                 //update velocity                
@@ -264,32 +290,33 @@ void Swarm::update(int times, double (*fitness) (double*)){
                     presents[i][j]=lowerbound[j];
                 }
             }
+        }       
+    }
 
-            //get fitness
-            fitnesses[i] = fitness(presents[i]);
+    // do one final check for the fitness
+    for(i=0;i<partnum;++i){
+        //get fitness
+        fitnesses[i] = fitness(presents[i]);
 
-            //if the fitness is better than the particle best store the best position
-            if(fitnesses[i]>pfitnesses[i]){
+        //if the fitness is better than the particle best store the best position
+        if(fitnesses[i]>pfitnesses[i]){
+            
+            //set new fitness
+            pfitnesses[i]=fitnesses[i];
+            
+            //store position
+            for(j=0;j<dimnum;++j)
+                pbests[i][j]=presents[i][j];
+
+            //if fitness is better than global fitness
+            if(fitnesses[i]>gfitness){
                 
                 //set new fitness
-                pfitnesses[i]=fitnesses[i];
-                
-                //store position
-                for(j=0;j<dimnum;++j){
-                    pbests[i][j]=presents[i][j];
-                }
+                gfitness=fitnesses[i];
 
-                //if fitness is better than global fitness
-                if(fitnesses[i]>gfitness){
-                    
-                    //set new fitness
-                    gfitness=fitnesses[i];
-
-                    //store best position
-                    for(j=0;j<dimnum;++j){
-                        gbest[j]=presents[i][j];
-                    }
-                }
+                //store best position
+                for(j=0;j<dimnum;++j)
+                    gbest[j]=presents[i][j];
             }
         }
     }

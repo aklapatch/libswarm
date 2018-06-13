@@ -1,5 +1,5 @@
-///example.cpp
-/** a dead simple example of using particle swarm optimization
+//example.cpp
+/* a dead simple example of using particle swarm optimization
  * Copyright 2018 Aaron Klapatch
  */
 
@@ -7,33 +7,53 @@
 #include <iostream>
 
 int main(){
-	///the test swarm
-	clswarm * test=new clswarm(1,10,.2,2, 1.492);
+	//the test swarm
+	clswarm * test=new clswarm(10,1,.2,2, 1.492);
 
-	///make upper and lower bounds and set them
+	//make upper and lower bounds and set them
 	cl_float lower=-1623,  upper=1674;
 	
-	///distribute particles
+	//distribute particles
 	test->distribute(&lower, &upper);
-	cl_float answer;
+	cl_float answer=34;
+
+
+	cl_float * data= new cl_float[10];
+	int j;
+	for(j=-1;++j<10;)
+			std::cout << " i= " << j << " data is " << data[j] << "\n"; 
+
+
+	test->getPartData(data);
+
+
+	for(j=-1;++j<10;)
+			std::cout << " i= " << j << " data is " << data[j] << "\n"; 
+
 
 	int i=20;
-	while(i-->0){
-		///run the swarm
+	while(i--){
+		//run the swarm
 		test->update(1);
 
 		std::cout << "G fitness: " << test->getGFitness() << "\n";
+
+		test->getPartData(data);
+
+		//for(j=-1;++j<10;)
+		//	std::cout << " i= " << j << " data is " << data[j] << "\n"; 
 
 		test->getGBest(&answer);
 		std::cout<< "The answer is " << answer <<std:: endl;
 	}
 
-	///get the answer and get it to the user
+	//get the answer and get it to the user
 	std::cout<< "The answer is " << answer << std::endl;
 
 	std::cout << "gfitness " << test->getGFitness() << std::endl;
 
 	delete test;
+	delete [] data;
 	
 	return 0;
 }
