@@ -17,6 +17,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include <vector>
 #include <cmath>
 #include <random>
+#include <iostream>
 
 #ifdef __APPLE__	
 #include <OpenCL/opencl.hpp>	
@@ -36,6 +37,18 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #define C1 1.492
 #define C2 2
 
+template <typename T>
+void printbuf(cl::Buffer buf, size_t size,cl::CommandQueue q){
+	T * out = new T[size];
+	
+	q.enqueueReadBuffer(buf,CL_TRUE,0,size*sizeof(T),out);
+	
+	for (int i=-1;++i<size;)
+		std::cout << "Buffer contents[" << i << "] = " << out[i] << "\n";
+		
+	delete [] out;
+	
+}
 
 class clswarm {
 	private:

@@ -10,6 +10,8 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include "clswarm.hxx"
 #include <iostream>
 
+
+
 //sets particle data
 void clswarm::setPartData(cl_float * in){
 	queue.enqueueWriteBuffer(presentbuf,CL_TRUE, 0,partnum*dimnum*sizeof(cl_float),in);
@@ -75,13 +77,19 @@ clswarm::clswarm(){
     ret=program.build({devices[0]});    
     
     //build program
-    program.build({devices[0]});
+    ret=program.build({devices[0]});
+	
+	if(ret!=CL_SUCCESS){
+		std::string blog=program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]);
+		std::cerr << "Build Log:\n" << blog << "\n";
+		exit(1);
+	}    
 	
     //build kernels
-	distr = cl::Kernel(program, "distribute");
-    cmpre= cl::Kernel(program, "compare");
-    updte=cl::Kernel(program, "update");
-    updte2=cl::Kernel(program, "update2");
+	distr = cl::Kernel(program, "distribute",&ret);
+    cmpre= cl::Kernel(program, "compare",&ret);
+    updte=cl::Kernel(program, "update",&ret);
+    updte2=cl::Kernel(program, "update2",&ret);
 
     //make buffers for particle and dimension numbers
     dimnumbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_int));
@@ -170,15 +178,18 @@ clswarm::clswarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
     //init and build program
     program=cl::Program(context,sources, &ret);
     ret=program.build(devices);
-
-    std::string blog=program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]);
-    std::cerr << "Build Log:\n" << blog << "\n";
+	
+	if(ret!=CL_SUCCESS){
+		std::string blog=program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]);
+		std::cerr << "Build Log:\n" << blog << "\n";
+		exit(1);
+	}    
 
     //get kernels
-	distr = cl::Kernel(program, "distribute");
-    cmpre= cl::Kernel(program, "compare");
-    updte=cl::Kernel(program, "update");
-    updte2=cl::Kernel(program, "update2");
+	distr = cl::Kernel(program, "distribute",&ret);
+    cmpre= cl::Kernel(program, "compare",&ret);
+    updte=cl::Kernel(program, "update",&ret);
+    updte2=cl::Kernel(program, "update2",&ret);
 
     //make buffers for particle and dimension numbers
     dimnumbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_uint), NULL ,&ret);
@@ -339,18 +350,27 @@ void clswarm::update(unsigned int times){
     cl_float * ran = new cl_float [size];
     cl::Buffer ranbuf(context, CL_MEM_READ_WRITE,size*sizeof(cl_float));
     unsigned int i;
+	
+	
 
     while(times--){
+		
+		printbuf<cl_float>(fitnessbuf,partnum, queue);
+		
         //set args for fitness eval
         ret=updte2.setArg(0,fitnessbuf);
         ret=updte2.setArg(1,dimnumbuf);
         ret=updte2.setArg(2,pfitnessbuf);
         ret=updte2.setArg(3,presentbuf);
         ret=updte2.setArg(4,pbestbuf);
-        ret=updte2.setArg(5,partnumbuf);
+        ret=updte2.setArg(5,partnumbuf);	
+
+
 
         //run fitness eval
         ret=queue.enqueueNDRangeKernel(updte2,cl::NullRange, cl::NDRange(partnum),cl::NullRange);
+
+		printbuf<cl_float>(fitnessbuf,partnum, queue);
 
         //set kernel args
 	    ret=cmpre.setArg(0,presentbuf);
@@ -392,12 +412,16 @@ void clswarm::update(unsigned int times){
 	
 	//evaluate fitness one more time
 		//set args for fitness eval
+		
+	
 	ret=updte2.setArg(0,fitnessbuf);
 	ret=updte2.setArg(1,dimnumbuf);
 	ret=updte2.setArg(2,pfitnessbuf);
 	ret=updte2.setArg(3,presentbuf);
 	ret=updte2.setArg(4,pbestbuf);
 	ret=updte2.setArg(5,partnumbuf);
+	
+	
 	//run fitness eval
 	ret=queue.enqueueNDRangeKernel(updte2,cl::NullRange, cl::NDRange(partnum),cl::NullRange);
 	//set kernel args
