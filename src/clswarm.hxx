@@ -41,7 +41,10 @@ template <typename T>
 void printbuf(cl::Buffer buf, size_t size,cl::CommandQueue q){
 	T * out = new T[size];
 	
-	q.enqueueReadBuffer(buf,CL_TRUE,0,size*sizeof(T),out);
+	int ret=q.enqueueReadBuffer(buf,CL_TRUE,0,size*sizeof(T),out);
+	
+	if(ret!=CL_SUCCESS)
+		std::cerr << " Read error, code: " << ret << "\n";
 	
 	for (int i=-1;++i<size;)
 		std::cout << "Buffer contents[" << i << "] = " << out[i] << "\n";

@@ -11,7 +11,7 @@ int main(){
 	clswarm * test=new clswarm(10,1,.2,2, 1.492);
 
 	//make upper and lower bounds and set them
-	cl_float lower=-1623,  upper=1674;
+	cl_float lower=-100,  upper=100;
 	
 	//distribute particles
 	test->distribute(&lower, &upper);
@@ -37,6 +37,7 @@ int main(){
 
 		test->getPartData(data);
 
+		std::cout << "particle data\n";
 		for(j=-1;++j<10;)
 			std::cout << " i= " << j << " data is " << data[j] << "\n"; 
 

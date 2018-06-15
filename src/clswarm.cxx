@@ -177,7 +177,7 @@ clswarm::clswarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 
     //init and build program
     program=cl::Program(context,sources, &ret);
-    ret=program.build(devices);
+    ret=program.build(devices,"-g");
 	
 	if(ret!=CL_SUCCESS){
 		std::string blog=program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]);
@@ -355,6 +355,7 @@ void clswarm::update(unsigned int times){
 
     while(times--){
 		
+		std::cout << "fitnesses before \n";
 		printbuf<cl_float>(fitnessbuf,partnum, queue);
 		
         //set args for fitness eval
@@ -370,7 +371,14 @@ void clswarm::update(unsigned int times){
         //run fitness eval
         ret=queue.enqueueNDRangeKernel(updte2,cl::NullRange, cl::NDRange(partnum),cl::NullRange);
 
+		std::cout << "Fitnesses \n";
 		printbuf<cl_float>(fitnessbuf,partnum, queue);
+		
+		std::cout << "pfitness \n";
+		printbuf<cl_float>(pfitnessbuf,partnum, queue);
+		
+		std::cout << "pbests \n";
+		printbuf<cl_float>(pbestbuf,partnum, queue);
 
         //set kernel args
 	    ret=cmpre.setArg(0,presentbuf);

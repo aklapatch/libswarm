@@ -22,4 +22,4 @@ uex:
 	clang++ -g -Og swarm.cxx swarmex.cxx -o example.out
 
 uexcl:
-	g++ -g -Og -lOpenCL clswarm.cxx clswarmex.cxx -o clexample.out
+	clang++ -g -lOpenCL clswarm.cxx clswarmex.cxx -o clexample.out
