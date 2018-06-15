@@ -34,8 +34,8 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #define DEFAULT_DIM 1
 #define DEFAULT_PARTNUM 100
 #define DEFAULT_W 1
-#define C1 1.492
-#define C2 2
+#define DEFAULT_C1 1.492
+#define DEFAULT_C2 2
 
 template <typename T>
 void printbuf(cl::Buffer buf, size_t size,cl::CommandQueue q){
@@ -62,7 +62,6 @@ class clswarm {
         /// Number of particles and Number of dimensions for each particle
         cl_uint partnum, dimnum;
         
-
         ///buffers for the particle number and dimension numbers
         cl::Buffer dimnumbuf, partnumbuf;
 
@@ -73,16 +72,12 @@ class clswarm {
         cl::Buffer gfitbuf;
 
         ///inertial weight and 2 behavioral constants
-        cl_float w, c1, c2;
         cl::Buffer wbuf, c1buf, c2buf;
 
         ///particle data
         cl::Buffer presentbuf, pbestbuf, vbuf;
         cl::Buffer pfitnessbuf, fitnessbuf;
-		
-		//debug buffer
-		cl::Buffer debuf;
-		
+
 		///all the opencl stuff
         std::vector<cl::Platform> platforms;
         std::vector<cl::Device> devices;
@@ -120,11 +115,16 @@ class clswarm {
 		///returns inertial weight
 		cl_float getWeight();
 
-        ///sets 2 behavioral constants of the swarm
-        void setConstants(cl_float, cl_float);
+		void setC1(cl_float);
 
-		///returns array with two those 2 constants
-		void getConstants(cl_float[2]);
+		///returns the first behavioral constant
+		cl_float getC1();
+		
+
+		void setC2(cl_float);
+		
+		///returns the second behavioral constant
+		cl_float getC2();
 
         /// sets upper and lower bounds and distributes particles linearly between them
         /** The lower bound is first argument, upper bound is second argument */
@@ -133,8 +133,6 @@ class clswarm {
         /// updates number of times with *fitness as a fitness function
         void update(unsigned int);
 
-        ///returns the best position in the swarm.
-        void getGBest(cl_float *);
 
 		///sets particle data
 		void setPartData(cl_float *);
@@ -144,5 +142,8 @@ class clswarm {
 
         ///returns the fitness of the best particle
         cl_float getGFitness();
+		
+		///returns the best position in the swarm.
+        void getGBest(cl_float *);
 };
-#endif  //CLSWARM
+#endif  //CLSWARM_HXX

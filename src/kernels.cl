@@ -23,14 +23,11 @@ __kernel void compare( __global float *presents,
 						__global float * fitnesses,
 						__global float * gfitness,
 						__global unsigned int * partnum,
-						__global unsigned int * dimnum,
-						__global unsigned int * out) {
+						__global unsigned int * dimnum) {
 
 	//copy most fit particle into the gbest array
 	unsigned int i=*dimnum;
 	unsigned int index=sort(fitnesses,*partnum);
-	
-	*out = index;
 
 	if(fitnesses[index] > *gfitness) {
 
@@ -133,12 +130,10 @@ __kernel void update2(__global float * fitnesses,
 						__global float * pfitnesses,
 						__global float * presents,
 						__global float * pbest,
-						__global unsigned int * partnum ,
-						__global unsigned int * out) {
+						__global unsigned int * partnum) {
 
 	const unsigned int j=get_global_id(0);
 	unsigned int offset=j*(*dimnum);
-	*out =offset;
 
 	//evaluate fitness of the particle
 	/** fitness function is in fitness.cl */
