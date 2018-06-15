@@ -80,6 +80,9 @@ class clswarm {
         cl::Buffer presentbuf, pbestbuf, vbuf;
         cl::Buffer pfitnessbuf, fitnessbuf;
 		
+		//debug buffer
+		cl::Buffer debuf;
+		
 		///all the opencl stuff
         std::vector<cl::Platform> platforms;
         std::vector<cl::Device> devices;

@@ -5,13 +5,14 @@
 #include "fitness.cl"
 
 //return the index with the biggest number
-int sort(__global float * array,int size){
+int sort(__global float * array,unsigned int size){
 	int out=0;
+	unsigned int i = size;
 	float biggest=-INFINITY;
-	while(size--){
-		if(array[size]>biggest){
-			biggest=array[size];
-			out=size;
+	while(i-->0){
+		if(array[i]>biggest){
+			biggest=array[i];
+			out=i;
 		}
 	}
 	return out;
@@ -22,20 +23,23 @@ __kernel void compare( __global float *presents,
 						__global float * fitnesses,
 						__global float * gfitness,
 						__global unsigned int * partnum,
-						__global unsigned int * dimnum ) {
+						__global unsigned int * dimnum,
+						__global unsigned int * out) {
 
 	//copy most fit particle into the gbest array
-	int i=dimnum[0],index=sort(fitnesses,*partnum);
+	unsigned int i=*dimnum;
+	unsigned int index=sort(fitnesses,*partnum);
+	
+	*out = index;
 
-	if(fitnesses[index]>gfitness[0]) {
+	if(fitnesses[index] > *gfitness) {
 
 		//copy the array fitness
-		gfitness[0]=fitnesses[index];
+		*gfitness=fitnesses[index];
 
 		//copy array into gbest array
-		while(i--) {
-			gbest[i]=presents[index*dimnum[0]+i];
-		}
+		while(i--) 
+			gbest[i]=presents[index*(*dimnum)+i];
 	}
 }
 
@@ -129,14 +133,16 @@ __kernel void update2(__global float * fitnesses,
 						__global float * pfitnesses,
 						__global float * presents,
 						__global float * pbest,
-						__global unsigned int * partnum ) {
+						__global unsigned int * partnum ,
+						__global unsigned int * out) {
 
 	const unsigned int j=get_global_id(0);
-	unsigned int offset=j*dimnum[0];
+	unsigned int offset=j*(*dimnum);
+	*out =offset;
 
 	//evaluate fitness of the particle
 	/** fitness function is in fitness.cl */
-	fitnesses[j]=fitness(presents,offset,dimnum[0]);
+	fitnesses[j]=fitness(presents,offset, *dimnum);
 
 	//if the fitness is better than the pfitness, copy the values to pbest array
 	if(fitnesses[j]>pfitnesses[j]) {
@@ -144,7 +150,7 @@ __kernel void update2(__global float * fitnesses,
 		//copy new fitness
 		pfitnesses[j]=fitnesses[j];
 
-		unsigned int i=dimnum[0];
+		unsigned int i=*dimnum;
 
 		while(i--)
 			pbest[offset+i]=presents[offset+i];

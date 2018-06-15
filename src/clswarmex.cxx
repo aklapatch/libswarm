@@ -28,7 +28,7 @@ int main(){
 			std::cout << " i= " << j << " data is " << data[j] << "\n"; 
 
 
-	int i=20;
+	int i=10;
 	while(i--){
 		//run the swarm
 		test->update(1);

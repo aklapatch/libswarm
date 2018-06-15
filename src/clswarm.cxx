@@ -196,6 +196,8 @@ clswarm::clswarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
     ret=queue.enqueueWriteBuffer(dimnumbuf, CL_TRUE, 0, sizeof(cl_uint), &numdims);
     partnumbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_uint), NULL ,&ret);
     ret=queue.enqueueWriteBuffer(partnumbuf, CL_TRUE, 0, sizeof(cl_uint), &numparts);
+	
+	debuf=cl::Buffer(context,CL_MEM_READ_WRITE,sizeof(cl_uint),NULL,&ret);
 
     //create buffer and write w to memory
     wbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_uint), NULL ,&ret);
@@ -216,7 +218,7 @@ clswarm::clswarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
     fitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float),NULL,&ret);
 
     //get values to pass to fitness arrays
-    cl_float *tmp= getarray(dimnum, -HUGE_VALF);
+    cl_float *tmp= getarray(partnum, -HUGE_VALF);
 
     //create memory buffer for nonparticle fitnesses
     gfitbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float),NULL,&ret);
@@ -365,8 +367,9 @@ void clswarm::update(unsigned int times){
         ret=updte2.setArg(3,presentbuf);
         ret=updte2.setArg(4,pbestbuf);
         ret=updte2.setArg(5,partnumbuf);	
-
-
+		ret=updte2.setArg(6,debuf);
+		
+		
 
         //run fitness eval
         ret=queue.enqueueNDRangeKernel(updte2,cl::NullRange, cl::NDRange(partnum),cl::NullRange);
@@ -383,17 +386,21 @@ void clswarm::update(unsigned int times){
         //set kernel args
 	    ret=cmpre.setArg(0,presentbuf);
         ret=cmpre.setArg(1,gbestbuf);
-        ret=cmpre.setArg(2,fitnessbuf);
+        ret=	cmpre.setArg(2,fitnessbuf);
         ret=cmpre.setArg(3,gfitbuf);
         ret=cmpre.setArg(4,partnumbuf);
         ret=cmpre.setArg(5,dimnumbuf);
+		ret=cmpre.setArg(6,debuf);
 
         //run comparison
-        ret=queue.enqueueNDRangeKernel(cmpre,cl::NullRange,cl::NullRange,cl::NullRange);
+        ret=queue.enqueueNDRangeKernel(cmpre,cl::NullRange,cl::NDRange(1),cl::NullRange);
 
         //make a array of random numbers
         for(i=0;i++ <size;)
             ran[i]= distr(gen);
+			
+		std::cout << "debug buffer \n";
+		printbuf<cl_uint>(debuf,1, queue);
 
         //write random numbers to buffer
         queue.enqueueWriteBuffer(ranbuf, CL_TRUE, 0, size*sizeof(cl_float), ran);
@@ -439,9 +446,14 @@ void clswarm::update(unsigned int times){
 	ret=cmpre.setArg(3,gfitbuf);
 	ret=cmpre.setArg(4,partnumbuf);
 	ret=cmpre.setArg(5,dimnumbuf);
+	ret=cmpre.setArg(6,debuf);
+	
+	
 
 	//run comparison
 	ret=queue.enqueueNDRangeKernel(cmpre,cl::NullRange,cl::NullRange,cl::NullRange);
+
+
 
 }
 
