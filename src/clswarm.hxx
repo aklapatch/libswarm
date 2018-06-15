@@ -71,14 +71,14 @@ class clswarm {
         ///set that so all fitness numbers will show up
         cl::Buffer gfitbuf;
 
-        ///inertial weight and 2 behavioral constants
+        //inertial weight and 2 behavioral constants
         cl::Buffer wbuf, c1buf, c2buf;
 
-        ///particle data
+        //particle data
         cl::Buffer presentbuf, pbestbuf, vbuf;
         cl::Buffer pfitnessbuf, fitnessbuf;
 
-		///all the opencl stuff
+		//all the opencl stuff
         std::vector<cl::Platform> platforms;
         std::vector<cl::Device> devices;
         cl::Context context;
@@ -86,6 +86,8 @@ class clswarm {
         cl::Program program;
         cl::CommandQueue queue;
         cl::Kernel distr, cmpre, updte, updte2;
+		
+		
 
     public:
         ///defaults to 100 particles and 1 dimension
