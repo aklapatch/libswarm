@@ -22,31 +22,20 @@ int main(){
 	int j;
 
 	test->getPartData(data);
-
-
 	for(j=-1;++j<10;)
 			std::cout << " i= " << j << " data is " << data[j] << "\n"; 
 
 
-	int i=10;
-	while(i--){
-		//run the swarm
-		test->update(1);
-
-		std::cout << "G fitness: " << test->getGFitness() << "\n";
-
-		test->getPartData(data);
-
-		std::cout << "particle data\n";
-		for(j=-1;++j<10;)
+	//run the swarm
+	test->update(20);
+	
+	std::cout << "Data after 20 passes\n";
+	test->getPartData(data);
+	for(j=-1;++j<10;)
 			std::cout << " i= " << j << " data is " << data[j] << "\n"; 
 
-		test->getGBest(&answer);
-		std::cout<< "The answer is " << answer <<std:: endl;
-	}
-
-	//get the answer and get it to the user
-	std::cout<< "The answer is " << answer << std::endl;
+	test->getGBest(&answer);
+	std::cout<< "The answer is " << answer <<std:: endl;
 
 	std::cout << "gfitness " << test->getGFitness() << std::endl;
 

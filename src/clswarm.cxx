@@ -29,10 +29,10 @@ clswarm::clswarm(){
 	ret =cl::Platform::get(&platforms);
 	
 	//finds gpus
-	ret= platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &devices);
+	ret= platforms[0].getDevices(CL_DEVICE_TYPE_ALL, &devices);
 	
 	//gets a context with the first GPU found devices
-    context=cl::Context({devices[0]});
+    context=cl::Context(devices);
 
 	//get command queue
     queue=cl::CommandQueue(context,devices[0]);
@@ -119,6 +119,10 @@ clswarm::clswarm(){
     queue.enqueueWriteBuffer(pbestbuf,CL_TRUE,0, partnum*dimnum*sizeof(cl_float),tmp);
 
     delete[] tmp;
+	
+		//make memory pool for upper and lower bounds
+    upperboundbuf=cl::Buffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float),NULL,&ret);
+    lowerboundbuf=cl::Buffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float),NULL,&ret);
 }
 
 //sets all properties according to arguments
@@ -346,7 +350,7 @@ void clswarm::update(unsigned int times){
 
     //make random number C++11 generator
     std::random_device gen;
-    std::uniform_real_distribution<cl_float> distr(1,0);
+    std::uniform_real_distribution<float> distr(1,0);
 
     //set up memory to take the random array
     unsigned int size=2*partnum*dimnum;
@@ -371,7 +375,7 @@ void clswarm::update(unsigned int times){
         //set kernel args
 	    ret=cmpre.setArg(0,presentbuf);
         ret=cmpre.setArg(1,gbestbuf);
-        ret=	cmpre.setArg(2,fitnessbuf);
+        ret=cmpre.setArg(2,fitnessbuf);
         ret=cmpre.setArg(3,gfitbuf);
         ret=cmpre.setArg(4,partnumbuf);
         ret=cmpre.setArg(5,dimnumbuf);
