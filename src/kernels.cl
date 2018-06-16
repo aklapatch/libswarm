@@ -22,8 +22,8 @@ __kernel void compare( __global float *presents,
 						__global float * gbest,
 						__global float * fitnesses,
 						__global float * gfitness,
-						__global unsigned int * partnum,
-						__global unsigned int * dimnum) {
+						__constant unsigned int * partnum,
+						__constant unsigned int * dimnum) {
 
 	//copy most fit particle into the gbest array
 	unsigned int i=*dimnum;
@@ -71,19 +71,16 @@ __kernel void distrtest(__global float * lowerbound,
 //distributes particles linearly between the bounds
 __kernel void distribute(__global float * lowerbound,
 						 __global float * upperbound,
-						 __global float * delta,
 						 __global float * presents,
-						 __global float * pbests,
-						 __global unsigned int * dimnum,
-						 __global unsigned int * partnum){
+						 __constant unsigned int * dimnum,
+						 __constant unsigned int * partnum){
 	unsigned int dex[3]={get_global_id(1), get_global_id(0)*(*dimnum) +get_global_id(1), get_global_id(0)} ;
 
 	//get_global_id(1) is dimension number, get_global_id(0) is particle number
-	delta[dex[0]]=(upperbound[dex[0]]-lowerbound[dex[0]])/(partnum[0]-1);
+	float delta=(upperbound[dex[0]]-lowerbound[dex[0]])/(partnum[0]-1);
 
 	//distribute the particle between the upper and lower boundaries linearly
-	presents[dex[1]]=dex[2]*delta[dex[0]] + lowerbound[dex[0]];
-	pbests[dex[1]]=0;
+	presents[dex[1]]=dex[2]*delta + lowerbound[dex[0]];
 }
 
 __kernel void update( __global float * presents,
@@ -91,14 +88,14 @@ __kernel void update( __global float * presents,
 					  __global float * w,
 					  __global float * rand,
 					  __global float * pfitnesses,
-					  __global float *upperbound,
+					  __constant float *upperbound,
 					  __global float * pbest,
 					  __global float * gbest,
-					  __global float * lowerbound,
+					  __constant float * lowerbound,
 					  __global float * fitnesses,
-					  __global unsigned int * dimnum,
-					  __global float * c1,
-					  __global float * c2) {
+					  __constant unsigned int * dimnum,
+					  __constant float * c1,
+					  __constant float * c2) {
 					  
 	int index= get_global_id(0)*(*dimnum)+get_global_id(1);
 	int randex = index*2;
@@ -126,11 +123,11 @@ __kernel void update( __global float * presents,
 
 //compares and copies a coordinates into a pbest if necessary
 __kernel void update2(__global float * fitnesses,
-						__global unsigned int * dimnum,
+						__constant unsigned int * dimnum,
 						__global float * pfitnesses,
 						__global float * presents,
 						__global float * pbest,
-						__global unsigned int * partnum) {
+						__constant unsigned int * partnum) {
 
 	const unsigned int j=get_global_id(0);
 	unsigned int offset=j*(*dimnum);

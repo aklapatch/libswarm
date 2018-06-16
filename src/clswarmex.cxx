@@ -11,7 +11,7 @@ int main(){
 	clswarm * test=new clswarm(10,1,.2,2, 1.492);
 
 	//make upper and lower bounds and set them
-	cl_float lower=-100,  upper=100;
+	cl_float lower=-1000, upper=1000;
 	
 	//distribute particles
 	test->distribute(&lower, &upper);
@@ -28,6 +28,7 @@ int main(){
 
 	//run the swarm
 	test->update(20);
+    test->wait();
 	
 	std::cout << "Data after 20 passes\n";
 	test->getPartData(data);

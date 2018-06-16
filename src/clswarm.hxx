@@ -78,11 +78,7 @@ class clswarm {
         cl::Buffer presentbuf, pbestbuf, vbuf;
         cl::Buffer pfitnessbuf, fitnessbuf;
 
-<<<<<<< HEAD
-		//all the opencl stuff
-=======
-	//all the opencl stuff
->>>>>>> 5c7545665ae7c942d7c4f097b4fd5e7daaf8e96f
+        //opencl items
         std::vector<cl::Platform> platforms;
         std::vector<cl::Device> devices;
         cl::Context context;
@@ -90,8 +86,8 @@ class clswarm {
         cl::Program program;
         cl::CommandQueue queue;
         cl::Kernel distr, cmpre, updte, updte2;
-		
-		
+        std::vector<cl::Event> evs;
+        cl::Event ev;
 
     public:
         /// Default constructor.
@@ -165,5 +161,8 @@ class clswarm {
 		
 	/// Copies particle data into the input argument.
         void getGBest(cl_float *);
+        
+        /// Waits for all pending OpenCL events to compete
+        void wait();
 };
 #endif  //CLSWARM_HXX
