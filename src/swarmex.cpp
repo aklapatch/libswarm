@@ -3,7 +3,7 @@
  * Copyright 2018 Aaron Klapatch
  */
 
-#include "swarm.h"
+#include "swarm.hpp"
 #include <vector>
 
 double fitness(double * in){
