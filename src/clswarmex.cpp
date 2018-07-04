@@ -22,8 +22,8 @@ int main(){
 	int j;
 
 	test->getPartData(data);
-	//for(j=-1;++j<10;)
-	//		std::cout << " i= " << j << " data is " << data[j] << "\n";
+	for(j=-1;++j<10;)
+			std::cout << " i= " << j << " data is " << data[j] << "\n";
 
 	 ///measure time
     auto start = std::chrono::high_resolution_clock::now();
@@ -42,8 +42,8 @@ int main(){
 
 	//std::cout << "Data after 20 passes\n";
 	test->getPartData(data);
-	//for(j=-1;++j<10;)
-	//		std::cout << " i= " << j << " data is " << data[j] << "\n";
+	for(j=-1;++j<10;)
+			std::cout << " i= " << j << " data is " << data[j] << "\n";
 
 	test->getGBest(&answer);
 	//std::cout<< "The answer is " << answer <<std:: endl;
