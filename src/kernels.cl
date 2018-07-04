@@ -40,7 +40,6 @@ __kernel void compare( __global float *presents,
 	}
 }
 
-
 //TEST FUNCTION
 //get the delta array
 __kernel void getDelta(__global float * lowerbound,

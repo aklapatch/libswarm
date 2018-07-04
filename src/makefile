@@ -1,4 +1,3 @@
-#tested with mingw-w64 5.0.3 and g++ 7.3.0 (MSYS2) on Windows
 
 clex:
 	g++  clswarmex.cpp clswarm.cpp ..\OpenCL.lib -o clexample.exe

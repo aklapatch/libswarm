@@ -18,8 +18,8 @@ Swarm::Swarm(){
     dimnum=DEFAULT_DIM;
     w = DEFAULT_W;
     gfitness=-HUGE_VAL;
-    c1=C1;
-    c2=C2;
+    c1=DEFAULT_C1;
+    c2=DEFAULT_C2;
 
     try {
         //set all vector sizes to default sizes

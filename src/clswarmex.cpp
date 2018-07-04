@@ -22,23 +22,33 @@ int main(){
 	int j;
 
 	test->getPartData(data);
-	for(j=-1;++j<10;)
-			std::cout << " i= " << j << " data is " << data[j] << "\n";
+	//for(j=-1;++j<10;)
+	//		std::cout << " i= " << j << " data is " << data[j] << "\n";
 
-
+	 ///measure time
+    auto start = std::chrono::high_resolution_clock::now();
+    
 	//run the swarm
 	test->update(20);
     test->wait();
 
-	std::cout << "Data after 20 passes\n";
+    auto finish = std::chrono::high_resolution_clock::now();
+
+    ///std::chrono::duration elapsed = finish - start;
+
+    auto msec=std::chrono::duration_cast<std::chrono::microseconds>(finish-start);
+
+    std::cout <<"Time to execute " << msec.count()<<"\n";
+
+	//std::cout << "Data after 20 passes\n";
 	test->getPartData(data);
-	for(j=-1;++j<10;)
-			std::cout << " i= " << j << " data is " << data[j] << "\n";
+	//for(j=-1;++j<10;)
+	//		std::cout << " i= " << j << " data is " << data[j] << "\n";
 
 	test->getGBest(&answer);
-	std::cout<< "The answer is " << answer <<std:: endl;
+	//std::cout<< "The answer is " << answer <<std:: endl;
 
-	std::cout << "gfitness " << test->getGFitness() << std::endl;
+	//std::cout << "gfitness " << test->getGFitness() << std::endl;
 
 	delete test;
 	delete [] data;

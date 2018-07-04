@@ -1,0 +1,17 @@
+Keeping c1, c2, w, partnum, and dimnum in cl::buffer.
+3911
+4209
+2777
+4434
+3827
+4162
+6350
+7490
+6529
+4522
+6332
+2820
+4492
+4647
+
+not Keeping previous values in cl::buffers

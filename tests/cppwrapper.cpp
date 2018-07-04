@@ -13,6 +13,8 @@
 
 #define ITEMS 100
 
+#define PRINT(x) std::cerr << #x << " = " << x << "\n"
+
 int main(){
     ///retrieve platforms
     std::vector<cl::Platform> platforms;
@@ -38,9 +40,9 @@ int main(){
     ///make source and push it into source
     cl::Program::Sources sources;
     char  kersrc[]=
-        "void kernel add (global int* A){"
+        "void kernel add (global int* A, int test){"
         "int i=get_global_id(0);"
-        "A[i]=i*i*i; }";
+        "A[i]=i*test; }";
     sources.push_back({kersrc, sizeof(kersrc)});
 
     ///build program
@@ -66,14 +68,16 @@ int main(){
     queue.enqueueWriteBuffer(Abuf, CL_TRUE, 0, sizeof(int)*n, A);
 
     ///set args
+    cl_int test=3;
     cl::Kernel add=cl::Kernel(program,"add");
-    add.setArg(0,Abuf);
+    PRINT(add.setArg(0,Abuf));
+    PRINT(add.setArg(1,test));
 
     ///measure time
     auto start = std::chrono::high_resolution_clock::now();
     
     ///run kernel + read buffer answer
-    queue.enqueueNDRangeKernel(add,cl::NullRange, cl:: NDRange(n),cl::NullRange );
+    PRINT(queue.enqueueNDRangeKernel(add,cl::NullRange, cl:: NDRange(n),cl::NullRange ));
     queue.enqueueReadBuffer(Abuf, CL_TRUE, 0, sizeof(int)*n, A);
 
     auto finish = std::chrono::high_resolution_clock::now();
@@ -82,9 +86,7 @@ int main(){
 
     auto msec=std::chrono::duration_cast<std::chrono::microseconds>(finish-start);
 
-    std::cout <<"Time to execute " << msec.count()<<"\n";
-
-    
+    std::cout <<"Time to execute " << msec.count()<<"\n";    
 
     ///print all answers
     for(i=0;i<n;++i){

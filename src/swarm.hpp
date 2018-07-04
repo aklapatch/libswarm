@@ -7,8 +7,8 @@ code derived from http://www.swarmintelligence.org/tutorials.php
 along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
-#ifndef _SWARM_HXX_
-#define _SWARM_HXX_
+#ifndef _SWARM_HPP_
+#define _SWARM_HPP_
 
 #include <vector>
 #include <cmath>
@@ -19,8 +19,8 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #define DEFAULT_DIM 1
 #define DEFAULT_PARTNUM 100
 #define DEFAULT_W 1
-#define C1 1.492
-#define C2 2
+#define DEFAULT_C1 1.492
+#define DEFAULT_C2 1.492
 
 /** Represents a herd, school, or organization
  * of members trying to find the best

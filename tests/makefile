@@ -9,3 +9,6 @@ cppbin: kertest
 
 clean:
 	del *.exe *.o
+
+ucppwrap:
+	clang++ -Og -g -std=c++11 -lOpenCL cppwrapper.cpp -o cppex.out

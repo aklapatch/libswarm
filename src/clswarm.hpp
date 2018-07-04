@@ -7,8 +7,8 @@ code derived from http://www.swarmintelligence.org/tutorials.php
 along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
-#ifndef _CLSWARM_HXX_
-#define _CLSWARM_HXX_
+#ifndef _CLSWARM_HPP_
+#define _CLSWARM_HPP_
 
 
 //set opencl version
@@ -50,7 +50,6 @@ void printbuf(cl::Buffer buf, size_t size,cl::CommandQueue q){
 		std::cout << "Buffer contents[" << i << "] = " << out[i] << "\n";
 
 	delete [] out;
-
 }
 
 class clswarm {

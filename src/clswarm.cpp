@@ -348,7 +348,7 @@ void clswarm::update(unsigned int times){
 
 	//make random number C++11 generator
 	std::random_device gen;
-	std::uniform_real_distribution<float> distr(1,0);
+	std::uniform_real_distribution<cl_float> distr(1,0);
 
 	//set up memory to take the random array
 	unsigned int size=2*partnum*dimnum;
@@ -383,7 +383,7 @@ void clswarm::update(unsigned int times){
 		ret=queue.enqueueNDRangeKernel(cmpre,cl::NullRange,cl::NDRange(1),cl::NullRange,NULL, &ev);
 
 		//make a array of random numbers
-		for(i=0;i++ <size;)
+		for(i=0;++i <size;)
 			ran[i]= distr(gen);
 
 		//write random numbers to buffer
