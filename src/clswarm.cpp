@@ -24,6 +24,9 @@ clswarm::clswarm(){
 	//set swarm characteristics to defaults
 	partnum=DEFAULT_PARTNUM;
 	dimnum=DEFAULT_DIM;
+	w = DEFAULT_W;
+	c1 = DEFAULT_C1;
+	c2 = DEFAULT_C2;
 
 	//gets platforms
 	ret =cl::Platform::get(&platforms);
@@ -63,27 +66,6 @@ clswarm::clswarm(){
 	cmpre= cl::Kernel(program, "compare",&ret);
 	updte=cl::Kernel(program, "update",&ret);
 	updte2=cl::Kernel(program, "update2",&ret);
-
-	//make buffers for particle and dimension numbers
-	dimnumbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_int));
-	ret=queue.enqueueWriteBuffer(dimnumbuf, CL_TRUE, 0, sizeof(cl_int), &dimnum);
-	partnumbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_int));
-	ret=queue.enqueueWriteBuffer(partnumbuf, CL_TRUE, 0, sizeof(cl_int), &partnum);
-
-	//create and write w to memory
-	wbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float));
-	cl_float tmpw=DEFAULT_W;
-	ret=queue.enqueueWriteBuffer(wbuf, CL_TRUE, 0, sizeof(cl_float), &tmpw);
-
-	//get memory for and write to c1buffer
-	c1buf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float));
-	cl_float tmpc1 = DEFAULT_C1;
-	ret=queue.enqueueWriteBuffer(c1buf, CL_TRUE, 0, sizeof(cl_float), &tmpc1);
-
-	//get memory for and write to c2buffer
-	c2buf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float));
-	cl_float tmpc2 = DEFAULT_C2;
-	ret=queue.enqueueWriteBuffer(c2buf, CL_TRUE, 0, sizeof(cl_float), &tmpc2);
 
 	//creates buffers for every resource
 	presentbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
@@ -131,6 +113,9 @@ clswarm::clswarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 	//set properties
 	partnum=numparts;
 	dimnum=numdims;
+	w=inw;
+	c1=c1in;
+	c2=c2in;
 
 	//gets platforms
 	ret=cl::Platform::get(&platforms);
@@ -167,24 +152,6 @@ clswarm::clswarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 	cmpre= cl::Kernel(program, "compare",&ret);
 	updte=cl::Kernel(program, "update",&ret);
 	updte2=cl::Kernel(program, "update2",&ret);
-
-	//make buffers for particle and dimension numbers
-	dimnumbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_uint), NULL ,&ret);
-	ret=queue.enqueueWriteBuffer(dimnumbuf, CL_TRUE, 0, sizeof(cl_uint), &numdims);
-	partnumbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_uint), NULL ,&ret);
-	ret=queue.enqueueWriteBuffer(partnumbuf, CL_TRUE, 0, sizeof(cl_uint), &numparts);
-
-	//create buffer and write w to memory
-	wbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_uint), NULL ,&ret);
-	ret=queue.enqueueWriteBuffer(wbuf, CL_TRUE, 0, sizeof(cl_float), &inw);
-
-	//get memory for and write to c1buffer
-	c1buf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float));
-	ret=queue.enqueueWriteBuffer(c1buf, CL_TRUE, 0, sizeof(cl_float), &c1in);
-
-	//get memory for and write to c2buffer
-	c2buf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float));
-	ret=queue.enqueueWriteBuffer(c2buf, CL_TRUE, 0, sizeof(cl_float), &c2in);
 
 	//create buffers for particle positions, velocities, velocities, fitnesses
 	presentbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float),NULL,&ret);
@@ -253,7 +220,6 @@ void clswarm::setDimNum(cl_uint num){
 
 	//set dimension number
 	dimnum=num;
-	queue.enqueueWriteBuffer(dimnumbuf, CL_TRUE,0, sizeof(cl_uint),&dimnum);
 
 	//recreates buffers for every resource
 	gbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float));
@@ -276,50 +242,32 @@ cl_uint clswarm::getDimNum(){
 
 //set inertial weight
 void clswarm::setWeight(cl_float inw){
-
-	//write w to memory
-	queue.enqueueWriteBuffer(wbuf, CL_TRUE, 0, sizeof(cl_float), &inw);
+	w=inw;	
 }
 
 //return inertial weight
 cl_float clswarm::getWeight(){
-	cl_float out;
-
-	queue.enqueueReadBuffer(wbuf, CL_TRUE, 0, sizeof(cl_float), &out);
-
-	return out;
+	return w;
 }
 
 //set behavioral constants
 void clswarm::setC1(cl_float inc1){
-
-	//write constant to buffer
-	queue.enqueueWriteBuffer(c1buf, CL_TRUE, 0, sizeof(cl_float), &inc1);
+	c1=inc1;
 }
 
 //set behavioral constants
 void clswarm::setC2(cl_float inc2){
-
-	//write constant to buffer
-	queue.enqueueWriteBuffer(c2buf, CL_TRUE, 0, sizeof(cl_float), &inc2);
+	c2=inc2;
 }
 
 //return constant
 cl_float clswarm::getC1(){
-	cl_float out;
-
-	queue.enqueueReadBuffer(c1buf, CL_TRUE, 0, sizeof(cl_float), &out);
-
-	return out;
+	return c1;
 }
 
 //return constant
 cl_float clswarm::getC2(){
-	cl_float out;
-
-	queue.enqueueReadBuffer(c2buf, CL_TRUE, 0, sizeof(cl_float), &out);
-
-	return out;
+	return c2;
 }
 
 //distribute particle linearly from lower bound to upper bound
@@ -330,14 +278,14 @@ void clswarm::distribute(cl_float * lower, cl_float * upper){
 	ret=queue.enqueueWriteBuffer(lowerboundbuf, CL_TRUE, 0, dimnum*sizeof(cl_float), lower);
 
 	//allocate memory for delta buffer
-	cl::Buffer deltabuf(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float));
+	//cl::Buffer deltabuf(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float));
 
 	//set kernel args
 	ret=distr.setArg(0,lowerboundbuf);
 	ret=distr.setArg(1,upperboundbuf);
 	ret=distr.setArg(2,presentbuf);
-	ret=distr.setArg(3,dimnumbuf);
-	ret=distr.setArg(4,partnumbuf);
+	ret=distr.setArg(3,dimnum);
+	ret=distr.setArg(4,partnum);
 
 	//execute
 	ret=queue.enqueueNDRangeKernel(distr,cl::NullRange, cl::NDRange(partnum,dimnum),cl::NullRange);
@@ -361,11 +309,11 @@ void clswarm::update(unsigned int times){
 
 		//set args for fitness eval
 		ret=updte2.setArg(0,fitnessbuf);
-		ret=updte2.setArg(1,dimnumbuf);
+		ret=updte2.setArg(1,dimnum);
 		ret=updte2.setArg(2,pfitnessbuf);
 		ret=updte2.setArg(3,presentbuf);
 		ret=updte2.setArg(4,pbestbuf);
-		ret=updte2.setArg(5,partnumbuf);
+		ret=updte2.setArg(5,partnum);
 
         ev.wait();
 		ret=queue.enqueueNDRangeKernel(updte2,cl::NullRange,cl::NDRange(partnum),cl::NullRange,NULL, &ev);
@@ -375,8 +323,8 @@ void clswarm::update(unsigned int times){
 		ret=cmpre.setArg(1,gbestbuf);
 		ret=cmpre.setArg(2,fitnessbuf);
 		ret=cmpre.setArg(3,gfitbuf);
-		ret=cmpre.setArg(4,partnumbuf);
-		ret=cmpre.setArg(5,dimnumbuf);
+		ret=cmpre.setArg(4,partnum);
+		ret=cmpre.setArg(5,dimnum);
 
 		//wait then run comparison
         ev.wait();
@@ -392,7 +340,7 @@ void clswarm::update(unsigned int times){
 		//set kernel args
 		ret=updte.setArg(0,presentbuf);
 		ret=updte.setArg(1,vbuf);
-		ret=updte.setArg(2,wbuf);
+		ret=updte.setArg(2,w);
 		ret=updte.setArg(3,ranbuf);
 		ret=updte.setArg(4,pfitnessbuf);
 		ret=updte.setArg(5,upperboundbuf);
@@ -400,9 +348,9 @@ void clswarm::update(unsigned int times){
 		ret=updte.setArg(7,gbestbuf);
 		ret=updte.setArg(8,lowerboundbuf);
 		ret=updte.setArg(9,fitnessbuf);
-		ret=updte.setArg(10,dimnumbuf);
-		ret=updte.setArg(11,c1buf);
-		ret=updte.setArg(12,c2buf);
+		ret=updte.setArg(10,dimnum);
+		ret=updte.setArg(11,c1);
+		ret=updte.setArg(12,c2);
 
 		//wait then execute
 		ev.wait();
@@ -413,11 +361,11 @@ void clswarm::update(unsigned int times){
 	//evaluate fitness one more time
 	//set args for fitness eval
 	ret=updte2.setArg(0,fitnessbuf);
-	ret=updte2.setArg(1,dimnumbuf);
+	ret=updte2.setArg(1,dimnum);
 	ret=updte2.setArg(2,pfitnessbuf);
 	ret=updte2.setArg(3,presentbuf);
 	ret=updte2.setArg(4,pbestbuf);
-	ret=updte2.setArg(5,partnumbuf);
+	ret=updte2.setArg(5,partnum);
 
 	//wait then execute kernel
     ev.wait();
@@ -428,8 +376,8 @@ void clswarm::update(unsigned int times){
 	ret=cmpre.setArg(1,gbestbuf);
 	ret=cmpre.setArg(2,fitnessbuf);
 	ret=cmpre.setArg(3,gfitbuf);
-	ret=cmpre.setArg(4,partnumbuf);
-	ret=cmpre.setArg(5,dimnumbuf);
+	ret=cmpre.setArg(4,partnum);
+	ret=cmpre.setArg(5,dimnum);
 
 	//
 	ev.wait();

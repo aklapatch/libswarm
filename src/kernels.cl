@@ -22,12 +22,12 @@ __kernel void compare( __global float *presents,
 						__global float * gbest,
 						__global float * fitnesses,
 						__global float * gfitness,
-						__constant unsigned int * partnum,
-						__constant unsigned int * dimnum) {
+						unsigned int partnum,
+						unsigned int dimnum) {
 
 	//copy most fit particle into the gbest array
-	unsigned int i=*dimnum;
-	unsigned int index=sort(fitnesses,*partnum);
+	unsigned int i=dimnum;
+	unsigned int index=sort(fitnesses,partnum);
 
 	if(fitnesses[index] > *gfitness) {
 
@@ -36,7 +36,7 @@ __kernel void compare( __global float *presents,
 
 		//copy array into gbest array
 		while(i--) 
-			gbest[i]=presents[index*(*dimnum)+i];
+			gbest[i]=presents[index*dimnum+i];
 	}
 }
 
@@ -45,10 +45,10 @@ __kernel void compare( __global float *presents,
 __kernel void getDelta(__global float * lowerbound,
 					__global float * upperbound,
 					__global float * delta,
-					__global float * partnum) {
+					unsigned int partnum) {
 	//compute the delta
 	unsigned int i=get_global_id(0);
-	delta[i]=(upperbound[i]-lowerbound[i])/(partnum[0]-1);
+	delta[i]=(upperbound[i]-lowerbound[i])/(partnum - 1);
 }
 
 //TEST FUNCTION
@@ -56,11 +56,11 @@ __kernel void distrtest(__global float * lowerbound,
 						__global float * delta,
 						__global float * presents,
 						__global float * pbests,
-						__global unsigned int * dimnum,
-						__global unsigned int * partnum){
+						unsigned int dimnum,
+						unsigned int partnum){
 
 	//get_global_id(1) is dimension number, get_global_id(0) is particle number
-	unsigned int i[2]={get_global_id(1), get_global_id(0)*(dimnum[0])+ get_global_id(1)};
+	unsigned int i[2]={get_global_id(1), get_global_id(0)*dimnum + get_global_id(1)};
 
 	//does the distribution sets pbests=0
 	presents[i[1]]=get_global_id(0)*delta[i[0]] + lowerbound[i[0]];
@@ -71,12 +71,12 @@ __kernel void distrtest(__global float * lowerbound,
 __kernel void distribute(__global float * lowerbound,
 						 __global float * upperbound,
 						 __global float * presents,
-						 __constant unsigned int * dimnum,
-						 __constant unsigned int * partnum){
-	unsigned int dex[3]={get_global_id(1), get_global_id(0)*(*dimnum) +get_global_id(1), get_global_id(0)} ;
+						 unsigned int dimnum,
+						 unsigned int partnum){
+	unsigned int dex[3]={get_global_id(1), get_global_id(0)*dimnum + get_global_id(1), get_global_id(0)} ;
 
 	//get_global_id(1) is dimension number, get_global_id(0) is particle number
-	float delta=(upperbound[dex[0]]-lowerbound[dex[0]])/(partnum[0]-1);
+	float delta=(upperbound[dex[0]]-lowerbound[dex[0]])/(partnum - 1);
 
 	//distribute the particle between the upper and lower boundaries linearly
 	presents[dex[1]]=dex[2]*delta + lowerbound[dex[0]];
@@ -84,7 +84,7 @@ __kernel void distribute(__global float * lowerbound,
 
 __kernel void update( __global float * presents,
 					  __global float * v,
-					  __global float * w,
+					  float w,
 					  __global float * rand,
 					  __global float * pfitnesses,
 					  __constant float *upperbound,
@@ -92,20 +92,20 @@ __kernel void update( __global float * presents,
 					  __global float * gbest,
 					  __constant float * lowerbound,
 					  __global float * fitnesses,
-					  __constant unsigned int * dimnum,
-					  __constant float * c1,
-					  __constant float * c2) {
+						unsigned int dimnum,
+					  float c1,
+					  float c2) {
 					  
-	int index= get_global_id(0)*(*dimnum)+get_global_id(1);
+	int index= get_global_id(0)*dimnum + get_global_id(1);
 	int randex = index*2;
 	int dex0=get_global_id(0);
 	int dex1=get_global_id(1);
 
 	//get_global_id(0) is partnum, get_global_id(1) is dimiension number
 	//velocity update
-	v[index]=(*w)*v[index]
-	 + c1[0]*rand[randex]*(pbest[index]- presents[index])
-	 + c2[0]*rand[randex+1]*(gbest[dex1]-presents[index]);
+	v[index]=w*v[index]
+	 + c1*rand[randex]*(pbest[index]- presents[index])
+	 + c2*rand[randex+1]*(gbest[dex1]-presents[index]);
 
 	//position update
 	presents[index]=presents[index]+v[index];
@@ -122,18 +122,18 @@ __kernel void update( __global float * presents,
 
 //compares and copies a coordinates into a pbest if necessary
 __kernel void update2(__global float * fitnesses,
-						__constant unsigned int * dimnum,
+						unsigned int dimnum,
 						__global float * pfitnesses,
 						__global float * presents,
 						__global float * pbest,
-						__constant unsigned int * partnum) {
+						unsigned int partnum) {
 
 	const unsigned int j=get_global_id(0);
-	unsigned int offset=j*(*dimnum);
+	unsigned int offset=j*dimnum;
 
 	//evaluate fitness of the particle
 	/** fitness function is in fitness.cl */
-	fitnesses[j]=fitness(presents,offset, *dimnum);
+	fitnesses[j]=fitness(presents,offset, dimnum);
 
 	//if the fitness is better than the pfitness, copy the values to pbest array
 	if(fitnesses[j]>pfitnesses[j]) {
@@ -141,7 +141,7 @@ __kernel void update2(__global float * fitnesses,
 		//copy new fitness
 		pfitnesses[j]=fitnesses[j];
 
-		unsigned int i=*dimnum;
+		unsigned int i=dimnum;
 
 		while(i--)
 			pbest[offset+i]=presents[offset+i];

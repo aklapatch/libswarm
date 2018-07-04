@@ -10,14 +10,10 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #ifndef _CLSWARM_HPP_
 #define _CLSWARM_HPP_
 
-
 //set opencl version
 #define CL_HPP_TARGET_OPENCL_VERSION 200
 
-#include <vector>
-#include <cmath>
-#include <random>
-#include <iostream>
+#include <bits/stdc++.h>
 
 #ifdef __APPLE__
 #include <OpenCL/opencl.hpp>
@@ -28,7 +24,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 //macro to check for opencl Errors
 #define CHK if(ret!= CL_SUCCESS) { std::cerr << "Error code " << ret << " at Line " << __LINE__ << "\n"; }
 
-#define KER_SIZE 0x100000
+#define KER_SIZE 0x1000
 #define PLATFORM_NUM 1
 #define DEVICE_NUM 1
 #define DEFAULT_DIM 1
@@ -61,9 +57,6 @@ class clswarm {
         // Number of particles and Number of dimensions for each particle
         cl_uint partnum, dimnum;
 
-        //buffers for the particle number and dimension numbers
-        cl::Buffer dimnumbuf, partnumbuf;
-
         //best particle dimensions, its fitness, swarm bounds
         cl::Buffer gbestbuf, upperboundbuf, lowerboundbuf;
 
@@ -71,13 +64,14 @@ class clswarm {
         cl::Buffer gfitbuf;
 
         //inertial weight and 2 behavioral constants
-        cl::Buffer wbuf, c1buf, c2buf;
+        cl_float w, c1, c2;
 
         //particle data
         cl::Buffer presentbuf, pbestbuf, vbuf;
         cl::Buffer pfitnessbuf, fitnessbuf;
 
         //opencl items
+        std::vector<cl::Event> evs;
         std::vector<cl::Platform> platforms;
         std::vector<cl::Device> devices;
         cl::Context context;
