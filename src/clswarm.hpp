@@ -12,6 +12,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 
 //set opencl version
 #define CL_HPP_TARGET_OPENCL_VERSION 200
+#define RAN (cl_float)(rng()%1000)/1000
 
 #include <bits/stdc++.h>
 
@@ -50,9 +51,8 @@ void printbuf(cl::Buffer buf, size_t size,cl::CommandQueue q){
 
 class clswarm {
 	private:
-
-	// used for debugging and error checking
-	cl_int ret;
+		// used for debugging and error checking
+		cl_int ret;
 
 		// Number of particles and Number of dimensions for each particle
 		cl_uint partnum, dimnum;

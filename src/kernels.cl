@@ -74,10 +74,11 @@ __kernel void distribute(__global float * lowerbound,
 						 unsigned int dimnum,
 						 unsigned int partnum){
 		//get_global_id(1) is dimension number, get_global_id(0) is particle number					 
-	uint3 dex= (get_global_id(1), get_global_id(0)*dimnum + get_global_id(1), get_global_id(0));
+	uint dim = get_global_id(1);
+	uint pdex = get_global_id(0)*dimnum + get_global_id(1);
 
 	//distribute the particle between the upper and lower boundaries linearly
-	presents[dex.y]=dex.z*((upperbound[dex.x]-lowerbound[dex.x])/(partnum - 1)) + lowerbound[dex.x];
+	presents[pdex]=get_global_id(0)*((upperbound[dim]-lowerbound[dim])/(partnum - 1)) + lowerbound[dim];
 }
 
 __kernel void update( __global float * presents,

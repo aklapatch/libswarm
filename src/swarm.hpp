@@ -16,6 +16,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include <iostream>
 #include <cstring>
 
+#define RAN (float)(rng()%1000)/1000
 #define DEFAULT_DIM 1
 #define DEFAULT_PARTNUM 100
 #define DEFAULT_W 1

@@ -73,34 +73,23 @@ clswarm::clswarm(){
 	vbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
 	fitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
 
-	//set buffers for pfitnesses, gbests, and pbests
-	pfitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float));
-	gbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float));
-	pbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
+	std::vector<cl_float> tmp(partnum*dimnum,0);
 
-	cl_float *tmp=new cl_float[partnum];
-	int i=partnum;
-	while (i-->0)
-		tmp[i]=-HUGE_VALF;
+	//set buffers for gbests, and pbests to 0
+	gbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float),NULL,&ret);
+	pbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float),NULL,&ret);
 
-	//create memory buffer for gfit and write to it
-	gfitbuf=cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float));
-	queue.enqueueWriteBuffer(gfitbuf, CL_TRUE, 0, sizeof(cl_float), tmp);
+	//set the vectors values
+	for(int dex =-1;++dex<partnum;)
+		tmp[dex]=-HUGE_VALF;
 
-	//write to pfitness buffer
-	queue.enqueueWriteBuffer(pfitnessbuf,CL_TRUE,0, partnum*sizeof(cl_float),tmp);
-
-	delete [] tmp;
-
-	tmp=new cl_float[partnum*dimnum];
-	i=partnum*dimnum;
-	while(i--)
-		tmp[i]=0;
-
-	queue.enqueueWriteBuffer(gbestbuf,CL_TRUE,0, dimnum*sizeof(cl_float),tmp);
-	queue.enqueueWriteBuffer(pbestbuf,CL_TRUE,0, partnum*dimnum*sizeof(cl_float),tmp);
-
-	delete[] tmp;
+	//create memory buffer for nonparticle fitnesses
+	gfitbuf = cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float),NULL,&ret);
+	ret=queue.enqueueWriteBuffer(gfitbuf, CL_FALSE , 0, sizeof(cl_float),tmp.data(),NULL,&ev);
+	evs.emplace_back(ev);
+	pfitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float),NULL,&ret);
+	ret=queue.enqueueWriteBuffer(pfitnessbuf,CL_FALSE,0, partnum*sizeof(cl_float),tmp.data(),NULL,&ev);
+	evs.emplace_back(ev);
 
 	//make memory pool for upper and lower bounds
 	upperboundbuf=cl::Buffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float),NULL,&ret);
@@ -159,27 +148,23 @@ clswarm::clswarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 	vbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float),NULL,&ret);
 	fitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float),NULL,&ret);
 
-	//get values to pass to fitness arrays
-	cl_float *tmp= getarray(partnum, -HUGE_VALF);
-
-	//create memory buffer for nonparticle fitnesses
-	gfitbuf = cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float),NULL,&ret);
-	ret=queue.enqueueWriteBuffer(gfitbuf, CL_TRUE, 0, sizeof(cl_float), tmp);
-	pfitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float),NULL,&ret);
-	ret=queue.enqueueWriteBuffer(pfitnessbuf,CL_TRUE,0, partnum*sizeof(cl_float),tmp);
-
-	delete [] tmp;
-
-	//get array values for gbest and pbests
-	tmp=getarray(partnum*dimnum,0.000);
+	std::vector<cl_float> tmp(partnum*dimnum,0);
 
 	//set buffers for gbests, and pbests to 0
 	gbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float),NULL,&ret);
-	ret=queue.enqueueWriteBuffer(gbestbuf,CL_TRUE,0, dimnum*sizeof(cl_float),tmp);
 	pbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float),NULL,&ret);
-	ret=queue.enqueueWriteBuffer(pbestbuf,CL_TRUE,0, partnum*dimnum*sizeof(cl_float),tmp);
 
-	delete[] tmp;
+	//set the vectors values
+	for(int dex =-1;++dex<partnum;)
+		tmp[dex]=-HUGE_VALF;
+
+	//create memory buffer for nonparticle fitnesses
+	gfitbuf = cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float),NULL,&ret);
+	ret=queue.enqueueWriteBuffer(gfitbuf, CL_FALSE , 0, sizeof(cl_float),tmp.data(),NULL,&ev);
+	evs.emplace_back(ev);
+	pfitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float),NULL,&ret);
+	ret=queue.enqueueWriteBuffer(pfitnessbuf,CL_FALSE,0, partnum*sizeof(cl_float),tmp.data(),NULL,&ev);
+	evs.emplace_back(ev);
 
 	//make memory pool for upper and lower bounds
 	upperboundbuf=cl::Buffer(context, CL_MEM_READ_ONLY,dimnum*sizeof(cl_float),NULL,&ret);
@@ -196,18 +181,32 @@ clswarm::~clswarm(){
 
 //sets number of particles
 void clswarm::setPartNum(cl_uint num){
+	queue.enqueueBarrierWithWaitList(&evs);
 
 	//reset particle swarm #
 	partnum=num;
 
-	//does not need dimensions
-	pfitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float));
-	fitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float));
+	std::vector<cl_float> tmp(partnum*dimnum,0);
 
 	//needs dimension to initialize
 	presentbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
-	pbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
+
+	pbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float),NULL,&ret);
 	vbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
+
+	for(int i = -1; ++i<partnum;)
+		tmp[i]=-HUGE_VALF;
+
+	//does not need dimensions
+	pfitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float),NULL,&ret);
+	ret=queue.enqueueWriteBuffer(pfitnessbuf,CL_FALSE,0, partnum*sizeof(cl_float),tmp.data(),&evs,&ev);
+	evs.emplace_back(ev);
+
+	fitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float));
+
+	//re-writes values to gfitness
+	ret=queue.enqueueWriteBuffer(gfitbuf,CL_FALSE,0, partnum*sizeof(cl_float),tmp.data(),NULL,&ev);
+	evs.emplace_back(ev);
 }
 
 //returns particle number
@@ -217,6 +216,8 @@ cl_uint clswarm::getPartNum(){
 
 //sets number of dimensions
 void clswarm::setDimNum(cl_uint num){
+
+	queue.enqueueBarrierWithWaitList(&evs);
 
 	//set dimension number
 	dimnum=num;
@@ -233,6 +234,15 @@ void clswarm::setDimNum(cl_uint num){
 	//make memory pool for upper and lower bounds
 	upperboundbuf=cl::Buffer(context, CL_MEM_READ_ONLY,dimnum*sizeof(cl_float),NULL,&ret);
 	lowerboundbuf=cl::Buffer(context, CL_MEM_READ_ONLY,dimnum*sizeof(cl_float),NULL,&ret);
+
+	std::vector<cl_float> tmp(partnum,-HUGE_VALF);
+
+	ret=queue.enqueueWriteBuffer(pfitnessbuf,CL_FALSE,0, partnum*sizeof(cl_float),tmp.data(),&evs,&ev);
+	evs.emplace_back(ev);
+
+	//re-writes values to gfitness
+	ret=queue.enqueueWriteBuffer(gfitbuf,CL_FALSE,0, sizeof(cl_float),tmp.data(),NULL,&ev);
+	evs.emplace_back(ev);
 }
 
 //returns dimension number
@@ -272,10 +282,13 @@ cl_float clswarm::getC2(){
 
 //distribute particle linearly from lower bound to upper bound
 void clswarm::distribute(cl_float * lower, cl_float * upper){
+	queue.enqueueBarrierWithWaitList(&evs);
 
 	//store bounds for later
-	ret=queue.enqueueWriteBuffer(upperboundbuf, CL_TRUE, 0, dimnum*sizeof(cl_float), upper);
-	ret=queue.enqueueWriteBuffer(lowerboundbuf, CL_TRUE, 0, dimnum*sizeof(cl_float), lower);
+	ret=queue.enqueueWriteBuffer(upperboundbuf, CL_TRUE, 0, dimnum*sizeof(cl_float), upper,&evs,&ev);
+	evs.emplace_back(ev);
+	ret=queue.enqueueWriteBuffer(lowerboundbuf, CL_TRUE, 0, dimnum*sizeof(cl_float), lower,NULL,&ev);
+	evs.emplace_back(ev);
 
 	//allocate memory for delta buffer
 	//cl::Buffer deltabuf(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float));
@@ -288,20 +301,31 @@ void clswarm::distribute(cl_float * lower, cl_float * upper){
 	ret=distr.setArg(4,partnum);
 
 	//execute
-	ret=queue.enqueueNDRangeKernel(distr,cl::NullRange, cl::NDRange(partnum,dimnum),cl::NullRange);
+	ret=queue.enqueueNDRangeKernel(distr,cl::NullRange, cl::NDRange(partnum,dimnum),cl::NullRange,&evs,&ev);
+	evs.emplace_back(ev);
+}
+
+size_t rng(){
+    static size_t x = 123456789;
+    static size_t y = 362436069;
+    static size_t z = 521288629;
+    static size_t w = 88675123;
+    size_t t;
+    t = x ^ (x << 11);   
+    x = y; 
+    y = z; 
+    z = w;   
+    return w = w ^ (w >> 19) ^ (t ^ (t >> 8));
 }
 
 //run the position and velocity update equation
 void clswarm::update(unsigned int times){
-
-	//make random number C++11 generator
-	std::random_device gen;
-	std::uniform_real_distribution<cl_float> distr(1,0);
+	queue.enqueueBarrierWithWaitList(&evs);
 
 	//set up memory to take the random array
 	unsigned int size=2*partnum*dimnum;
 	cl_float * ran = new cl_float [size];
-	cl::Buffer ranbuf(context, CL_MEM_READ_WRITE,size*sizeof(cl_float));
+	cl::Buffer ranbuf(context, CL_MEM_READ_ONLY,size*sizeof(cl_float));
 	unsigned int i;
 
 	// updates everything
@@ -315,8 +339,8 @@ void clswarm::update(unsigned int times){
 		ret=updte2.setArg(4,pbestbuf);
 		ret=updte2.setArg(5,partnum);
 
-        ev.wait();
-		ret=queue.enqueueNDRangeKernel(updte2,cl::NullRange,cl::NDRange(partnum),cl::NullRange,NULL, &ev);
+		ret=queue.enqueueNDRangeKernel(updte2,cl::NullRange,cl::NDRange(partnum),cl::NullRange,&evs, &ev);
+		evs.emplace_back(ev);
 
 		//set kernel args
 		ret=cmpre.setArg(0,presentbuf);
@@ -327,15 +351,15 @@ void clswarm::update(unsigned int times){
 		ret=cmpre.setArg(5,dimnum);
 
 		//wait then run comparison
-        ev.wait();
-		ret=queue.enqueueNDRangeKernel(cmpre,cl::NullRange,cl::NDRange(1),cl::NullRange,NULL, &ev);
+		ret=queue.enqueueNDRangeKernel(cmpre,cl::NullRange,cl::NDRange(1),cl::NullRange,&evs, &ev);
 
 		//make a array of random numbers
 		for(i=0;++i <size;)
-			ran[i]= distr(gen);
+			ran[i]= RAN;
 
 		//write random numbers to buffer
-		queue.enqueueWriteBuffer(ranbuf, CL_TRUE, 0, size*sizeof(cl_float), ran,NULL,&ev);
+		queue.enqueueWriteBuffer(ranbuf, CL_FALSE, 0, size*sizeof(cl_float), ran,&evs,&ev);
+		evs.emplace_back(ev);
 
 		//set kernel args
 		ret=updte.setArg(0,presentbuf);
@@ -353,8 +377,8 @@ void clswarm::update(unsigned int times){
 		ret=updte.setArg(12,c2);
 
 		//wait then execute
-		ev.wait();
-		ret=queue.enqueueNDRangeKernel(updte,cl::NullRange, cl::NDRange(partnum,dimnum) , cl::NullRange, NULL, &ev);
+		ret=queue.enqueueNDRangeKernel(updte,cl::NullRange, cl::NDRange(partnum,dimnum) , cl::NullRange, &evs, &ev);
+		evs.emplace_back(ev);
 	}
 	delete [] ran;
 
@@ -368,8 +392,8 @@ void clswarm::update(unsigned int times){
 	ret=updte2.setArg(5,partnum);
 
 	//wait then execute kernel
-    ev.wait();
-	ret=queue.enqueueNDRangeKernel(updte2,cl::NullRange, cl::NDRange(partnum) ,cl::NullRange, NULL, &ev);
+	ret=queue.enqueueNDRangeKernel(updte2,cl::NullRange, cl::NDRange(partnum) ,cl::NullRange, &evs, &ev);
+	evs.emplace_back(ev);
 
 	//set kernel args
 	ret=cmpre.setArg(0,presentbuf);
@@ -379,40 +403,45 @@ void clswarm::update(unsigned int times){
 	ret=cmpre.setArg(4,partnum);
 	ret=cmpre.setArg(5,dimnum);
 
-	//
-	ev.wait();
-	ret=queue.enqueueNDRangeKernel(cmpre,cl::NullRange,cl::NullRange,cl::NullRange,NULL,&ev);
+	//compare one more times
+	ret=queue.enqueueNDRangeKernel(cmpre,cl::NullRange,cl::NullRange,cl::NullRange,&evs,&ev);
+	evs.emplace_back(ev);
 }
 
 //sets particle data
 void clswarm::setPartData(cl_float * in){
-	queue.enqueueWriteBuffer(presentbuf,CL_TRUE, 0,partnum*dimnum*sizeof(cl_float),in,NULL,&ev);
+	queue.enqueueWriteBuffer(presentbuf,CL_FALSE, 0,partnum*dimnum*sizeof(cl_float),in,&evs,&ev);
+	evs.emplace_back(ev);
 }
 
 //copies particle data to the argument
 void clswarm::getPartData(cl_float * out){
-
-	queue.enqueueReadBuffer(presentbuf,CL_TRUE,0,partnum*dimnum*sizeof(cl_float),out,NULL,&ev);
+	queue.enqueueReadBuffer(presentbuf,CL_FALSE,0,partnum*dimnum*sizeof(cl_float),out,&evs,&ev);
+	evs.emplace_back(ev);
 }
 
 //returns the fitness of the best particle
 cl_float clswarm::getGFitness(){
 
 	cl_float out;
+	queue.enqueueBarrierWithWaitList(&evs);
 
 	//get value from GPU
-	ret=queue.enqueueReadBuffer(gfitbuf, CL_TRUE, 0,sizeof(cl_float), &out,NULL,&ev);
+	ret=queue.enqueueReadBuffer(gfitbuf, CL_FALSE, 0,sizeof(cl_float), &out,&evs,&ev);
+	evs.emplace_back(ev);
 
 	return out;
 }
 
 //returns best position of the clswarm
 void clswarm::getGBest(cl_float * out){
+	queue.enqueueBarrierWithWaitList(&evs);
 
 	//get value from buffer
-	ret=queue.enqueueReadBuffer(gbestbuf, CL_TRUE, 0,dimnum*sizeof(cl_float),out,NULL, &ev);
+	ret=queue.enqueueReadBuffer(gbestbuf, CL_FALSE, 0,dimnum*sizeof(cl_float),out,&evs, &ev);
+	evs.emplace_back(ev);
 }
 
 void clswarm::wait(){
-    ev.wait();
+	queue.enqueueBarrierWithWaitList(&evs);
 }

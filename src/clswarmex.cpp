@@ -38,7 +38,7 @@ int main(){
 
     auto msec=std::chrono::duration_cast<std::chrono::microseconds>(finish-start);
 
-    std::cout <<"Time to execute " << msec.count()<<"\n";
+    //std::cout <<"Time to execute " << msec.count()<<"\n";
 
 	//std::cout << "Data after 20 passes\n";
 	test->getPartData(data);

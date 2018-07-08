@@ -236,14 +236,25 @@ void Swarm::distribute(double * lower, double * upper){
     }
 }
 
+// XORshift random number generator from 
+// https://codingforspeed.com/using-faster-psudo-random-generator-xorshift/
+size_t rng(){
+    static size_t x = 123456789;
+    static size_t y = 362436069;
+    static size_t z = 521288629;
+    static size_t w = 88675123;
+    size_t t;
+    t = x ^ (x << 11);   
+    x = y; 
+    y = z; 
+    z = w;   
+    return w = w ^ (w >> 19) ^ (t ^ (t >> 8));
+}
+
 //run the position and velocity update equation
 void Swarm::update(int times, double (*fitness) (double*)){
 
     int i,j;
-
-    //make random number generator C++11
-    std::random_device gen;
-    std:: uniform_real_distribution<double> distr(1,0);
 
     while(times--){
         for(i=0;i<partnum;++i){
@@ -276,7 +287,7 @@ void Swarm::update(int times, double (*fitness) (double*)){
             for(j=0;j<dimnum;++j){
 
                 //update velocity
-                v[i][j]=w*v[i][j] + c1*distr(gen)*(pbests[i][j]-presents[i][j]) +c2*distr(gen)*(gbest[j]-presents[i][j]);
+                v[i][j]=w*v[i][j] + c1*RAN*(pbests[i][j]-presents[i][j]) +c2*RAN*(gbest[j]-presents[i][j]);
 
                 //update position
                 presents[i][j]=presents[i][j]+v[i][j];
