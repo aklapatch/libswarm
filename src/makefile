@@ -2,7 +2,7 @@ clex:
 	g++  clswarmex.cpp clswarm.cpp ..\OpenCL.lib -o clexample.exe
 
 dclex:
-	g++ -g -Og clswarmex.cpp clswarm.cpp C:\Windows\System32\OpenCL.dll -o dclex.exe
+	g++ -g -Og clswarmex.cpp clswarm.cpp C:\Windows\System32\OpenCL.dll -o clexample.exe
 
 kernel:
 	clang -cc1 -cl-std=CL2.0 -finclude-default-header kernels.cl

@@ -8,13 +8,14 @@
             "name": "clexample Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/src/clexample.out",
+            "program": "${workspaceFolder}/src/clexample.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/src",
             "environment": [],
             "externalConsole": true,
             "MIMode": "gdb",
+            "miDebuggerPath": "gdb.exe",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",

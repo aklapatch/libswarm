@@ -64,7 +64,6 @@ __kernel void distrtest(__global float * lowerbound,
 
 	//does the distribution sets pbests=0
 	presents[i[1]]=get_global_id(0)*delta[i[0]] + lowerbound[i[0]];
-	pbests[i[1]]=0;
 }
 
 //distributes particles linearly between the bounds
@@ -74,11 +73,12 @@ __kernel void distribute(__global float * lowerbound,
 						 unsigned int dimnum,
 						 unsigned int partnum){
 		//get_global_id(1) is dimension number, get_global_id(0) is particle number					 
+	uint part=get_global_id(0);	
 	uint dim = get_global_id(1);
-	uint pdex = get_global_id(0)*dimnum + get_global_id(1);
+	uint pdex = part*dimnum + get_global_id(1);
 
 	//distribute the particle between the upper and lower boundaries linearly
-	presents[pdex]=get_global_id(0)*((upperbound[dim]-lowerbound[dim])/(partnum - 1)) + lowerbound[dim];
+	presents[pdex]=part*((upperbound[dim]-lowerbound[dim])/(partnum - 1)) + lowerbound[dim];
 }
 
 __kernel void update( __global float * presents,

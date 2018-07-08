@@ -85,10 +85,10 @@ clswarm::clswarm(){
 
 	//create memory buffer for nonparticle fitnesses
 	gfitbuf = cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float),NULL,&ret);
-	ret=queue.enqueueWriteBuffer(gfitbuf, CL_FALSE , 0, sizeof(cl_float),tmp.data(),NULL,&ev);
+	ret=queue.enqueueWriteBuffer(gfitbuf, CL_TRUE , 0, sizeof(cl_float),tmp.data(),NULL,&ev);
 	evs.emplace_back(ev);
 	pfitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float),NULL,&ret);
-	ret=queue.enqueueWriteBuffer(pfitnessbuf,CL_FALSE,0, partnum*sizeof(cl_float),tmp.data(),NULL,&ev);
+	ret=queue.enqueueWriteBuffer(pfitnessbuf,CL_TRUE,0, partnum*sizeof(cl_float),tmp.data(),NULL,&ev);
 	evs.emplace_back(ev);
 
 	//make memory pool for upper and lower bounds
@@ -160,13 +160,11 @@ clswarm::clswarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 
 	//create memory buffer for nonparticle fitnesses
 	gfitbuf = cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float),NULL,&ret);
-	ret=queue.enqueueWriteBuffer(gfitbuf, CL_FALSE , 0, sizeof(cl_float),tmp.data(),NULL,&ev);
+	ret=queue.enqueueWriteBuffer(gfitbuf, CL_TRUE , 0, sizeof(cl_float),tmp.data(),NULL,&ev);
 	evs.emplace_back(ev);
-	printbuf<cl_float>(gfitbuf,1,queue);
 	pfitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float),NULL,&ret);
-	ret=queue.enqueueWriteBuffer(pfitnessbuf,CL_FALSE,0, partnum*sizeof(cl_float),tmp.data(),NULL,&ev);
+	ret=queue.enqueueWriteBuffer(pfitnessbuf,CL_TRUE,0, partnum*sizeof(cl_float),tmp.data(),NULL,&ev);
 	evs.emplace_back(ev);
-	printbuf<cl_float>(pfitnessbuf,1,queue);
 
 	//make memory pool for upper and lower bounds
 	upperboundbuf=cl::Buffer(context, CL_MEM_READ_ONLY,dimnum*sizeof(cl_float),NULL,&ret);
@@ -183,7 +181,6 @@ clswarm::~clswarm(){
 
 //sets number of particles
 void clswarm::setPartNum(cl_uint num){
-	queue.enqueueBarrierWithWaitList(&evs);
 
 	//reset particle swarm #
 	partnum=num;
@@ -201,13 +198,13 @@ void clswarm::setPartNum(cl_uint num){
 
 	//does not need dimensions
 	pfitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float),NULL,&ret);
-	ret=queue.enqueueWriteBuffer(pfitnessbuf,CL_FALSE,0, partnum*sizeof(cl_float),tmp.data(),&evs,&ev);
+	ret=queue.enqueueWriteBuffer(pfitnessbuf,CL_TRUE,0, partnum*sizeof(cl_float),tmp.data(),&evs,&ev);
 	evs.emplace_back(ev);
 
 	fitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float));
 
 	//re-writes values to gfitness
-	ret=queue.enqueueWriteBuffer(gfitbuf,CL_FALSE,0, partnum*sizeof(cl_float),tmp.data(),NULL,&ev);
+	ret=queue.enqueueWriteBuffer(gfitbuf,CL_TRUE,0, partnum*sizeof(cl_float),tmp.data(),NULL,&ev);
 	evs.emplace_back(ev);
 }
 
@@ -218,8 +215,6 @@ cl_uint clswarm::getPartNum(){
 
 //sets number of dimensions
 void clswarm::setDimNum(cl_uint num){
-
-	queue.enqueueBarrierWithWaitList(&evs);
 
 	//set dimension number
 	dimnum=num;
@@ -239,11 +234,11 @@ void clswarm::setDimNum(cl_uint num){
 
 	std::vector<cl_float> tmp(partnum,-HUGE_VALF);
 
-	ret=queue.enqueueWriteBuffer(pfitnessbuf,CL_FALSE,0, partnum*sizeof(cl_float),tmp.data(),&evs,&ev);
+	ret=queue.enqueueWriteBuffer(pfitnessbuf,CL_TRUE,0, partnum*sizeof(cl_float),tmp.data(),&evs,&ev);
 	evs.emplace_back(ev);
 
 	//re-writes values to gfitness
-	ret=queue.enqueueWriteBuffer(gfitbuf,CL_FALSE,0, sizeof(cl_float),tmp.data(),NULL,&ev);
+	ret=queue.enqueueWriteBuffer(gfitbuf,CL_TRUE,0, sizeof(cl_float),tmp.data(),NULL,&ev);
 	evs.emplace_back(ev);
 }
 
@@ -284,16 +279,12 @@ cl_float clswarm::getC2(){
 
 //distribute particle linearly from lower bound to upper bound
 void clswarm::distribute(cl_float * lower, cl_float * upper){
-	queue.enqueueBarrierWithWaitList(&evs);
 
 	//store bounds for later
-	ret=queue.enqueueWriteBuffer(upperboundbuf, CL_FALSE, 0, dimnum*sizeof(cl_float), upper,&evs,&ev);
+	ret=queue.enqueueWriteBuffer(upperboundbuf, CL_TRUE, 0, dimnum*sizeof(cl_float), upper,&evs,&ev);
 	evs.emplace_back(ev);
-	ret=queue.enqueueWriteBuffer(lowerboundbuf, CL_FALSE, 0, dimnum*sizeof(cl_float), lower,NULL,&ev);
+	ret=queue.enqueueWriteBuffer(lowerboundbuf, CL_TRUE, 0, dimnum*sizeof(cl_float), lower,NULL,&ev);
 	evs.emplace_back(ev);
-
-	//allocate memory for delta buffer
-	//cl::Buffer deltabuf(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float));
 
 	//set kernel args
 	ret=distr.setArg(0,lowerboundbuf);
@@ -303,7 +294,6 @@ void clswarm::distribute(cl_float * lower, cl_float * upper){
 	ret=distr.setArg(4,partnum);
 
 	//execute
-	queue.enqueueBarrierWithWaitList(&evs);
 	ret=queue.enqueueNDRangeKernel(distr,cl::NullRange, cl::NDRange(partnum,dimnum),cl::NullRange,&evs,&ev);
 	evs.emplace_back(ev);
 }
@@ -323,7 +313,6 @@ size_t rng(){
 
 //run the position and velocity update equation
 void clswarm::update(unsigned int times){
-	queue.enqueueBarrierWithWaitList(&evs);
 
 	//set up memory to take the random array
 	unsigned int size=2*partnum*dimnum;
@@ -342,7 +331,6 @@ void clswarm::update(unsigned int times){
 		ret=updte2.setArg(4,pbestbuf);
 		ret=updte2.setArg(5,partnum);
 
-		queue.enqueueBarrierWithWaitList(&evs);
 		ret=queue.enqueueNDRangeKernel(updte2,cl::NullRange,cl::NDRange(partnum),cl::NullRange,&evs, &ev);
 		evs.emplace_back(ev);
 
@@ -355,16 +343,15 @@ void clswarm::update(unsigned int times){
 		ret=cmpre.setArg(5,dimnum);
 
 		//wait then run comparison
-		queue.enqueueBarrierWithWaitList(&evs);
 		ret=queue.enqueueNDRangeKernel(cmpre,cl::NullRange,cl::NDRange(1),cl::NullRange,&evs, &ev);
+		evs.emplace_back(ev);
 
 		//make a array of random numbers
-		for(i=0;++i <size;)
-			ran[i]= RAN;
+		for(i=0; ++i < size;)
+			ran[i] = RAN;
 
 		//write random numbers to buffer
-		queue.enqueueBarrierWithWaitList(&evs);
-		queue.enqueueWriteBuffer(ranbuf, CL_FALSE, 0, size*sizeof(cl_float), ran,&evs,&ev);
+		queue.enqueueWriteBuffer(ranbuf, CL_TRUE, 0, size*sizeof(cl_float), ran,&evs,&ev);
 		evs.emplace_back(ev);
 
 		//set kernel args
@@ -383,7 +370,6 @@ void clswarm::update(unsigned int times){
 		ret=updte.setArg(12,c2);
 
 		//wait then execute
-		queue.enqueueBarrierWithWaitList(&evs);
 		ret=queue.enqueueNDRangeKernel(updte,cl::NullRange, cl::NDRange(partnum,dimnum) , cl::NullRange, &evs, &ev);
 		evs.emplace_back(ev);
 	}
@@ -399,7 +385,6 @@ void clswarm::update(unsigned int times){
 	ret=updte2.setArg(5,partnum);
 
 	//wait then execute kernel
-	queue.enqueueBarrierWithWaitList(&evs);
 	ret=queue.enqueueNDRangeKernel(updte2,cl::NullRange, cl::NDRange(partnum) ,cl::NullRange, &evs, &ev);
 	evs.emplace_back(ev);
 
@@ -411,21 +396,20 @@ void clswarm::update(unsigned int times){
 	ret=cmpre.setArg(4,partnum);
 	ret=cmpre.setArg(5,dimnum);
 
-	//compare one more times
-	queue.enqueueBarrierWithWaitList(&evs);
+	//compare one more time
 	ret=queue.enqueueNDRangeKernel(cmpre,cl::NullRange,cl::NullRange,cl::NullRange,&evs,&ev);
 	evs.emplace_back(ev);
 }
 
 //sets particle data
 void clswarm::setPartData(cl_float * in){
-	queue.enqueueWriteBuffer(presentbuf,CL_FALSE, 0,partnum*dimnum*sizeof(cl_float),in,&evs,&ev);
+	queue.enqueueWriteBuffer(presentbuf,CL_TRUE, 0,partnum*dimnum*sizeof(cl_float),in,&evs,&ev);
 	evs.emplace_back(ev);
 }
 
 //copies particle data to the argument
 void clswarm::getPartData(cl_float * out){
-	queue.enqueueReadBuffer(presentbuf,CL_FALSE,0,partnum*dimnum*sizeof(cl_float),out,&evs,&ev);
+	queue.enqueueReadBuffer(presentbuf,CL_TRUE,0,partnum*dimnum*sizeof(cl_float),out,&evs,&ev);
 	evs.emplace_back(ev);
 }
 
@@ -433,10 +417,9 @@ void clswarm::getPartData(cl_float * out){
 cl_float clswarm::getGFitness(){
 
 	cl_float out;
-	queue.enqueueBarrierWithWaitList(&evs);
 
 	//get value from GPU
-	ret=queue.enqueueReadBuffer(gfitbuf, CL_FALSE, 0,sizeof(cl_float), &out,&evs,&ev);
+	ret=queue.enqueueReadBuffer(gfitbuf, CL_TRUE, 0,sizeof(cl_float), &out,&evs,&ev);
 	evs.emplace_back(ev);
 
 	return out;
@@ -444,10 +427,9 @@ cl_float clswarm::getGFitness(){
 
 //returns best position of the clswarm
 void clswarm::getGBest(cl_float * out){
-	queue.enqueueBarrierWithWaitList(&evs);
 
 	//get value from buffer
-	ret=queue.enqueueReadBuffer(gbestbuf, CL_FALSE, 0,dimnum*sizeof(cl_float),out,&evs, &ev);
+	ret=queue.enqueueReadBuffer(gbestbuf, CL_TRUE, 0,dimnum*sizeof(cl_float),out,&evs, &ev);
 	evs.emplace_back(ev);
 }
 

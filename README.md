@@ -6,7 +6,7 @@ Compiled and tested with mingw-w64 v5.0.3 (with mingw32-make) on windows 10.
 
 ## Status
 
-Both the OpenCL and CPU-only examples work, but both examples are too simple to see if they scale well.
+Only the CPU version "works" right now.
 
 ## Yet-to-do's
 

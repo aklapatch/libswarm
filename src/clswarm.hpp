@@ -96,7 +96,7 @@ class clswarm {
 		clswarm(cl_uint numparts, cl_uint numdims,cl_float w,cl_float c1,cl_float c2);
 
 		/// Destructor.
-		/// Frees Heap-allocated memory
+		/// Finishes and flushes command Queue
 		~clswarm();
 
 		/// Sets the number of particles in the swarm.
