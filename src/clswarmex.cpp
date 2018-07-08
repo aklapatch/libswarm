@@ -3,12 +3,12 @@
  * Copyright 2018 Aaron Klapatch
  */
 
-#include "clswarm.hpp"
+#include "clSwarm.hpp"
 #include <iostream>
 
 int main(){
 	//the test swarm
-	clswarm * test=new clswarm(10,1,.2,2, 1.492);
+	clSwarm * test=new clSwarm(10,1,.2,2, 1.492);
 
 	//make upper and lower bounds and set them
 	cl_float lower=-1000, upper=1000;

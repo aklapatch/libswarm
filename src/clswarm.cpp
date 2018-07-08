@@ -1,4 +1,4 @@
-/*clswarm.cpp
+/*clSwarm.cpp
 implementation for swarm
 for opencl version
 
@@ -7,7 +7,7 @@ code derived from http://www.swarmintelligence.org/tutorials.php
 along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
-#include "clswarm.hpp"
+#include "clSwarm.hpp"
 #include <iostream>
 
 cl_float * getarray(size_t size, cl_float value){
@@ -19,7 +19,7 @@ cl_float * getarray(size_t size, cl_float value){
 }
 
 //sets dimensions to 1 and number of particles to 100 and w to 1.0
-clswarm::clswarm(){
+clSwarm::clSwarm(){
 
 	//set swarm characteristics to defaults
 	partnum=DEFAULT_PARTNUM;
@@ -97,7 +97,7 @@ clswarm::clswarm(){
 }
 
 //sets all properties according to arguments
-clswarm::clswarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, cl_float c2in){
+clSwarm::clSwarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, cl_float c2in){
 
 	//set properties
 	partnum=numparts;
@@ -172,7 +172,7 @@ clswarm::clswarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 }
 
 //the destructor
-clswarm::~clswarm(){
+clSwarm::~clSwarm(){
 
 	//finish and flush out queue
 	queue.flush();
@@ -180,7 +180,7 @@ clswarm::~clswarm(){
 }
 
 //sets number of particles
-void clswarm::setPartNum(cl_uint num){
+void clSwarm::setPartNum(cl_uint num){
 
 	//reset particle swarm #
 	partnum=num;
@@ -209,12 +209,12 @@ void clswarm::setPartNum(cl_uint num){
 }
 
 //returns particle number
-cl_uint clswarm::getPartNum(){
+cl_uint clSwarm::getPartNum(){
 	return partnum;
 }
 
 //sets number of dimensions
-void clswarm::setDimNum(cl_uint num){
+void clSwarm::setDimNum(cl_uint num){
 
 	//set dimension number
 	dimnum=num;
@@ -243,42 +243,42 @@ void clswarm::setDimNum(cl_uint num){
 }
 
 //returns dimension number
-cl_uint clswarm::getDimNum(){
+cl_uint clSwarm::getDimNum(){
 	return dimnum;
 }
 
 //set inertial weight
-void clswarm::setWeight(cl_float inw){
+void clSwarm::setWeight(cl_float inw){
 	w=inw;	
 }
 
 //return inertial weight
-cl_float clswarm::getWeight(){
+cl_float clSwarm::getWeight(){
 	return w;
 }
 
 //set behavioral constants
-void clswarm::setC1(cl_float inc1){
+void clSwarm::setC1(cl_float inc1){
 	c1=inc1;
 }
 
 //set behavioral constants
-void clswarm::setC2(cl_float inc2){
+void clSwarm::setC2(cl_float inc2){
 	c2=inc2;
 }
 
 //return constant
-cl_float clswarm::getC1(){
+cl_float clSwarm::getC1(){
 	return c1;
 }
 
 //return constant
-cl_float clswarm::getC2(){
+cl_float clSwarm::getC2(){
 	return c2;
 }
 
 //distribute particle linearly from lower bound to upper bound
-void clswarm::distribute(cl_float * lower, cl_float * upper){
+void clSwarm::distribute(cl_float * lower, cl_float * upper){
 
 	//store bounds for later
 	ret=queue.enqueueWriteBuffer(upperboundbuf, CL_TRUE, 0, dimnum*sizeof(cl_float), upper,&evs,&ev);
@@ -312,7 +312,7 @@ size_t rng(){
 }
 
 //run the position and velocity update equation
-void clswarm::update(unsigned int times){
+void clSwarm::update(unsigned int times){
 
 	//set up memory to take the random array
 	unsigned int size=2*partnum*dimnum;
@@ -402,19 +402,19 @@ void clswarm::update(unsigned int times){
 }
 
 //sets particle data
-void clswarm::setPartData(cl_float * in){
+void clSwarm::setPartData(cl_float * in){
 	queue.enqueueWriteBuffer(presentbuf,CL_TRUE, 0,partnum*dimnum*sizeof(cl_float),in,&evs,&ev);
 	evs.emplace_back(ev);
 }
 
 //copies particle data to the argument
-void clswarm::getPartData(cl_float * out){
+void clSwarm::getPartData(cl_float * out){
 	queue.enqueueReadBuffer(presentbuf,CL_TRUE,0,partnum*dimnum*sizeof(cl_float),out,&evs,&ev);
 	evs.emplace_back(ev);
 }
 
 //returns the fitness of the best particle
-cl_float clswarm::getGFitness(){
+cl_float clSwarm::getGFitness(){
 
 	cl_float out;
 
@@ -425,14 +425,14 @@ cl_float clswarm::getGFitness(){
 	return out;
 }
 
-//returns best position of the clswarm
-void clswarm::getGBest(cl_float * out){
+//returns best position of the clSwarm
+void clSwarm::getGBest(cl_float * out){
 
 	//get value from buffer
 	ret=queue.enqueueReadBuffer(gbestbuf, CL_TRUE, 0,dimnum*sizeof(cl_float),out,&evs, &ev);
 	evs.emplace_back(ev);
 }
 
-void clswarm::wait(){
+void clSwarm::wait(){
 	queue.enqueueBarrierWithWaitList(&evs);
 }

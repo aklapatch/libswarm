@@ -49,7 +49,7 @@ void printbuf(cl::Buffer buf, size_t size,cl::CommandQueue q){
 	delete [] out;
 }
 
-class clswarm {
+class clSwarm {
 	private:
 		// used for debugging and error checking
 		cl_int ret;
@@ -84,7 +84,7 @@ class clswarm {
 	public:
 		/// Default constructor.
 		/// Makes a swarm with 100 particles and a 1 dimension problem space.
-		clswarm();
+		clSwarm();
 
 		/** Makes a Swarm with the specified parameters.
 		 * @param numparts Number of particles in the swarm.
@@ -93,11 +93,11 @@ class clswarm {
 		 * @param c1 How much the particle's best position affects the particle's velocity.
 		 * @param c2 How much the global best affects the individual particle's velocity.
 		 */
-		clswarm(cl_uint numparts, cl_uint numdims,cl_float w,cl_float c1,cl_float c2);
+		clSwarm(cl_uint numparts, cl_uint numdims,cl_float w,cl_float c1,cl_float c2);
 
 		/// Destructor.
 		/// Finishes and flushes command Queue
-		~clswarm();
+		~clSwarm();
 
 		/// Sets the number of particles in the swarm.
 		/// Deletes all stored particle data
@@ -111,25 +111,25 @@ class clswarm {
 		void setDimNum(cl_uint);
 
 		/// Returns number of dimensions in problem space
-	cl_uint getDimNum();
+		cl_uint getDimNum();
 
 	 	/// Sets the inertial weight.
 		void setWeight(cl_float);
 
-	/// Returns the inertial weight.
-	cl_float getWeight();
+		/// Returns the inertial weight.
+		cl_float getWeight();
 
-	/// Sets the constant affecting the pull of particles' best.
-	void setC1(cl_float);
+		/// Sets the constant affecting the pull of particles' best.
+		void setC1(cl_float);
 
 		/// Returns behavioral constant that determines the pull of the particle's best.
-	cl_float getC1();
+		cl_float getC1();
 
 		///  Sets the constant affecting the pull of the global best.
-	void setC2(cl_float);
+		void setC2(cl_float);
 
-	/// Returns global best behavioral constant.
-	cl_float getC2();
+		/// Returns global best behavioral constant.
+		cl_float getC2();
 
 		/** Sets upper and lower bounds for the problem space and distributes linearly between them.
 		 * @param lowerbound The lower bound in the problemspace.
@@ -142,8 +142,8 @@ class clswarm {
 		 */
 		void update(unsigned int times);
 
-	/// Copies data from the input argument into the particle array.
-	void setPartData(cl_float *);
+		/// Copies data from the input argument into the particle array.
+		void setPartData(cl_float *);
 
 		/// Copies particle data into input argument.
 		void getPartData(cl_float *);
@@ -151,10 +151,10 @@ class clswarm {
 		///returns the fitness of the best particle
 		cl_float getGFitness();
 
-	/// Copies particle data into the input argument.
+		/// Copies particle data into the input argument.
 		void getGBest(cl_float *);
 
 		/// Waits for all pending OpenCL events to compete
 		void wait();
 };
-#endif  //CLSWARM_HXX
+#endif  //CLSWARM_HPP
