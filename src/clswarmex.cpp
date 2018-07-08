@@ -29,7 +29,7 @@ int main(){
     auto start = std::chrono::high_resolution_clock::now();
     
 	//run the swarm
-	test->update(20);
+	test->update(100);
     test->wait();
 
     auto finish = std::chrono::high_resolution_clock::now();

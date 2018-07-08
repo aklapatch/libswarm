@@ -25,7 +25,6 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 //macro to check for opencl Errors
 #define CHK if(ret!= CL_SUCCESS) { std::cerr << "Error code " << ret << " at Line " << __LINE__ << "\n"; }
 
-#define KER_SIZE 0x1000
 #define PLATFORM_NUM 1
 #define DEVICE_NUM 1
 #define DEFAULT_DIM 1
