@@ -162,9 +162,11 @@ clswarm::clswarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 	gfitbuf = cl::Buffer(context, CL_MEM_READ_WRITE,sizeof(cl_float),NULL,&ret);
 	ret=queue.enqueueWriteBuffer(gfitbuf, CL_FALSE , 0, sizeof(cl_float),tmp.data(),NULL,&ev);
 	evs.emplace_back(ev);
+	printbuf<cl_float>(gfitbuf,1,queue);
 	pfitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float),NULL,&ret);
 	ret=queue.enqueueWriteBuffer(pfitnessbuf,CL_FALSE,0, partnum*sizeof(cl_float),tmp.data(),NULL,&ev);
 	evs.emplace_back(ev);
+	printbuf<cl_float>(pfitnessbuf,1,queue);
 
 	//make memory pool for upper and lower bounds
 	upperboundbuf=cl::Buffer(context, CL_MEM_READ_ONLY,dimnum*sizeof(cl_float),NULL,&ret);
@@ -285,9 +287,9 @@ void clswarm::distribute(cl_float * lower, cl_float * upper){
 	queue.enqueueBarrierWithWaitList(&evs);
 
 	//store bounds for later
-	ret=queue.enqueueWriteBuffer(upperboundbuf, CL_TRUE, 0, dimnum*sizeof(cl_float), upper,&evs,&ev);
+	ret=queue.enqueueWriteBuffer(upperboundbuf, CL_FALSE, 0, dimnum*sizeof(cl_float), upper,&evs,&ev);
 	evs.emplace_back(ev);
-	ret=queue.enqueueWriteBuffer(lowerboundbuf, CL_TRUE, 0, dimnum*sizeof(cl_float), lower,NULL,&ev);
+	ret=queue.enqueueWriteBuffer(lowerboundbuf, CL_FALSE, 0, dimnum*sizeof(cl_float), lower,NULL,&ev);
 	evs.emplace_back(ev);
 
 	//allocate memory for delta buffer
@@ -301,6 +303,7 @@ void clswarm::distribute(cl_float * lower, cl_float * upper){
 	ret=distr.setArg(4,partnum);
 
 	//execute
+	queue.enqueueBarrierWithWaitList(&evs);
 	ret=queue.enqueueNDRangeKernel(distr,cl::NullRange, cl::NDRange(partnum,dimnum),cl::NullRange,&evs,&ev);
 	evs.emplace_back(ev);
 }
@@ -339,6 +342,7 @@ void clswarm::update(unsigned int times){
 		ret=updte2.setArg(4,pbestbuf);
 		ret=updte2.setArg(5,partnum);
 
+		queue.enqueueBarrierWithWaitList(&evs);
 		ret=queue.enqueueNDRangeKernel(updte2,cl::NullRange,cl::NDRange(partnum),cl::NullRange,&evs, &ev);
 		evs.emplace_back(ev);
 
@@ -351,6 +355,7 @@ void clswarm::update(unsigned int times){
 		ret=cmpre.setArg(5,dimnum);
 
 		//wait then run comparison
+		queue.enqueueBarrierWithWaitList(&evs);
 		ret=queue.enqueueNDRangeKernel(cmpre,cl::NullRange,cl::NDRange(1),cl::NullRange,&evs, &ev);
 
 		//make a array of random numbers
@@ -358,6 +363,7 @@ void clswarm::update(unsigned int times){
 			ran[i]= RAN;
 
 		//write random numbers to buffer
+		queue.enqueueBarrierWithWaitList(&evs);
 		queue.enqueueWriteBuffer(ranbuf, CL_FALSE, 0, size*sizeof(cl_float), ran,&evs,&ev);
 		evs.emplace_back(ev);
 
@@ -377,6 +383,7 @@ void clswarm::update(unsigned int times){
 		ret=updte.setArg(12,c2);
 
 		//wait then execute
+		queue.enqueueBarrierWithWaitList(&evs);
 		ret=queue.enqueueNDRangeKernel(updte,cl::NullRange, cl::NDRange(partnum,dimnum) , cl::NullRange, &evs, &ev);
 		evs.emplace_back(ev);
 	}
@@ -392,6 +399,7 @@ void clswarm::update(unsigned int times){
 	ret=updte2.setArg(5,partnum);
 
 	//wait then execute kernel
+	queue.enqueueBarrierWithWaitList(&evs);
 	ret=queue.enqueueNDRangeKernel(updte2,cl::NullRange, cl::NDRange(partnum) ,cl::NullRange, &evs, &ev);
 	evs.emplace_back(ev);
 
@@ -404,6 +412,7 @@ void clswarm::update(unsigned int times){
 	ret=cmpre.setArg(5,dimnum);
 
 	//compare one more times
+	queue.enqueueBarrierWithWaitList(&evs);
 	ret=queue.enqueueNDRangeKernel(cmpre,cl::NullRange,cl::NullRange,cl::NullRange,&evs,&ev);
 	evs.emplace_back(ev);
 }
