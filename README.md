@@ -14,8 +14,4 @@ Only the CPU version "works" right now.
 
 2. Optimize all the library's functions.
 
-3. Figure out if dual command queues is faster or not.
-
-4. Make documentation.
-
-5. Test optimization flags (-O3, -O2, etc.)
+3. Test optimization flags (-O3, -O2, etc.)
