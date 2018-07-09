@@ -139,9 +139,26 @@ clSwarm::clSwarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 
 	//gets platforms
 	ret=cl::Platform::get(&platforms);
+	
+	cl::Platform plat;
+    	for (auto &p : platforms) {
+        std::string platver = p.getInfo<CL_PLATFORM_VERSION>();
+        	if (platver.find("OpenCL 2.") != std::string::npos) {
+            		plat = p;
+        	}
+    	}
+    	if (plat() == 0)  {
+        	std::cout << "No OpenCL 2.0 platform found.";
+    	    return -1;
+    	}
+    	cl::Platform defP = cl::Platform::setDefault(plat);
+    	if (defP != plat) {
+        	std::cout << "Error setting default platform.";
+        	return -1;
+    	}
 
 	//finds gpus
-	ret=platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &devices);
+	ret=defp.getDevices(CL_DEVICE_TYPE_GPU, &devices);
 
 	//gets a context with the first GPU found devices
 	context=cl::Context(devices);
