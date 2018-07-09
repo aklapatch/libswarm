@@ -158,13 +158,13 @@ clSwarm::clSwarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
     	}
 
 	//finds gpus
-	ret=defp.getDevices(CL_DEVICE_TYPE_GPU, &devices);
+	cl::Device device = cl::Device::getDefault();
 
 	//gets a context with the first GPU found devices
-	context=cl::Context(devices);
+	context=cl::Context(device);
 
 	//get command queue
-	queue=cl::CommandQueue(context,devices[0]);
+	queue=cl::CommandQueue(context,device);
 
 	//use C++11 string literals to get kernel
 	const char  src[] =
@@ -205,11 +205,11 @@ clSwarm::clSwarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 		fclose(binaryfile);
 		binaries.emplace_back(std::vector<unsigned char>(binin,binin + size));
 		delete [] binin;
-		program=cl::Program(context,devices, binaries,NULL, &ret);
+		program=cl::Program(context,device, binaries,NULL, &ret);
 	}
 
 	//build program
-	ret=program.build(devices, " -cl-std=CL2.0 ");
+	ret=program.build(device, " -cl-std=CL2.0 ");
 
 	if(ret!=CL_SUCCESS){
 		std::string blog=program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]);
