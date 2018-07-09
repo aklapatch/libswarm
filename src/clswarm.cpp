@@ -40,45 +40,57 @@ clSwarm::clSwarm(){
 	//get command queue
 	queue=cl::CommandQueue(context,devices[0]);
 
-	FILE * binaryfile = fopen("kernels.bin","rb");
-
-	bool binflag = true;
-	char * binary;
-	long int size=0;
-	if(binaryfile == NULL){
-		std::cerr << "No binary file for kernel found, Compiling.\n";
-		binflag = false;
-	} else {
-		fseek(binaryfile,0,SEEK_END);
-		size = ftell(binaryfile);
-		binary = new char[size];
-		rewind(binaryfile);
-		fread(binary,sizeof(char),size,binaryfile);
-	}
-	fclose(binaryfile);
-
 	//use C++11 string literals to get kernel
 	const char  src[] =
 	#include "kernelstring.cl"
 	;
 
-	//store the kernel in the sources object
-	sources.push_back({src,sizeof(src)});
 
-	//init and build program
-	program=cl::Program(context,sources);
-	ret=program.build({devices[0]});
+	FILE * binaryfile = fopen("kernels.bin","rb");
+
+	char * binin;
+	long int size=0;
+	if(binaryfile == NULL){
+		std::cerr << "No binary file for kernel found, Compiling.\n";
+
+		auto binary = program.getInfo<CL_PROGRAM_BINARIES>(); 
+
+		//store the kernel in the sources object
+		sources.push_back({src,sizeof(src)});
+
+		//init and build program
+		program=cl::Program(context,sources);
+
+		FILE * binout = fopen("kernels.bin","wb");
+		if(!binout){
+			std::cerr << "Could not open file for writing.\n";
+			exit(1);
+		} 
+
+		fwrite(binary[0].data(),sizeof(char),binary[0].size(),binout);
+		fclose(binout);
+
+	} else {
+		fseek(binaryfile,0,SEEK_END);
+		size = ftell(binaryfile);
+		binin = new char[size];
+		rewind(binaryfile);
+		fread(binin,sizeof(char),size,binaryfile);
+		std::vector<std::vector<unsigned char>> binaries;
+		fclose(binaryfile);
+		binaries.emplace_back(std::vector<unsigned char>(binin,binin + size));
+		delete [] binin;
+		program=cl::Program(context,devices, binaries,NULL, &ret);
+	}
+
+	//build program
+	ret=program.build(devices, " -cl-std=CL2.0 ");
 
 	if(ret!=CL_SUCCESS){
 		std::string blog=program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]);
 		std::cerr << "Build Failed.\n Build Log:\n" << blog << "\n";
 		exit(1);
 	}
-
-	//if(!binflag){
-	//	size = program.getInfo<CL_PROGRAM_BINARY_SIZES>();
-	//	auto binary = program.getInfo<CL_PROGRAM_BINARIES>();
-	//}
 
 	//build kernels
 	distr = cl::Kernel(program, "distribute",&ret);
@@ -144,42 +156,18 @@ clSwarm::clSwarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 
 	FILE * binaryfile = fopen("kernels.bin","rb");
 
-	bool binflag = true;
 	char * binin;
 	long int size=0;
 	if(binaryfile == NULL){
 		std::cerr << "No binary file for kernel found, Compiling.\n";
-		binflag = false;
-	} else {
-		fseek(binaryfile,0,SEEK_END);
-		size = ftell(binaryfile);
-		binin = new char[size];
-		rewind(binaryfile);
-		fread(binin,sizeof(char),size,binaryfile);
-	}
-	fclose(binaryfile);
 
-	std::vector<std::vector<unsigned char>> binaries;
-	binaries.emplace_back(std::vector<unsigned char>(binin,binin + size));
-	delete [] binin;
+		auto binary = program.getInfo<CL_PROGRAM_BINARIES>(); 
 
-	//store the kernel in the sources object
-	//sources.push_back({src,sizeof(src)});
+		//store the kernel in the sources object
+		sources.push_back({src,sizeof(src)});
 
-	//init and build program
-	program=cl::Program(context,devices, binaries,NULL, &ret);
-	std::cerr << "builing binary " << ret << "\n";
-	ret=program.build(devices, " -cl-std=CL2.0 ");
-
-	if(ret!=CL_SUCCESS){
-		std::string blog=program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]);
-		std::cerr << "Build Failed.\nBuild Log:\n" << blog << "\n";
-		exit(1);
-	}
-
-	if(!binflag){
-		auto binary = program.getInfo<CL_PROGRAM_BINARIES>();
-		std::cerr << " number " << binary.size() <<"\n" ; 
+		//init and build program
+		program=cl::Program(context,sources);
 
 		FILE * binout = fopen("kernels.bin","wb");
 		if(!binout){
@@ -189,12 +177,28 @@ clSwarm::clSwarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 
 		fwrite(binary[0].data(),sizeof(char),binary[0].size(),binout);
 		fclose(binout);
+
+	} else {
+		fseek(binaryfile,0,SEEK_END);
+		size = ftell(binaryfile);
+		binin = new char[size];
+		rewind(binaryfile);
+		fread(binin,sizeof(char),size,binaryfile);
+		std::vector<std::vector<unsigned char>> binaries;
+		fclose(binaryfile);
+		binaries.emplace_back(std::vector<unsigned char>(binin,binin + size));
+		delete [] binin;
+		program=cl::Program(context,devices, binaries,NULL, &ret);
 	}
-	//for(int i = -1; ++i < binary.size(); )
-	//	for(int j = -1; ++j<binary[i].size();)
-	//		std::cerr << binary[i][j] << " \n";
 
+	//build program
+	ret=program.build(devices, " -cl-std=CL2.0 ");
 
+	if(ret!=CL_SUCCESS){
+		std::string blog=program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]);
+		std::cerr << "Build Failed.\nBuild Log:\n" << blog << "\n";
+		exit(1);
+	}
 
 	//get kernels
 	distr = cl::Kernel(program, "distribute",&ret);
