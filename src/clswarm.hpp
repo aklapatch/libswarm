@@ -17,9 +17,9 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include <bits/stdc++.h>
 
 #ifdef __APPLE__
-#include <OpenCL/opencl.hpp>
+#include <OpenCL/opencl.h>
 #else
-#include <CL/cl2.hpp>
+#include <CL/opencl.h>
 #endif
 
 //macro to check for opencl Errors
@@ -57,31 +57,27 @@ class clSwarm {
 		cl_uint partnum, dimnum;
 
 		//best particle dimensions, its fitness, swarm bounds
-		cl::Buffer gbestbuf, upperboundbuf, lowerboundbuf;
-		cl::vector<cl_float,
-		cl::SVMAllocator<int,cl::SVMTraitCoarse<>>> upperSVM, lowerSVM;
+		cl_mem gbestbuf, upperboundbuf, lowerboundbuf;
 
 		//set that so all fitness numbers will show up
-		cl::Buffer gfitbuf;
+		cl_mem gfitbuf;
 
 		//inertial weight and 2 behavioral constants
 		cl_float w, c1, c2;
 
 		//particle data
-		cl::Buffer presentbuf, pbestbuf, vbuf;
-		cl::Buffer pfitnessbuf, fitnessbuf;
+		cl_mem presentbuf, pbestbuf, vbuf;
+		cl_mem pfitnessbuf, fitnessbuf;
 
 		//opencl items
-		std::vector<cl::Event> evs;
-		cl::Platform platform;
-		std::vector<cl::Device> devices;
-		cl::Device device;
-		cl::Context context;
-		cl::Program::Sources sources;
-		cl::Program program;
-		cl::CommandQueue queue;
-		cl::Kernel distr, cmpre, updte, updte2;
-		cl::Event ev;
+		std::vector<cl_event> evs;
+		cl_platform_id platform;
+		cl_device_id device;
+		cl_context context;
+		cl_program program;
+		cl_command_queue queue;
+		cl_kernel distr, cmpre, updte, updte2;
+		cl_event ev;
 
 	public:
 		/// Default constructor.
