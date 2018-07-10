@@ -25,12 +25,12 @@ cl::Platform getDefaultPlatform(){
 	cl::Platform plat;
 	for (auto &p : plats) {
 		std::string platver = p.getInfo<CL_PLATFORM_VERSION>();
-		if (platver.find("OpenCL 1.2") != std::string::npos) {
+		if (platver.find("OpenCL 2.") != std::string::npos) {
 				plat = p;
 		}
 	}
 	if (plat() == 0)  {
-		std::cout << "No OpenCL 1.2 platform found.";
+		std::cout << "No OpenCL 2.X platform found.";
 		exit(-1);
 	}
 	return cl::Platform::setDefault(plat);
@@ -95,38 +95,39 @@ clSwarm::clSwarm(){
 
 	FILE * binaryfile = fopen("kernels.bin","rb");
 
+	//if no binary exists, get source and write out binary
 	if(binaryfile == NULL){
 		std::cout << "No binary file for kernel found, Compiling.\n";
 		fclose(binaryfile);
 
-		//store the kernel in the sources object
 		sources.push_back({src,sizeof(src)});
 
-		//init and build program
 		program=cl::Program(context,sources);
 
-		//build program
 		ret=program.build({device}, " -cl-std=CL2.0 ");
 
-		auto binary = program.getInfo<CL_PROGRAM_BINARIES>(); 
+		if(ret!=CL_SUCCESS){
+			std::string blog=program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device);
+			std::cerr << "Build Failed.\nBuild Log:\n" << blog << "\n";
+			exit(1);
+		}
+		writeBinary(program.getInfo<CL_PROGRAM_BINARIES>()[0],"kernels.bin");
 
-		writeBinary(binary[0],"kernels.bin");
-
+	//if there is a binary, get it and use it
 	} else {
-		
-		std::vector<std::vector<unsigned char>> tmpvec;
-		tmpvec.emplace_back(readBinary(binaryfile));
+		std::vector<std::vector<unsigned char>> tmpvec(1, readBinary(binaryfile));
 		
 		program=cl::Program(context,{device}, tmpvec,NULL, &ret);
 
 		ret = program.build({device}," -cl-std=CL2.0 ");
+
+		if(ret!=CL_SUCCESS){
+			std::string blog=program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device);
+			std::cerr << "Build Failed.\nBuild Log:\n" << blog << "\n";
+			exit(1);
+		}
 	}
 
-	if(ret!=CL_SUCCESS){
-		std::string blog=program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device);
-		std::cerr << "Build Failed.\nBuild Log:\n" << blog << "\n";
-		exit(1);
-	}
 
 	//build kernels
 	distr = cl::Kernel(program, "distribute",&ret);
@@ -203,6 +204,11 @@ clSwarm::clSwarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 
 		ret=program.build({device}, " -cl-std=CL2.0 ");
 
+		if(ret!=CL_SUCCESS){
+			std::string blog=program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device);
+			std::cerr << "Build Failed.\nBuild Log:\n" << blog << "\n";
+			exit(1);
+		}
 		writeBinary(program.getInfo<CL_PROGRAM_BINARIES>()[0],"kernels.bin");
 
 	//if there is a binary, get it and use it
@@ -212,12 +218,12 @@ clSwarm::clSwarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 		program=cl::Program(context,{device}, tmpvec,NULL, &ret);
 
 		ret = program.build({device}," -cl-std=CL2.0 ");
-	}
 
-	if(ret!=CL_SUCCESS){
-		std::string blog=program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device);
-		std::cerr << "Build Failed.\nBuild Log:\n" << blog << "\n";
-		exit(1);
+		if(ret!=CL_SUCCESS){
+			std::string blog=program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device);
+			std::cerr << "Build Failed.\nBuild Log:\n" << blog << "\n";
+			exit(1);
+		}
 	}
 
 	//get kernels
@@ -253,6 +259,7 @@ clSwarm::clSwarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 	//make memory pool for upper and lower bounds
 	upperboundbuf=cl::Buffer(context, CL_MEM_READ_ONLY,dimnum*sizeof(cl_float),NULL,&ret);
 	lowerboundbuf=cl::Buffer(context, CL_MEM_READ_ONLY,dimnum*sizeof(cl_float),NULL,&ret);
+	//lowerSVM = cl::allocate_svm<cl_float,cl::SVMTraitCoarse<>>();
 }
 
 //the destructor
@@ -269,16 +276,13 @@ void clSwarm::setPartNum(cl_uint num){
 	//reset particle swarm #
 	partnum=num;
 
-	std::vector<cl_float> tmp(partnum*dimnum,0);
-
 	//needs dimension to initialize
 	presentbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
 
 	pbestbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float),NULL,&ret);
 	vbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float));
 
-	for(int i = -1; ++i<partnum;)
-		tmp[i]=-HUGE_VALF;
+	std::vector<cl_float> tmp(partnum,-HUGE_VALF);
 
 	//does not need dimensions
 	pfitnessbuf=cl::Buffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float),NULL,&ret);

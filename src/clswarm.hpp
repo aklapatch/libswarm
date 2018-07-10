@@ -58,6 +58,8 @@ class clSwarm {
 
 		//best particle dimensions, its fitness, swarm bounds
 		cl::Buffer gbestbuf, upperboundbuf, lowerboundbuf;
+		//cl::SVMAllocator<cl_float,cl::SVMTraitCoarse> SVMfloatAlloc;
+		//cl::pointer<cl_float, cl::detail::Deleter<cl::SVMAllocator<cl_float, cl::SVMTraitCoarse<>>>> upperSVM, lowerSVM;
 
 		//set that so all fitness numbers will show up
 		cl::Buffer gfitbuf;
@@ -71,7 +73,6 @@ class clSwarm {
 
 		//opencl items
 		std::vector<cl::Event> evs;
-		std::vector<cl::Platform> platforms;
 		cl::Platform platform;
 		std::vector<cl::Device> devices;
 		cl::Device device;
