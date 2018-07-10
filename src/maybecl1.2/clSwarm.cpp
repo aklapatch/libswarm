@@ -188,7 +188,7 @@ clSwarm::clSwarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 
 	//use C++11 string literals to get kernel
 	const char  src[] =
-	R"(#include "kernels.cl")"
+	#include "kernelstring.cl"
 	;
 
 	FILE * binaryfile = fopen("kernels.bin","rb");
