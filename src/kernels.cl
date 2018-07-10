@@ -81,10 +81,17 @@ __kernel void distribute(__global float * lowerbound,
 	presents[pdex]=part*((upperbound[dim]-lowerbound[dim])/(partnum - 1)) + lowerbound[dim];
 }
 
+float rng(uint x, uint y){
+	uint z = x+y;
+	uint t = z ^ ( z << 11);
+	uint out = y ^ (y >> 19) ^ ( t ^ ( t >> 8));
+	return (float)(out%1000)/1000;
+}
+
 __kernel void update( __global float * presents,
 					  __global float * v,
 					  float w,
-					  __global float * rand,
+					  unsigned int seed,
 					  __global float * pfitnesses,
 					  __constant float *upperbound,
 					  __global float * pbest,
@@ -95,16 +102,15 @@ __kernel void update( __global float * presents,
 					  float c1,
 					  float c2) {
 					  
-	int index= get_global_id(0)*dimnum + get_global_id(1);
-	int randex = index*2;
-	int dex0=get_global_id(0);
-	int dex1=get_global_id(1);
+	uint index= get_global_id(0)*dimnum + get_global_id(1);
+	uint dex0=get_global_id(0);
+	uint dex1=get_global_id(1);
 
 	//get_global_id(0) is partnum, get_global_id(1) is dimiension number
 	//velocity update
 	v[index]=w*v[index]
-	 + c1*rand[randex]*(pbest[index]- presents[index])
-	 + c2*rand[randex+1]*(gbest[dex1]-presents[index]);
+	 + c1*rng(seed, index)*(pbest[index]- presents[index])
+	 + c2*rng(seed, index)*(gbest[dex1]-presents[index]);
 
 	//position update
 	presents[index]=presents[index]+v[index];

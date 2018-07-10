@@ -18,6 +18,52 @@ cl_float * getarray(size_t size, cl_float value){
 	return out;
 }
 
+cl::Platform getDefaultPlatform(){
+	std::vector<cl::Platform> plats;
+	cl::Platform::get(&plats);
+
+	cl::Platform plat;
+	for (auto &p : plats) {
+		std::string platver = p.getInfo<CL_PLATFORM_VERSION>();
+		if (platver.find("OpenCL 1.2") != std::string::npos) {
+				plat = p;
+		}
+	}
+	if (plat() == 0)  {
+		std::cout << "No OpenCL 1.2 platform found.";
+		exit(-1);
+	}
+	return cl::Platform::setDefault(plat);
+}
+
+void writeBinary(std::vector<unsigned char> in,const char filename[]){
+	FILE * fout = fopen(filename,"wb");
+	if(!fout){
+		std::cerr << "Could not open file for writing.\n";
+		exit(1);
+	} 
+
+	fwrite(in.data(),sizeof(char),in.size(), fout);
+	fclose(fout);
+}
+
+std::vector<unsigned char> readBinary(FILE * fin){
+		
+	fseek(fin,0,SEEK_END);
+	size_t size = ftell(fin);
+	char * binin = new char[size];
+	rewind(fin);
+	fread(binin,sizeof(char),size,fin);
+	
+	fclose(fin);
+
+	std::vector<unsigned char> ret(binin,binin+size);
+
+	delete [] binin;
+
+	return ret;
+}
+
 //sets dimensions to 1 and number of particles to 100 and w to 1.0
 clSwarm::clSwarm(){
 
@@ -29,31 +75,29 @@ clSwarm::clSwarm(){
 	c2 = DEFAULT_C2;
 
 	//gets platforms
-	ret =cl::Platform::get(&platforms);
+	platform = getDefaultPlatform();
 
-	//finds devices
-	ret= platforms[0].getDevices(CL_DEVICE_TYPE_ALL, &devices);
+	//finds gpus
+	device = cl::Device::getDefault();
 
 	//gets a context with the first GPU found devices
+	context=cl::Context(device);
+
 	context=cl::Context(devices);
 
 	//get command queue
-	queue=cl::CommandQueue(context,devices[0]);
+	queue=cl::CommandQueue(context,device);
 
 	//use C++11 string literals to get kernel
 	const char  src[] =
-	#include "kernelstring.cl"
+	R"(#include "kernels.cl")"
 	;
-
 
 	FILE * binaryfile = fopen("kernels.bin","rb");
 
-	char * binin;
-	long int size=0;
 	if(binaryfile == NULL){
-		std::cerr << "No binary file for kernel found, Compiling.\n";
-
-		auto binary = program.getInfo<CL_PROGRAM_BINARIES>(); 
+		std::cout << "No binary file for kernel found, Compiling.\n";
+		fclose(binaryfile);
 
 		//store the kernel in the sources object
 		sources.push_back({src,sizeof(src)});
@@ -61,34 +105,26 @@ clSwarm::clSwarm(){
 		//init and build program
 		program=cl::Program(context,sources);
 
-		FILE * binout = fopen("kernels.bin","wb");
-		if(!binout){
-			std::cerr << "Could not open file for writing.\n";
-			exit(1);
-		} 
+		//build program
+		ret=program.build({device}, " -cl-std=CL2.0 ");
 
-		fwrite(binary[0].data(),sizeof(char),binary[0].size(),binout);
-		fclose(binout);
+		auto binary = program.getInfo<CL_PROGRAM_BINARIES>(); 
+
+		writeBinary(binary[0],"kernels.bin");
 
 	} else {
-		fseek(binaryfile,0,SEEK_END);
-		size = ftell(binaryfile);
-		binin = new char[size];
-		rewind(binaryfile);
-		fread(binin,sizeof(char),size,binaryfile);
-		std::vector<std::vector<unsigned char>> binaries;
-		fclose(binaryfile);
-		binaries.emplace_back(std::vector<unsigned char>(binin,binin + size));
-		delete [] binin;
-		program=cl::Program(context,devices, binaries,NULL, &ret);
+		
+		std::vector<std::vector<unsigned char>> tmpvec;
+		tmpvec.emplace_back(readBinary(binaryfile));
+		
+		program=cl::Program(context,{device}, tmpvec,NULL, &ret);
+
+		ret = program.build({device}," -cl-std=CL2.0 ");
 	}
 
-	//build program
-	ret=program.build(devices, " -cl-std=CL2.0 ");
-
 	if(ret!=CL_SUCCESS){
-		std::string blog=program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]);
-		std::cerr << "Build Failed.\n Build Log:\n" << blog << "\n";
+		std::string blog=program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device);
+		std::cerr << "Build Failed.\nBuild Log:\n" << blog << "\n";
 		exit(1);
 	}
 
@@ -138,27 +174,10 @@ clSwarm::clSwarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 	c2=c2in;
 
 	//gets platforms
-	ret=cl::Platform::get(&platforms);
-	
-	cl::Platform plat;
-    	for (auto &p : platforms) {
-        std::string platver = p.getInfo<CL_PLATFORM_VERSION>();
-        	if (platver.find("OpenCL 2.") != std::string::npos) {
-            		plat = p;
-        	}
-    	}
-    	if (plat() == 0)  {
-        	std::cout << "No OpenCL 2.0 platform found.";
-    	    return -1;
-    	}
-    	cl::Platform defP = cl::Platform::setDefault(plat);
-    	if (defP != plat) {
-        	std::cout << "Error setting default platform.";
-        	return -1;
-    	}
+	platform = getDefaultPlatform();
 
 	//finds gpus
-	cl::Device device = cl::Device::getDefault();
+	device = cl::Device::getDefault();
 
 	//gets a context with the first GPU found devices
 	context=cl::Context(device);
@@ -173,46 +192,30 @@ clSwarm::clSwarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 
 	FILE * binaryfile = fopen("kernels.bin","rb");
 
-	char * binin;
-	long int size=0;
+	//if no binary exists, get source and write out binary
 	if(binaryfile == NULL){
-		std::cerr << "No binary file for kernel found, Compiling.\n";
+		std::cout << "No binary file for kernel found, Compiling.\n";
+		fclose(binaryfile);
 
-		auto binary = program.getInfo<CL_PROGRAM_BINARIES>(); 
-
-		//store the kernel in the sources object
 		sources.push_back({src,sizeof(src)});
 
-		//init and build program
 		program=cl::Program(context,sources);
 
-		FILE * binout = fopen("kernels.bin","wb");
-		if(!binout){
-			std::cerr << "Could not open file for writing.\n";
-			exit(1);
-		} 
+		ret=program.build({device}, " -cl-std=CL2.0 ");
 
-		fwrite(binary[0].data(),sizeof(char),binary[0].size(),binout);
-		fclose(binout);
+		writeBinary(program.getInfo<CL_PROGRAM_BINARIES>()[0],"kernels.bin");
 
+	//if there is a binary, get it and use it
 	} else {
-		fseek(binaryfile,0,SEEK_END);
-		size = ftell(binaryfile);
-		binin = new char[size];
-		rewind(binaryfile);
-		fread(binin,sizeof(char),size,binaryfile);
-		std::vector<std::vector<unsigned char>> binaries;
-		fclose(binaryfile);
-		binaries.emplace_back(std::vector<unsigned char>(binin,binin + size));
-		delete [] binin;
-		program=cl::Program(context,device, binaries,NULL, &ret);
+		std::vector<std::vector<unsigned char>> tmpvec(1, readBinary(binaryfile));
+		
+		program=cl::Program(context,{device}, tmpvec,NULL, &ret);
+
+		ret = program.build({device}," -cl-std=CL2.0 ");
 	}
 
-	//build program
-	ret=program.build(device, " -cl-std=CL2.0 ");
-
 	if(ret!=CL_SUCCESS){
-		std::string blog=program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]);
+		std::string blog=program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device);
 		std::cerr << "Build Failed.\nBuild Log:\n" << blog << "\n";
 		exit(1);
 	}
@@ -379,27 +382,11 @@ void clSwarm::distribute(cl_float * lower, cl_float * upper){
 	evs.emplace_back(ev);
 }
 
-size_t rng(){
-    static size_t x = 123456789;
-    static size_t y = 362436069;
-    static size_t z = 521288629;
-    static size_t w = 88675123;
-    size_t t;
-    t = x ^ (x << 11);   
-    x = y; 
-    y = z; 
-    z = w;   
-    return w = w ^ (w >> 19) ^ (t ^ (t >> 8));
-}
-
 //run the position and velocity update equation
 void clSwarm::update(unsigned int times){
 
-	//set up memory to take the random array
-	unsigned int size=2*partnum*dimnum;
-	cl_float * ran = new cl_float [size];
-	cl::Buffer ranbuf(context, CL_MEM_READ_ONLY,size*sizeof(cl_float));
-	unsigned int i;
+	//seed random to use during process
+	srand(time(NULL));
 
 	// updates everything
 	while(times--){
@@ -427,19 +414,11 @@ void clSwarm::update(unsigned int times){
 		ret=queue.enqueueNDRangeKernel(cmpre,cl::NullRange,cl::NDRange(1),cl::NullRange,&evs, &ev);
 		evs.emplace_back(ev);
 
-		//make a array of random numbers
-		for(i=0; ++i < size;)
-			ran[i] = RAN;
-
-		//write random numbers to buffer
-		queue.enqueueWriteBuffer(ranbuf, CL_TRUE, 0, size*sizeof(cl_float), ran,&evs,&ev);
-		evs.emplace_back(ev);
-
 		//set kernel args
 		ret=updte.setArg(0,presentbuf);
 		ret=updte.setArg(1,vbuf);
 		ret=updte.setArg(2,w);
-		ret=updte.setArg(3,ranbuf);
+		ret=updte.setArg(3,rand());
 		ret=updte.setArg(4,pfitnessbuf);
 		ret=updte.setArg(5,upperboundbuf);
 		ret=updte.setArg(6,pbestbuf);
@@ -454,7 +433,6 @@ void clSwarm::update(unsigned int times){
 		ret=queue.enqueueNDRangeKernel(updte,cl::NullRange, cl::NDRange(partnum,dimnum) , cl::NullRange, &evs, &ev);
 		evs.emplace_back(ev);
 	}
-	delete [] ran;
 
 	//evaluate fitness one more time
 	//set args for fitness eval

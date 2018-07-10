@@ -1,21 +1,19 @@
 #include<iostream>
-#define TIMES 10000
+#include<ctime>
+#include<cstdlib>
+#define TIMES 10
 
-size_t rng(){
-    static size_t x = 123456789;
-    static size_t y = 362436069;
-    static size_t z = 521288629;
-    static size_t w = 88675123;
-    size_t t;
-    t = x ^ (x << 11);   
-    x = y; 
-    y = z; 
-    z = w;   
-    return w = w ^ (w >> 19) ^ (t ^ (t >> 8));
+float rng(size_t x, size_t y){
+	size_t z = x+y;
+	size_t t = z ^ ( z << 11);
+	size_t out = y ^ (y >> 19) ^ ( t ^ ( t >> 8));
+	return (float)(out%1000)/1000;
 }
 
 int main(){
+    srand(time(NULL));
+
     for(int i = 0;++i<TIMES;)
-        std::cout << "Random number: " << (float)(rng()%1000)/1000 << "\n";
+        std::cout << "random = " << rng(rand(),i) << "\n";
     return 0;
 }

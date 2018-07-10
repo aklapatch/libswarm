@@ -72,7 +72,9 @@ class clSwarm {
 		//opencl items
 		std::vector<cl::Event> evs;
 		std::vector<cl::Platform> platforms;
+		cl::Platform platform;
 		std::vector<cl::Device> devices;
+		cl::Device device;
 		cl::Context context;
 		cl::Program::Sources sources;
 		cl::Program program;
