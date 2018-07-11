@@ -22,6 +22,8 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #include <CL/opencl.h>
 #endif
 
+#define INCLD(IN) #IN
+
 //macro to check for opencl Errors
 #define CHK if(ret!= CL_SUCCESS) { std::cerr << "Error code " << ret << " at Line " << __LINE__ << "\n"; }
 
@@ -34,10 +36,10 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #define DEFAULT_C2 2
 
 template <typename T>
-void printbuf(cl::Buffer buf, size_t size,cl::CommandQueue q){
+void printbuf(cl_mem buf, size_t size,cl_command_queue q){
 	T * out = new T[size];
 
-	int ret=q.enqueueReadBuffer(buf,CL_TRUE,0,size*sizeof(T),out);
+	int ret=clEnqueueReadBuffer(q, buf,CL_TRUE,0,size*sizeof(T),out);
 
 	if(ret!=CL_SUCCESS)
 		std::cerr << " Read error, code: " << ret << "\n";

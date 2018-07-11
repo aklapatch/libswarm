@@ -17,10 +17,10 @@ clean:
 	del *.exe *.o
 
 ex:
-	clang++ -g -Og swarm.cpp swarmex.cpp -o example.out
+	clang++ -g -Og Swarm.cpp swarmex.cpp -o example.out
 
 uexcl:
-	clang++ -g -Og -lOpenCL clswarm.cpp clswarmex.cpp -o clexample.out
+	clang++ -g -lOpenCL clSwarm.cpp clswarmex.cpp -o clexample.out
 
 profex: ex
 	valgrind --tool=callgrind --auto=yes ./example.out
