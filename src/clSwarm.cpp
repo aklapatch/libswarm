@@ -8,63 +8,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
 #include "clSwarm.hpp"
-#include <iostream>
-
-cl_float * getarray(size_t size, cl_float value){
-	cl_float * out=new cl_float[size];
-	while(size--)
-		out[size]=value;
-
-	return out;
-}
-
-void checkBuild(int errin, cl_program program, cl_device_id device){
-	if(errin!=CL_SUCCESS){
-		char log[600];
-		errin = clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(log), (void *)log, NULL);
-		std::cerr << "Build Failed.\nBuild Log:\n" << log << "\n";
-		clReleaseProgram(program);
-		clReleaseDevice(device);
-		exit(1);
-	}
-}
-
-void writeBinary(cl_program prog,const char * filename){
-	
-	size_t size=0, written=0;
-	clGetProgramInfo(prog,CL_PROGRAM_BINARY_SIZES, sizeof(size_t),&size, &written);
-
-	if(written>sizeof(size_t))
-		std::cerr << "Number not written fully to argument\n";
-
-	unsigned char * out = new unsigned char[size];
-
-	int err = clGetProgramInfo(prog,CL_PROGRAM_BINARIES,size,&out,&written);
-
-	if(written > size)
-		std::cerr << "binary not fully written to temp var.\n";
-	
-	std::ofstream fout(filename, std::ios::out | std::ios::binary);
-
-	if(!fout){
-		std::cerr << "Could not open file for writing.\n";
-		exit(1);
-	} 
-	fout.write((const char *)out,sizeof(char)*size);
-	fout.close();
-	delete [] out;
-}
-
-unsigned char * readBinary(FILE * fin, size_t * size){
-		
-	fseek(fin,0,SEEK_END);
-	*size = ftell(fin);
-	unsigned char * binin = new unsigned char[*size];
-	rewind(fin);
-	fread(binin,sizeof(char),*size,fin);
-
-	return binin;
-}
+#include "misc.hpp"
 
 //sets dimensions to 1 and number of particles to 100 and w to 1.0
 clSwarm::clSwarm() {
@@ -77,7 +21,7 @@ clSwarm::clSwarm() {
 	c2 = DEFAULT_C2;
 
 	//gets platforms
-	ret = clGetPlatformIDs(1, &platform,NULL);
+	platform = getclPlatform();
 
 	//finds gpus
 	ret = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, NULL);
@@ -89,163 +33,9 @@ clSwarm::clSwarm() {
 	queue=clCreateCommandQueueWithProperties(context, device, NULL, &ret);
 
 	//use C++11 string literals to get kernel
-	const char src[]= R"(
-		//kernels.cl
-/** houses all kernels for this project */
-
-//include fitness function
-#include "fitness.cl"
-
-//return the index with the biggest number
-int sort(__global float * array,unsigned int size){
-	int out=0;
-	unsigned int i = size;
-	float biggest=-INFINITY;
-	while(i-->0){
-		if(array[i]>biggest){
-			biggest=array[i];
-			out=i;
-		}
-	}
-	return out;
-}
-
-__kernel void compare( __global float *presents,
-						__global float * gbest,
-						__global float * fitnesses,
-						__global float * gfitness,
-						unsigned int partnum,
-						unsigned int dimnum) {
-
-	//copy most fit particle into the gbest array
-	unsigned int i=dimnum;
-	unsigned int index=sort(fitnesses,partnum);
-
-	if(fitnesses[index] > *gfitness) {
-
-		//copy the array fitness
-		*gfitness=fitnesses[index];
-
-		//copy array into gbest array
-		while(i--) 
-			gbest[i]=presents[index*dimnum+i];
-	}
-}
-
-//TEST FUNCTION
-//get the delta array
-__kernel void getDelta(__global float * lowerbound,
-					__global float * upperbound,
-					__global float * delta,
-					unsigned int partnum) {
-	//compute the delta
-	unsigned int i=get_global_id(0);
-	delta[i]=(upperbound[i]-lowerbound[i])/(partnum - 1);
-}
-
-//TEST FUNCTION
-__kernel void distrtest(__global float * lowerbound,
-						__global float * delta,
-						__global float * presents,
-						__global float * pbests,
-						unsigned int dimnum,
-						unsigned int partnum){
-
-	//get_global_id(1) is dimension number, get_global_id(0) is particle number
-	unsigned int i[2]={get_global_id(1), get_global_id(0)*dimnum + get_global_id(1)};
-
-	//does the distribution sets pbests=0
-	presents[i[1]]=get_global_id(0)*delta[i[0]] + lowerbound[i[0]];
-}
-
-//distributes particles linearly between the bounds
-__kernel void distribute(__constant float * lowerbound,
-						 __constant float * upperbound,
-						 __global float * presents,
-						 unsigned int dimnum,
-						 unsigned int partnum){
-		//get_global_id(1) is dimension number, get_global_id(0) is particle number					 
-	uint part=get_global_id(0);	
-	uint dim = get_global_id(1);
-	uint pdex = part*dimnum + get_global_id(1);
-
-	//distribute the particle between the upper and lower boundaries linearly
-	presents[pdex]=part*((upperbound[dim]-lowerbound[dim])/(partnum - 1)) + lowerbound[dim];
-}
-
-float rng(uint x, uint y){
-	uint z = x+y;
-	uint t = z ^ ( z << 11);
-	uint out = y ^ (y >> 19) ^ ( t ^ ( t >> 8));
-	return (float)(out%1000)/1000;
-}
-
-__kernel void update( __global float * presents,
-					  __global float * v,
-					  float w,
-					  unsigned int seed,
-					  __global float * pfitnesses,
-					  __constant float *upperbound,
-					  __global float * pbest,
-					  __global float * gbest,
-					  __constant float * lowerbound,
-					  __global float * fitnesses,
-						unsigned int dimnum,
-					  float c1,
-					  float c2) {
-					  
-	uint index= get_global_id(0)*dimnum + get_global_id(1);
-	uint dex0=get_global_id(0);
-	uint dex1=get_global_id(1);
-
-	//get_global_id(0) is partnum, get_global_id(1) is dimiension number
-	//velocity update
-	v[index]=w*v[index]
-	 + c1*rng(seed, index)*(pbest[index]- presents[index])
-	 + c2*rng(seed, index)*(gbest[dex1]-presents[index]);
-
-	//position update
-	presents[index]=presents[index]+v[index];
-
-	//upper bound check
-	if(presents[index]>upperbound[dex1]){
-		presents[index]=upperbound[dex1];
-
-	//lower bounds check
-	} else if(presents[index]<lowerbound[dex1]){
-		presents[index]=lowerbound[dex1];
-	}
-}
-
-//compares and copies a coordinates into a pbest if necessary
-__kernel void update2(__global float * fitnesses,
-						unsigned int dimnum,
-						__global float * pfitnesses,
-						__global float * presents,
-						__global float * pbest,
-						unsigned int partnum) {
-
-	const unsigned int j=get_global_id(0);
-	unsigned int offset=j*dimnum;
-
-	//evaluate fitness of the particle
-	/** fitness function is in fitness.cl */
-	fitnesses[j]=fitness(presents,offset, dimnum);
-
-	//if the fitness is better than the pfitness, copy the values to pbest array
-	if(fitnesses[j]>pfitnesses[j]) {
-
-		//copy new fitness
-		pfitnesses[j]=fitnesses[j];
-
-		unsigned int i=dimnum;
-
-		while(i--)
-			pbest[offset+i]=presents[offset+i];
-	}
-}
-
-	)";
+	std::string src{
+	#include "kernelstring.cl"
+	};
 
 	FILE * binaryfile = fopen("kernels.bin","rb");
 
@@ -253,8 +43,9 @@ __kernel void update2(__global float * fitnesses,
 	if(binaryfile == NULL){
 		std::cout << "No binary file for kernel found, Compiling.\n";
 
-		size_t srcsize = sizeof(src);
-		program = clCreateProgramWithSource(context, 1, (const char **)&src, &srcsize, &ret);
+		size_t srcsize = src.size();
+		const char * tmpsrc = src.data();
+		program = clCreateProgramWithSource(context, 1, (const char **)&tmpsrc, &srcsize, &ret);
 		ret = clBuildProgram(program, 1, &device, " ", NULL, NULL);
 		checkBuild(ret,program,device);
 
@@ -275,38 +66,10 @@ __kernel void update2(__global float * fitnesses,
 	}
 
 	//get kernels
-	distr = clCreateKernel(program, "distribute", &ret);
-	cmpre= clCreateKernel(program, "compare",&ret);
-	updte=clCreateKernel(program, "update",&ret);
-	updte2=clCreateKernel(program, "update2",&ret);
+	getKernels();
 
-	//create buffers for particle positions, velocities, velocities, fitnesses
-	presentbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float),NULL,&ret);
-	pbestbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float),NULL,&ret);
-	vbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float),NULL,&ret);
-	fitnessbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float),NULL,&ret);
-
-	std::vector<float> tmp(partnum*dimnum,0);
-
-	//set buffers for gbests, and pbests to 0
-	gbestbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float),NULL,&ret);
-	pbestbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float),NULL,&ret);
-
-	//set the vectors values
-	for(int dex =-1;++dex<partnum;)
-		tmp[dex]=-HUGE_VALF;
-
-	//create memory buffer for nonparticle fitnesses
-	gfitbuf = clCreateBuffer(context, CL_MEM_READ_WRITE,sizeof(cl_float), NULL,&ret);
-	ret= clEnqueueWriteBuffer(queue, gfitbuf, CL_TRUE , 0, sizeof(cl_float),tmp.data(),0,NULL,&ev);
-	evs.emplace_back(ev);
-	pfitnessbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float) ,NULL,&ret);
-	ret= clEnqueueWriteBuffer(queue, pfitnessbuf,CL_TRUE,0, partnum*sizeof(cl_float),tmp.data(),0,NULL,&ev);
-	evs.emplace_back(ev);
-
-	//make memory pool for upper and lower bounds
-	upperboundbuf=clCreateBuffer(context, CL_MEM_READ_ONLY,dimnum*sizeof(cl_float),NULL,&ret);
-	lowerboundbuf=clCreateBuffer(context, CL_MEM_READ_ONLY,dimnum*sizeof(cl_float),NULL,&ret);
+	//set up buffers
+	makeBuffers();
 }
 
 //sets all properties according to arguments
@@ -320,7 +83,7 @@ clSwarm::clSwarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 	c2=c2in;
 
 	//gets platforms
-	ret = clGetPlatformIDs(1, &platform,NULL);
+	platform = getclPlatform();
 
 	//finds gpus
 	ret = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, NULL);
@@ -332,167 +95,32 @@ clSwarm::clSwarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 	queue=clCreateCommandQueueWithProperties(context, device, NULL, &ret);
 
 	//use C++11 string literals to get kernel
-	std::string src{R"(
-		
-#include "fitness.cl"
-
-//return the index with the biggest number
-int sort(__global float * array,unsigned int size){
-	int out=0;
-	unsigned int i = size;
-	float biggest=-INFINITY;
-	while(i-->0){
-		if(array[i]>biggest){
-			biggest=array[i];
-			out=i;
-		}
-	}
-	return out;
-}
-
-__kernel void compare( __global float *presents,
-						__global float * gbest,
-						__global float * fitnesses,
-						__global float * gfitness,
-						unsigned int partnum,
-						unsigned int dimnum) {
-
-	//copy most fit particle into the gbest array
-	unsigned int i=dimnum;
-	unsigned int index=sort(fitnesses,partnum);
-
-	if(fitnesses[index] > *gfitness) {
-
-		//copy the array fitness
-		*gfitness=fitnesses[index];
-
-		//copy array into gbest array
-		while(i--) 
-			gbest[i]=presents[index*dimnum+i];
-	}
-}
-
-//TEST FUNCTION
-//get the delta array
-__kernel void getDelta(__global float * lowerbound,
-					__global float * upperbound,
-					__global float * delta,
-					unsigned int partnum) {
-	//compute the delta
-	unsigned int i=get_global_id(0);
-	delta[i]=(upperbound[i]-lowerbound[i])/(partnum - 1);
-}
-
-//TEST FUNCTION
-__kernel void distrtest(__global float * lowerbound,
-						__global float * delta,
-						__global float * presents,
-						__global float * pbests,
-						unsigned int dimnum,
-						unsigned int partnum){
-
-	//get_global_id(1) is dimension number, get_global_id(0) is particle number
-	unsigned int i[2]={get_global_id(1), get_global_id(0)*dimnum + get_global_id(1)};
-
-	//does the distribution sets pbests=0
-	presents[i[1]]=get_global_id(0)*delta[i[0]] + lowerbound[i[0]];
-}
-
-//distributes particles linearly between the bounds
-__kernel void distribute(__global float * lowerbound,
-						 __global float * upperbound,
-						 __global float * presents,
-						 unsigned int dimnum,
-						 unsigned int partnum){
-		//get_global_id(1) is dimension number, get_global_id(0) is particle number					 
-	uint part=get_global_id(0);	
-	uint dim = get_global_id(1);
-	uint pdex = part*dimnum + get_global_id(1);
-
-	//distribute the particle between the upper and lower boundaries linearly
-	presents[pdex]=part*((upperbound[dim]-lowerbound[dim])/(partnum - 1)) + lowerbound[dim];
-}
-
-float rng(uint x, uint y){
-	uint z = x+y;
-	uint t = z ^ ( z << 11);
-	uint out = y ^ (y >> 19) ^ ( t ^ ( t >> 8));
-	return (float)(out%1000)/1000;
-}
-
-__kernel void update( __global float * presents,
-					  __global float * v,
-					  float w,
-					  unsigned int seed,
-					  __global float * pfitnesses,
-					  __constant float *upperbound,
-					  __global float * pbest,
-					  __global float * gbest,
-					  __constant float * lowerbound,
-					  __global float * fitnesses,
-						unsigned int dimnum,
-					  float c1,
-					  float c2) {
-					  
-	uint index= get_global_id(0)*dimnum + get_global_id(1);
-	uint dex0=get_global_id(0);
-	uint dex1=get_global_id(1);
-
-	//get_global_id(0) is partnum, get_global_id(1) is dimiension number
-	//velocity update
-	v[index]=w*v[index]
-	 + c1*rng(seed, index)*(pbest[index]- presents[index])
-	 + c2*rng(seed, index)*(gbest[dex1]-presents[index]);
-
-	//position update
-	presents[index]=presents[index]+v[index];
-
-	//upper bound check
-	if(presents[index]>upperbound[dex1]){
-		presents[index]=upperbound[dex1];
-
-	//lower bounds check
-	} else if(presents[index]<lowerbound[dex1]){
-		presents[index]=lowerbound[dex1];
-	}
-}
-
-//compares and copies a coordinates into a pbest if necessary
-__kernel void update2(__global float * fitnesses,
-						unsigned int dimnum,
-						__global float * pfitnesses,
-						__global float * presents,
-						__global float * pbest,
-						unsigned int partnum) {
-
-	const unsigned int j=get_global_id(0);
-	unsigned int offset=j*dimnum;
-
-	//evaluate fitness of the particle
-	/** fitness function is in fitness.cl */
-	fitnesses[j]=fitness(presents,offset, dimnum);
-
-	//if the fitness is better than the pfitness, copy the values to pbest array
-	if(fitnesses[j]>pfitnesses[j]) {
-
-		//copy new fitness
-		pfitnesses[j]=fitnesses[j];
-
-		unsigned int i=dimnum;
-
-		while(i--)
-			pbest[offset+i]=presents[offset+i];
-	}
-}
-   )"};
+	std::string src{
+	#include "kernelstring.cl" 
+	};
 
 	FILE * binaryfile = fopen("kernels.bin","rb");
 
 	//if no binary exists, get source and write out binary
 	if(binaryfile == NULL){
 		std::cout << "No binary file for kernel found, Compiling.\n";
-		//fclose(binaryfile);
+		buildSource(src);
 
+	//if there is a binary, get it and use it
+	} else {
+
+		buildBinary();
+	}
+
+	//get kernels
+	getKernels();
+
+	//create buffers for particle positions, velocities, velocities, fitnesses
+	makeBuffers();
+}
+
+//build program with source
+void clSwarm::buildSource(std::string src){
 		size_t srcsize = src.size();
 		const char * tmpsrc = src.data();
 		program = clCreateProgramWithSource(context, 1, (const char **)&tmpsrc, &srcsize, &ret);
@@ -500,27 +128,30 @@ __kernel void update2(__global float * fitnesses,
 		checkBuild(ret,program,device);
 
 		writeBinary(program,"kernels.bin");
+}
 
-	//if there is a binary, get it and use it
-	} else {
-		size_t size[1] ;
-		unsigned char * tmpbin = readBinary(binaryfile, size);
-		fclose(binaryfile);
-		program= clCreateProgramWithBinary(context,1,&device, size, (const unsigned char **)&(tmpbin), NULL,&ret);
+//build program with binary
+void clSwarm::buildBinary(){
+	size_t size[1];
+	unsigned char * tmpbin = readBinary(binaryfile, size);
+	fclose(binaryfile);
+	program= clCreateProgramWithBinary(context,1,&device, size, (const unsigned char **)&(tmpbin), NULL,&ret);
 
-		delete [] tmpbin;
+	delete [] tmpbin;
 
-		ret = clBuildProgram(program, 1, &device, "", NULL, NULL);
+	ret = clBuildProgram(program, 1, &device, "", NULL, NULL);
 
-		checkBuild(ret,program,device);
-	}
+	checkBuild(ret,program,device);
+}
 
-	//get kernels
+void clSwarm::getKernels(){
 	distr = clCreateKernel(program, "distribute", &ret);
 	cmpre= clCreateKernel(program, "compare",&ret);
 	updte=clCreateKernel(program, "update",&ret);
 	updte2=clCreateKernel(program, "update2",&ret);
+}
 
+void clSwarm::makeBuffers(){
 	//create buffers for particle positions, velocities, velocities, fitnesses
 	presentbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float),NULL,&ret);
 	pbestbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float),NULL,&ret);
@@ -554,10 +185,20 @@ __kernel void update2(__global float * fitnesses,
 clSwarm::~clSwarm(){
 
 	//finish and flush everything
+
 	ret = clFlush(queue);
 	ret = clFinish(queue);
+	ret = clReleaseCommandQueue(queue);
+	for(cl_kernel tmp: {distr,cmpre,updte,updte2})
+		ret = clReleaseKernel(tmp);
+
+	ret = clReleaseProgram(program);
+
+	for(cl_mem x : {vbuf, presentbuf, gbestbuf, gfitbuf, pbestbuf, 
+					upperboundbuf, lowerboundbuf, pfitnessbuf, fitnessbuf})
+		ret = clReleaseMemObject(x);
+	
 	ret = clReleaseContext(context);
-	ret= clReleaseCommandQueue(queue);
 }
 
 //sets number of particles

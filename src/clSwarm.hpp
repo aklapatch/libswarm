@@ -35,21 +35,6 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #define DEFAULT_C1 1.492
 #define DEFAULT_C2 2
 
-template <typename T>
-void printbuf(cl_mem buf, size_t size,cl_command_queue q){
-	T * out = new T[size];
-
-	int ret=clEnqueueReadBuffer(q, buf,CL_TRUE,0,size*sizeof(T),out);
-
-	if(ret!=CL_SUCCESS)
-		std::cerr << " Read error, code: " << ret << "\n";
-
-	for (int i=-1;++i<size;)
-		std::cout << "Buffer contents[" << i << "] = " << out[i] << "\n";
-
-	delete [] out;
-}
-
 class clSwarm {
 	private:
 		// used for debugging and error checking
@@ -98,6 +83,18 @@ class clSwarm {
 		/// Destructor.
 		/// Finishes and flushes command Queue
 		~clSwarm();
+
+		//internal function used to obtain kernels
+		void getKernels();
+
+		//internal function used to get buffers
+		void makeBuffers();
+
+		//internal function to build with a binary
+		void buildBinary();
+
+		//internal function to build from source
+		void buildSource();
 
 		/// Sets the number of particles in the swarm.
 		/// Deletes all stored particle data
