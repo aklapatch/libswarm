@@ -32,37 +32,17 @@ clSwarm::clSwarm() {
 	//get command queue
 	queue=clCreateCommandQueueWithProperties(context, device, NULL, &ret);
 
-	//use C++11 string literals to get kernel
-	std::string src{
-	#include "kernelstring.cl"
-	};
-
 	FILE * binaryfile = fopen("kernels.bin","rb");
 
 	//if no binary exists, get source and write out binary
 	if(binaryfile == NULL){
 		std::cout << "No binary file for kernel found, Compiling.\n";
 
-		size_t srcsize = src.size();
-		const char * tmpsrc = src.data();
-		program = clCreateProgramWithSource(context, 1, (const char **)&tmpsrc, &srcsize, &ret);
-		ret = clBuildProgram(program, 1, &device, " ", NULL, NULL);
-		checkBuild(ret,program,device);
-
-		writeBinary(program,"kernels.bin");
+		buildSource();
 
 	//if there is a binary, get it and use it
 	} else {
-		size_t size[1] ;
-		unsigned char * tmpbin = readBinary(binaryfile, size);
-		
-		program= clCreateProgramWithBinary(context,1,&device, size, (const unsigned char **)&(tmpbin), NULL,&ret);
-
-		delete [] tmpbin;
-
-		ret = clBuildProgram(program, 1, &device, " -cl-std=CL2.1 ", NULL, NULL);
-
-		checkBuild(ret,program,device);
+		buildBinary(binaryfile);
 	}
 
 	//get kernels
@@ -94,22 +74,17 @@ clSwarm::clSwarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 	//get command queue
 	queue=clCreateCommandQueueWithProperties(context, device, NULL, &ret);
 
-	//use C++11 string literals to get kernel
-	std::string src{
-	#include "kernelstring.cl" 
-	};
-
 	FILE * binaryfile = fopen("kernels.bin","rb");
 
 	//if no binary exists, get source and write out binary
 	if(binaryfile == NULL){
 		std::cout << "No binary file for kernel found, Compiling.\n";
-		buildSource(src);
+		buildSource();
 
 	//if there is a binary, get it and use it
 	} else {
 
-		buildBinary();
+		buildBinary(binaryfile);
 	}
 
 	//get kernels
@@ -120,18 +95,23 @@ clSwarm::clSwarm(cl_uint numparts, cl_uint numdims,cl_float inw, cl_float c1in, 
 }
 
 //build program with source
-void clSwarm::buildSource(std::string src){
-		size_t srcsize = src.size();
-		const char * tmpsrc = src.data();
-		program = clCreateProgramWithSource(context, 1, (const char **)&tmpsrc, &srcsize, &ret);
-		ret = clBuildProgram(program, 1, &device, " ", NULL, NULL);
-		checkBuild(ret,program,device);
+void clSwarm::buildSource(){
+	//use C++11 string literals to get kernel
+	std::string src{
+	#include "kernelstring.cl"
+	};
 
-		writeBinary(program,"kernels.bin");
+	size_t srcsize = src.size();
+	const char * tmpsrc = src.data();
+	program = clCreateProgramWithSource(context, 1, (const char **)&tmpsrc, &srcsize, &ret);
+	ret = clBuildProgram(program, 1, &device, " ", NULL, NULL);
+	checkBuild(ret,program,device);
+
+	writeBinary(program,"kernels.bin");
 }
 
 //build program with binary
-void clSwarm::buildBinary(){
+void clSwarm::buildBinary(FILE * binaryfile){
 	size_t size[1];
 	unsigned char * tmpbin = readBinary(binaryfile, size);
 	fclose(binaryfile);
@@ -141,7 +121,10 @@ void clSwarm::buildBinary(){
 
 	ret = clBuildProgram(program, 1, &device, "", NULL, NULL);
 
-	checkBuild(ret,program,device);
+	if(ret != CL_SUCCESS){
+		std::cerr << "binary build failed, building from source.\n";
+		buildSource();
+	}
 }
 
 void clSwarm::getKernels(){
@@ -158,14 +141,14 @@ void clSwarm::makeBuffers(){
 	vbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float),NULL,&ret);
 	fitnessbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float),NULL,&ret);
 
-	std::vector<float> tmp(partnum*dimnum,0);
+	std::vector<cl_float> tmp(partnum*dimnum,0);
 
 	//set buffers for gbests, and pbests to 0
 	gbestbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,dimnum*sizeof(cl_float),NULL,&ret);
 	pbestbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float),NULL,&ret);
 
 	//set the vectors values
-	for(int dex =-1;++dex<partnum;)
+	for(unsigned int dex = 0; dex <partnum; ++dex)
 		tmp[dex]=-HUGE_VALF;
 
 	//create memory buffer for nonparticle fitnesses

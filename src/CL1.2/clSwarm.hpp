@@ -11,19 +11,21 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #define _CLSWARM_HPP_
 
 //set opencl version
-#define CL_TARGET_OPENCL_VERSION 210
+#define CL_HPP_TARGET_OPENCL_VERSION 120
 #define RAN (cl_float)(rng()%1000)/1000
 
 #include <bits/stdc++.h>
 
 #ifdef __APPLE__
-#include <OpenCL/opencl.hpp>
+#include <OpenCL/opencl.h>
 #else
 #include <CL/opencl.h>
 #endif
 
+#define INCLD(IN) #IN
+
 //macro to check for opencl Errors
-#define CHK if(ret!= CL_SUCCESS) { std::cerr << "Error code " << ret << " at Line " << __LINE__ << "\n"; }
+#define CHK(x) if(x!= CL_SUCCESS) { std::cerr << "Error code " << ret << " at Line " << __LINE__ << "\n"; }
 
 #define PLATFORM_NUM 1
 #define DEVICE_NUM 1
@@ -32,21 +34,6 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #define DEFAULT_W 1
 #define DEFAULT_C1 1.492
 #define DEFAULT_C2 2
-
-template <typename T>
-void printbuf(cl::Buffer buf, size_t size,cl::CommandQueue q){
-	T * out = new T[size];
-
-	int ret=q.enqueueReadBuffer(buf,CL_TRUE,0,size*sizeof(T),out);
-
-	if(ret!=CL_SUCCESS)
-		std::cerr << " Read error, code: " << ret << "\n";
-
-	for (int i=-1;++i<size;)
-		std::cout << "Buffer contents[" << i << "] = " << out[i] << "\n";
-
-	delete [] out;
-}
 
 class clSwarm {
 	private:
@@ -71,8 +58,7 @@ class clSwarm {
 
 		//opencl items
 		std::vector<cl_event> evs;
-		cl_Platform platform;
-		std::vector<cl_device> devices;
+		cl_platform_id platform;
 		cl_device_id device;
 		cl_context context;
 		cl_program program;
@@ -97,6 +83,18 @@ class clSwarm {
 		/// Destructor.
 		/// Finishes and flushes command Queue
 		~clSwarm();
+
+		//internal function used to obtain kernels
+		void getKernels();
+
+		//internal function used to get buffers
+		void makeBuffers();
+
+		//internal function to build with a binary
+		void buildBinary(FILE *);
+
+		//internal function to build from source
+		void buildSource();
 
 		/// Sets the number of particles in the swarm.
 		/// Deletes all stored particle data

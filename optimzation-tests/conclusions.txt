@@ -1,1 +1,0 @@
-On average writing a constant value to memory is faster than running a kernel to set the value.

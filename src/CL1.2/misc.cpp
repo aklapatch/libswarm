@@ -39,6 +39,7 @@ cl_platform_id getclPlatform(){
 	return tmp[select];
 }
 
+//take cl program and write binary to file
 void writeBinary(cl_program prog,const char * filename){
 	
 	size_t size=0, written=0;
