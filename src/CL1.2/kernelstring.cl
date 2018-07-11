@@ -1,3 +1,4 @@
+R"( 
 //kernels.cl
 /** houses all kernels for this project */
 
@@ -62,7 +63,7 @@ __kernel void distrtest(__global float * lowerbound,
 	//get_global_id(1) is dimension number, get_global_id(0) is particle number
 	unsigned int i[2]={get_global_id(1), get_global_id(0)*dimnum + get_global_id(1)};
 
-	//does the distribution sets pbests=0
+	//does the distribution
 	presents[i[1]]=get_global_id(0)*delta[i[0]] + lowerbound[i[0]];
 }
 
@@ -151,4 +152,4 @@ __kernel void update2(__global float * fitnesses,
 		while(i--)
 			pbest[offset+i]=presents[offset+i];
 	}
-}
+})" 
