@@ -104,7 +104,7 @@ void clSwarm::buildSource(){
 	size_t srcsize = src.size();
 	const char * tmpsrc = src.data();
 	program = clCreateProgramWithSource(context, 1, (const char **)&tmpsrc, &srcsize, &ret);
-	ret = clBuildProgram(program, 1, &device, " ", NULL, NULL);
+	ret = clBuildProgram(program, 1, &device, " -g ", NULL, NULL);
 	checkBuild(ret,program,device);
 
 	writeBinary(program,"kernels.bin");

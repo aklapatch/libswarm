@@ -8,10 +8,10 @@
             "name": "clexample Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/src/clexample.exe",
+            "program": "${workspaceFolder}/src/CL1.2/clexample.exe",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/src",
+            "cwd": "${workspaceFolder}/src/CL1.2",
             "environment": [],
             "externalConsole": true,
             "MIMode": "gdb",
@@ -24,62 +24,5 @@
                 }
             ]
         },
-    {
-        "name": "qwrite Launch",
-        "type": "cppdbg",
-        "request": "launch",
-        "program": "${workspaceFolder}/tests/setvswrite/qwrite.out",
-        "args": [],
-        "stopAtEntry": false,
-        "cwd": "${workspaceFolder}/tests",
-        "environment": [],
-        "externalConsole": true,
-        "MIMode": "gdb",
-        "setupCommands": [
-            {
-                "description": "Enable pretty-printing for gdb",
-                "text": "-enable-pretty-printing",
-                "ignoreFailures": true
-            }
-        ]
-    },
-{
-    "name": "testbin Launch",
-    "type": "cppdbg",
-    "request": "launch",
-    "program": "${workspaceFolder}/tests/cppbin",
-    "args": [],
-    "stopAtEntry": false,
-    "cwd": "${workspaceFolder}/tests",
-    "environment": [],
-    "externalConsole": true,
-    "MIMode": "gdb",
-    "setupCommands": [
-        {
-            "description": "Enable pretty-printing for gdb",
-            "text": "-enable-pretty-printing",
-            "ignoreFailures": true
-        }
-    ]
-},
-        {
-            "name": "kerbin Launch",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/tools/getbin.out",
-            "args": ["test.cl"],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/tools",
-            "environment": [],
-            "externalConsole": true,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ]
-        }
     ]
 }
