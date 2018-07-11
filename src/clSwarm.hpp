@@ -25,7 +25,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #define INCLD(IN) #IN
 
 //macro to check for opencl Errors
-#define CHK if(ret!= CL_SUCCESS) { std::cerr << "Error code " << ret << " at Line " << __LINE__ << "\n"; }
+#define CHK(x) if(x!= CL_SUCCESS) { std::cerr << "Error code " << ret << " at Line " << __LINE__ << "\n"; }
 
 #define PLATFORM_NUM 1
 #define DEVICE_NUM 1

@@ -18,7 +18,7 @@ int main(){
 	cl_float answer=34;
 
 
-	cl_float * data= new cl_float[10];
+	cl_float * data = new cl_float[10];
 	int j;
 
 	test->getPartData(data);

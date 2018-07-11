@@ -21,8 +21,10 @@ cl_float * getarray(size_t size, cl_float value){
 void checkBuild(int errin, cl_program program, cl_device_id device){
 	if(errin!=CL_SUCCESS){
 		char log[600];
-		errin = clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 600, (void *)log, NULL);
+		errin = clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(log), (void *)log, NULL);
 		std::cerr << "Build Failed.\nBuild Log:\n" << log << "\n";
+		clReleaseProgram(program);
+		clReleaseDevice(device);
 		exit(1);
 	}
 }
@@ -37,7 +39,7 @@ void writeBinary(cl_program prog,const char * filename){
 
 	unsigned char * out = new unsigned char[size];
 
-	clGetProgramInfo(prog,CL_PROGRAM_BINARIES,size,out,&written);
+	int err = clGetProgramInfo(prog,CL_PROGRAM_BINARIES,size,&out,&written);
 
 	if(written > size)
 		std::cerr << "binary not fully written to temp var.\n";
@@ -157,8 +159,8 @@ __kernel void distrtest(__global float * lowerbound,
 }
 
 //distributes particles linearly between the bounds
-__kernel void distribute(__global float * lowerbound,
-						 __global float * upperbound,
+__kernel void distribute(__constant float * lowerbound,
+						 __constant float * upperbound,
 						 __global float * presents,
 						 unsigned int dimnum,
 						 unsigned int partnum){
@@ -664,9 +666,9 @@ void clSwarm::distribute(cl_float * lower, cl_float * upper){
 	evs.emplace_back(ev);
 
 	//set kernel args
-	ret = clSetKernelArg(distr, 0, dimnum*sizeof(cl_float), lowerboundbuf);
-	ret = clSetKernelArg(distr,1, dimnum*sizeof(cl_float), upperboundbuf);
-	ret = clSetKernelArg(distr,2, dimnum*partnum*sizeof(cl_float), presentbuf);
+	ret = clSetKernelArg(distr, 0, sizeof(cl_mem), &lowerboundbuf);
+	ret = clSetKernelArg(distr, 1, sizeof(cl_mem), &upperboundbuf);
+	ret = clSetKernelArg(distr, 2, sizeof(cl_mem), &presentbuf);
 	ret = clSetKernelArg(distr,3, sizeof(cl_uint), &dimnum);
 	ret = clSetKernelArg(distr,4, sizeof(cl_uint), &partnum);
 
@@ -690,21 +692,21 @@ void clSwarm::update(unsigned int times){
 	while(times--){
 
 		//set args for fitness eval
-		ret = clSetKernelArg(updte2,0, partnum*sizeof(cl_uint), fitnessbuf);
+		ret = clSetKernelArg(updte2,0, sizeof(cl_mem), &fitnessbuf);
 		ret = clSetKernelArg(updte2,1, sizeof(cl_uint), &dimnum);
-		ret = clSetKernelArg(updte2,2, partnum*sizeof(cl_float) ,  pfitnessbuf);
-		ret = clSetKernelArg(updte2,3, dimnum*partnum*sizeof(cl_float), presentbuf);
-		ret = clSetKernelArg(updte2,4, dimnum*partnum*sizeof(cl_float), pbestbuf);
-		ret = clSetKernelArg(updte2,5, sizeof(cl_uint), &partnum);
+		ret = clSetKernelArg(updte2,2, sizeof(cl_mem), &pfitnessbuf);
+		ret = clSetKernelArg(updte2,3, sizeof(cl_mem), &presentbuf);
+		ret = clSetKernelArg(updte2,4, sizeof(cl_mem), &pbestbuf);
+		ret = clSetKernelArg(updte2,5, sizeof(cl_uint),&partnum);
 
 		ret= clEnqueueNDRangeKernel(queue, updte2, 1, NULL, (size_t*)&partnum,NULL, 0, NULL, &ev);
 		evs.emplace_back(ev);
 
 		//set kernel args
-		ret=clSetKernelArg(cmpre,0, dimnum*partnum*sizeof(cl_float), presentbuf);
-		ret=clSetKernelArg(cmpre,1, dimnum*sizeof(cl_float), gbestbuf);
-		ret=clSetKernelArg(cmpre,2, partnum*sizeof(cl_float), fitnessbuf);
-		ret=clSetKernelArg(cmpre,3, sizeof(cl_float), gfitbuf);
+		ret=clSetKernelArg(cmpre,0, sizeof(cl_mem), &presentbuf);
+		ret=clSetKernelArg(cmpre,1,sizeof(cl_mem), &gbestbuf);
+		ret=clSetKernelArg(cmpre,2, sizeof(cl_mem), &fitnessbuf);
+		ret=clSetKernelArg(cmpre,3, sizeof(cl_mem), &gfitbuf);
 		ret=clSetKernelArg(cmpre,4, sizeof(cl_uint), &partnum);
 		ret=clSetKernelArg(cmpre,5, sizeof(cl_uint), &dimnum);
 
@@ -715,16 +717,16 @@ void clSwarm::update(unsigned int times){
 
 		//set kernel args
 		cl_uint seed = rand();
-		ret=clSetKernelArg(updte,0, partnum*dimnum*sizeof(cl_float), presentbuf);
-		ret=clSetKernelArg(updte,1, partnum*dimnum*sizeof(cl_float), vbuf);
+		ret=clSetKernelArg(updte,0, sizeof(cl_mem), &presentbuf);
+		ret=clSetKernelArg(updte,1, sizeof(cl_mem), &vbuf);
 		ret=clSetKernelArg(updte,2, sizeof(cl_float), &w);
 		ret=clSetKernelArg(updte,3, sizeof(cl_uint), &seed);
-		ret=clSetKernelArg(updte,4, partnum*sizeof(cl_float), pfitnessbuf);
-		ret=clSetKernelArg(updte,5, dimnum*sizeof(cl_float), upperboundbuf);
-		ret=clSetKernelArg(updte,6, partnum*dimnum*sizeof(cl_float), pbestbuf);
-		ret=clSetKernelArg(updte,7, dimnum*sizeof(cl_float), gbestbuf);
-		ret=clSetKernelArg(updte,8, dimnum*sizeof(cl_float), lowerboundbuf);
-		ret=clSetKernelArg(updte,9, partnum*sizeof(cl_float), fitnessbuf);
+		ret=clSetKernelArg(updte,4, sizeof(cl_mem), &pfitnessbuf);
+		ret=clSetKernelArg(updte,5, sizeof(cl_mem), &upperboundbuf);
+		ret=clSetKernelArg(updte,6, sizeof(cl_mem), &pbestbuf);
+		ret=clSetKernelArg(updte,7, sizeof(cl_mem), &gbestbuf);
+		ret=clSetKernelArg(updte,8, sizeof(cl_mem), &lowerboundbuf);
+		ret=clSetKernelArg(updte,9, sizeof(cl_mem), &fitnessbuf);
 		ret=clSetKernelArg(updte,10, sizeof(cl_uint), &dimnum);
 		ret=clSetKernelArg(updte,11, sizeof(cl_float), &c1);
 		ret=clSetKernelArg(updte,12, sizeof(cl_float), &c2);
@@ -735,21 +737,21 @@ void clSwarm::update(unsigned int times){
 	}
 
 	//set args for fitness eval
-	ret = clSetKernelArg(updte2,0, partnum*sizeof(cl_uint), fitnessbuf);
+	ret = clSetKernelArg(updte2,0, sizeof(cl_mem), &fitnessbuf);
 	ret = clSetKernelArg(updte2,1, sizeof(cl_uint), &dimnum);
-	ret = clSetKernelArg(updte2,2, partnum*sizeof(cl_float) ,  pfitnessbuf);
-	ret = clSetKernelArg(updte2,3, dimnum*partnum*sizeof(cl_float), presentbuf);
-	ret = clSetKernelArg(updte2,4, dimnum*partnum*sizeof(cl_float), pbestbuf);
+	ret = clSetKernelArg(updte2,2, sizeof(cl_mem),  &pfitnessbuf);
+	ret = clSetKernelArg(updte2,3, sizeof(cl_mem), &presentbuf);
+	ret = clSetKernelArg(updte2,4, sizeof(cl_mem), &pbestbuf);
 	ret = clSetKernelArg(updte2,5, sizeof(cl_uint), &partnum);
 
 	ret= clEnqueueNDRangeKernel(queue, updte2, 1, NULL, (const size_t *)&partnum,NULL, 0, NULL, &ev);
 	evs.emplace_back(ev);
 
 	//set kernel args
-	ret=clSetKernelArg(cmpre,0, dimnum*partnum*sizeof(cl_float), presentbuf);
-	ret=clSetKernelArg(cmpre,1, dimnum*sizeof(cl_float), gbestbuf);
-	ret=clSetKernelArg(cmpre,2, partnum*sizeof(cl_float), fitnessbuf);
-	ret=clSetKernelArg(cmpre,3, sizeof(cl_float), gfitbuf);
+	ret=clSetKernelArg(cmpre,0, sizeof(cl_mem), &presentbuf);
+	ret=clSetKernelArg(cmpre,1, sizeof(cl_mem), &gbestbuf);
+	ret=clSetKernelArg(cmpre,2, sizeof(cl_mem), &fitnessbuf);
+	ret=clSetKernelArg(cmpre,3, sizeof(cl_mem), &gfitbuf);
 	ret=clSetKernelArg(cmpre,4, sizeof(cl_uint), &partnum);
 	ret=clSetKernelArg(cmpre,5, sizeof(cl_uint), &dimnum);
 
@@ -767,7 +769,7 @@ void clSwarm::setPartData(cl_float * in){
 
 //copies particle data to the argument
 void clSwarm::getPartData(cl_float * out){
-	ret = clEnqueueReadBuffer(queue, presentbuf,CL_TRUE,0,partnum*dimnum*sizeof(cl_float),out,evs.size(), evs.data(), &ev);
+	ret = clEnqueueReadBuffer(queue, presentbuf,CL_TRUE,0,partnum*dimnum*sizeof(cl_float),out,0, NULL, &ev);
 	evs.emplace_back(ev);
 }
 
