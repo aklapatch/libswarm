@@ -104,7 +104,7 @@ void clSwarm::buildSource(){
 	size_t srcsize = src.size();
 	const char * tmpsrc = src.data();
 	program = clCreateProgramWithSource(context, 1, (const char **)&tmpsrc, &srcsize, &ret);
-	ret = clBuildProgram(program, 1, &device, " -g ", NULL, NULL);
+	ret = clBuildProgram(program, 1, &device, "  ", NULL, NULL);
 	checkBuild(ret,program,device);
 
 	writeBinary(program,"kernels.bin");
@@ -114,8 +114,7 @@ void clSwarm::buildSource(){
 void clSwarm::buildBinary(FILE * binaryfile){
 	size_t size[1];
 	unsigned char * tmpbin = readBinary(binaryfile, size);
-	fclose(binaryfile);
-	program= clCreateProgramWithBinary(context,1,&device, size, (const unsigned char **)&(tmpbin), NULL,&ret);
+	program = clCreateProgramWithBinary(context,1,&device, size, (const unsigned char **)&(tmpbin), NULL, &ret);
 
 	delete [] tmpbin;
 
@@ -153,11 +152,14 @@ void clSwarm::makeBuffers(){
 
 	//create memory buffer for nonparticle fitnesses
 	gfitbuf = clCreateBuffer(context, CL_MEM_READ_WRITE,sizeof(cl_float), NULL,&ret);
-	ret= clEnqueueWriteBuffer(queue, gfitbuf, CL_TRUE , 0, sizeof(cl_float),tmp.data(),0,NULL,&ev);
-	evs.emplace_back(ev);
 	pfitnessbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float) ,NULL,&ret);
-	ret= clEnqueueWriteBuffer(queue, pfitnessbuf,CL_TRUE,0, partnum*sizeof(cl_float),tmp.data(),0,NULL,&ev);
-	evs.emplace_back(ev);
+	
+	ret= clEnqueueWriteBuffer(queue, gfitbuf, CL_TRUE , 0, sizeof(cl_float),tmp.data(),0,NULL,&outev);
+	inev[0]=outev;
+	
+	ret= clEnqueueWriteBuffer(queue, pfitnessbuf,CL_TRUE,0, partnum*sizeof(cl_float),tmp.data(),0,NULL,&outev);
+	inev[1]=outev;
+	evnum = 2;
 
 	//make memory pool for upper and lower bounds
 	upperboundbuf=clCreateBuffer(context, CL_MEM_READ_ONLY,dimnum*sizeof(cl_float),NULL,&ret);
@@ -168,19 +170,20 @@ void clSwarm::makeBuffers(){
 clSwarm::~clSwarm(){
 
 	//finish and flush everything
+	for(cl_mem x : {vbuf, presentbuf, gbestbuf, gfitbuf, pbestbuf, 
+					upperboundbuf, lowerboundbuf, pfitnessbuf, fitnessbuf}) {
+		ret = clReleaseMemObject(x);
+	}
 
 	ret = clFlush(queue);
 	ret = clFinish(queue);
 	ret = clReleaseCommandQueue(queue);
-	for(cl_kernel tmp: {distr,cmpre,updte,updte2})
+	for(cl_kernel tmp: {distr,cmpre,updte,updte2}) {
 		ret = clReleaseKernel(tmp);
+	}
 
 	ret = clReleaseProgram(program);
 
-	for(cl_mem x : {vbuf, presentbuf, gbestbuf, gfitbuf, pbestbuf, 
-					upperboundbuf, lowerboundbuf, pfitnessbuf, fitnessbuf})
-		ret = clReleaseMemObject(x);
-	
 	ret = clReleaseContext(context);
 }
 
@@ -196,18 +199,18 @@ void clSwarm::setPartNum(cl_uint num){
 	pbestbuf = clCreateBuffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float),NULL,&ret);
 	vbuf = clCreateBuffer(context, CL_MEM_READ_WRITE,partnum*dimnum*sizeof(cl_float),NULL,&ret);
 
-	std::vector<cl_float> tmp(partnum,-HUGE_VALF);
-
 	//does not need dimensions
-	pfitnessbuf=clCreateBuffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float),NULL,&ret);
-	ret = clEnqueueWriteBuffer(queue, pfitnessbuf,CL_TRUE,0, partnum*sizeof(cl_float),tmp.data(),evs.size(),evs.data(),&ev);
-	evs.emplace_back(ev);
+	pfitnessbuf = clCreateBuffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float),NULL,&ret);
 
 	fitnessbuf = clCreateBuffer(context, CL_MEM_READ_WRITE,partnum*sizeof(cl_float),NULL,&ret);
 
-	//re-writes values to gfitness
-	ret = clEnqueueWriteBuffer(queue, gfitbuf,CL_TRUE,0, partnum*sizeof(cl_float),tmp.data(),0,NULL,&ev);
-	evs.emplace_back(ev);
+	//re-writes values to fitness buffers
+	std::vector<cl_float> tmp(partnum,-HUGE_VALF);
+	ret = clEnqueueWriteBuffer(queue, gfitbuf,CL_TRUE, 0, partnum*sizeof(cl_float),tmp.data(), 0, NULL,&outev);
+	inev[1]=outev;
+	ret = clEnqueueWriteBuffer(queue, pfitnessbuf,CL_TRUE, 0, partnum*sizeof(cl_float),tmp.data(), 0, NULL, &outev);
+	inev[0]=outev;
+	evnum = 2;
 }
 
 //returns particle number
@@ -236,12 +239,13 @@ void clSwarm::setDimNum(cl_uint num){
 
 	std::vector<cl_float> tmp(partnum,-HUGE_VALF);
 
-	ret= clEnqueueWriteBuffer(queue, pfitnessbuf,CL_TRUE,0, partnum*sizeof(cl_float),tmp.data(), evs.size(), evs.data(), &ev);
-	evs.emplace_back(ev);
+	ret= clEnqueueWriteBuffer(queue, pfitnessbuf,CL_TRUE, 0, partnum*sizeof(cl_float),tmp.data(), evnum, inev, &outev);
+	inev[0]=outev;
 
 	//re-writes values to gfitness
-	ret=clEnqueueWriteBuffer(queue, gfitbuf,CL_TRUE,0, sizeof(cl_float),tmp.data(),0, NULL,&ev);
-	evs.emplace_back(ev);
+	ret=clEnqueueWriteBuffer(queue, gfitbuf,CL_TRUE, 0, sizeof(cl_float),tmp.data(), 0, NULL,&outev);
+	inev[0]=outev;
+
 }
 
 //returns dimension number
@@ -283,11 +287,12 @@ cl_float clSwarm::getC2(){
 void clSwarm::distribute(cl_float * lower, cl_float * upper){
 
 	//store bounds for later
-	ret= clEnqueueWriteBuffer(queue, upperboundbuf, CL_TRUE, 0, dimnum*sizeof(cl_float), upper,evs.size(), evs.data(),&ev);
-	evs.emplace_back(ev);
+	ret= clEnqueueWriteBuffer(queue, upperboundbuf, CL_TRUE, 0, dimnum*sizeof(cl_float), upper, 0, NULL, &outev);
+	inev[0]=outev;
 	
-	ret=clEnqueueWriteBuffer(queue, lowerboundbuf, CL_TRUE, 0, dimnum*sizeof(cl_float), lower,0,NULL,&ev);
-	evs.emplace_back(ev);
+	ret=clEnqueueWriteBuffer(queue, lowerboundbuf, CL_TRUE, 0, dimnum*sizeof(cl_float), lower, 0, NULL, &outev);
+	inev[1]=outev;
+	evnum = 2;
 
 	//set kernel args
 	ret = clSetKernelArg(distr, 0, sizeof(cl_mem), &lowerboundbuf);
@@ -299,13 +304,16 @@ void clSwarm::distribute(cl_float * lower, cl_float * upper){
 	//set up work dimensionts
 	std::vector<size_t> dim = {partnum, dimnum};
 
-	//execute
-	ret = clEnqueueNDRangeKernel(queue, distr, 2, NULL, dim.data(), NULL ,0 ,NULL,&ev);
-	evs.emplace_back(ev);
+	//wait then execute
+	wait();
+	ret = clEnqueueNDRangeKernel(queue, distr, 2, NULL, dim.data(), NULL ,0 , NULL,&outev);
+	inev[0]=outev;
+	evnum = 1;
+	wait();
 }
 
 //run the position and velocity update equation
-void clSwarm::update(unsigned int times){
+void clSwarm::update(int times){
 
 	//seed random to use during process
 	srand(time(NULL));
@@ -323,8 +331,8 @@ void clSwarm::update(unsigned int times){
 		ret = clSetKernelArg(updte2,4, sizeof(cl_mem), &pbestbuf);
 		ret = clSetKernelArg(updte2,5, sizeof(cl_uint),&partnum);
 
-		ret= clEnqueueNDRangeKernel(queue, updte2, 1, NULL, (size_t*)&partnum,NULL, 0, NULL, &ev);
-		evs.emplace_back(ev);
+		ret= clEnqueueNDRangeKernel(queue, updte2, 1, NULL, (size_t*)&partnum,NULL, 1, inev, &outev);
+		inev[0] = outev;
 
 		//set kernel args
 		ret=clSetKernelArg(cmpre,0, sizeof(cl_mem), &presentbuf);
@@ -336,8 +344,8 @@ void clSwarm::update(unsigned int times){
 
 		//wait then run comparison
 		size_t one = 1;
-		ret= clEnqueueNDRangeKernel(queue, cmpre, 1,NULL, &one, NULL ,0, NULL, &ev);
-		evs.emplace_back(ev);
+		ret= clEnqueueNDRangeKernel(queue, cmpre, 1,NULL, &one, NULL , 1, inev, &outev);
+		inev[0]=outev;
 
 		//set kernel args
 		cl_uint seed = rand();
@@ -356,8 +364,9 @@ void clSwarm::update(unsigned int times){
 		ret=clSetKernelArg(updte,12, sizeof(cl_float), &c2);
 
 		//wait then execute
-		ret=clEnqueueNDRangeKernel(queue,updte, 2, NULL ,  (const size_t *)dim.data() , NULL,0, NULL, &ev);
-		evs.emplace_back(ev);
+		ret=clEnqueueNDRangeKernel(queue,updte, 2, NULL ,  (const size_t *)dim.data() , NULL, 1, inev, &outev);
+		inev[0]=outev;
+		evnum = 1;
 	}
 
 	//set args for fitness eval
@@ -368,33 +377,32 @@ void clSwarm::update(unsigned int times){
 	ret = clSetKernelArg(updte2,4, sizeof(cl_mem), &pbestbuf);
 	ret = clSetKernelArg(updte2,5, sizeof(cl_uint), &partnum);
 
-	ret= clEnqueueNDRangeKernel(queue, updte2, 1, NULL, (const size_t *)&partnum,NULL, 0, NULL, &ev);
-	evs.emplace_back(ev);
+	ret= clEnqueueNDRangeKernel(queue, updte2, 1, NULL, (const size_t *)&partnum,NULL, 1, inev, &outev);
+	inev[0] = outev;
 
 	//set kernel args
-	ret=clSetKernelArg(cmpre,0, sizeof(cl_mem), &presentbuf);
-	ret=clSetKernelArg(cmpre,1, sizeof(cl_mem), &gbestbuf);
-	ret=clSetKernelArg(cmpre,2, sizeof(cl_mem), &fitnessbuf);
-	ret=clSetKernelArg(cmpre,3, sizeof(cl_mem), &gfitbuf);
-	ret=clSetKernelArg(cmpre,4, sizeof(cl_uint), &partnum);
-	ret=clSetKernelArg(cmpre,5, sizeof(cl_uint), &dimnum);
+	ret=clSetKernelArg(cmpre, 0, sizeof(cl_mem), &presentbuf);
+	ret=clSetKernelArg(cmpre, 1, sizeof(cl_mem), &gbestbuf);
+	ret=clSetKernelArg(cmpre, 2, sizeof(cl_mem), &fitnessbuf);
+	ret=clSetKernelArg(cmpre, 3, sizeof(cl_mem), &gfitbuf);
+	ret=clSetKernelArg(cmpre, 4, sizeof(cl_uint), &partnum);
+	ret=clSetKernelArg(cmpre, 5, sizeof(cl_uint), &dimnum);
 
 	//wait then run comparison
 	size_t one = 1;
-	ret= clEnqueueNDRangeKernel(queue, cmpre, 1,NULL, &one, NULL ,0, NULL, &ev);
-	evs.emplace_back(ev);
+	ret= clEnqueueNDRangeKernel(queue, cmpre, 1,NULL, &one, NULL , 1, inev, &outev);
+	inev[0]=outev;
+	evnum =1;
 }
 
 //sets particle data
 void clSwarm::setPartData(cl_float * in){
-	ret = clEnqueueWriteBuffer(queue, presentbuf,CL_TRUE, 0,partnum*dimnum*sizeof(cl_float),in,evs.size() , evs.data(), &ev);
-	evs.emplace_back(ev);
+	ret = clEnqueueWriteBuffer(queue, presentbuf,CL_TRUE, 0,partnum*dimnum*sizeof(cl_float),in, 0, NULL, NULL);
 }
 
 //copies particle data to the argument
 void clSwarm::getPartData(cl_float * out){
-	ret = clEnqueueReadBuffer(queue, presentbuf,CL_TRUE,0,partnum*dimnum*sizeof(cl_float),out,0, NULL, &ev);
-	evs.emplace_back(ev);
+	ret = clEnqueueReadBuffer(queue, presentbuf, CL_TRUE, 0, partnum*dimnum*sizeof(cl_float),out, 0, NULL, NULL);
 }
 
 //returns the fitness of the best particle
@@ -403,8 +411,7 @@ cl_float clSwarm::getGFitness(){
 	cl_float out;
 
 	//get value from GPU
-	ret=clEnqueueReadBuffer(queue, gfitbuf, CL_TRUE, 0,sizeof(cl_float), &out, evs.size(), evs.data() ,&ev);
-	evs.emplace_back(ev);
+	ret=clEnqueueReadBuffer(queue, gfitbuf, CL_TRUE, 0, sizeof(cl_float), &out, 0, NULL ,NULL);
 
 	return out;
 }
@@ -413,10 +420,11 @@ cl_float clSwarm::getGFitness(){
 void clSwarm::getGBest(cl_float * out){
 
 	//get value from buffer
-	ret= clEnqueueReadBuffer(queue, gbestbuf, CL_TRUE, 0,dimnum*sizeof(cl_float),out, evs.size(), evs.data(), &ev);
-	evs.emplace_back(ev);
+	ret = clEnqueueReadBuffer(queue, gbestbuf, CL_TRUE, 0, dimnum*sizeof(cl_float), out, 0, NULL, &outev);
+	clWaitForEvents(1, &outev);
 }
 
 void clSwarm::wait(){
-	clEnqueueBarrierWithWaitList(queue, evs.size(), evs.data(), &ev);
+	clEnqueueBarrierWithWaitList(queue, evnum, inev, &outev);
+	evnum=0;
 }

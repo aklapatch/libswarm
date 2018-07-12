@@ -29,8 +29,7 @@ int main(){
     auto start = std::chrono::high_resolution_clock::now();
     
 	//run the swarm
-	test->update(50);
-    test->wait();
+	test->update(20);
 
     auto finish = std::chrono::high_resolution_clock::now();
 
@@ -41,10 +40,9 @@ int main(){
     //std::cout <<"Time to execute " << msec.count()<<"\n";
 
 	//std::cout << "Data after 20 passes\n";
-	/*test->getPartData(data);
+	test->getPartData(data);
 	for(j=-1;++j<10;)
 			std::cout << " i= " << j << " data is " << data[j] << "\n";
-	*/
 	test->getGBest(&answer);
 	std::cout<< "The answer is " << answer <<std:: endl;
 

@@ -66,13 +66,15 @@ void writeBinary(cl_program prog,const char * filename){
 	delete [] out;
 }
 
-unsigned char * readBinary(FILE * fin, size_t * size){
-		
-	fseek(fin,0,SEEK_END);
-	*size = ftell(fin);
-	unsigned char * binin = new unsigned char[*size];
-	rewind(fin);
-	fread(binin,sizeof(char),*size,fin);
+char * readBinary(FILE * fin, size_t * size){
+	fclose(fin);
+	std::ifstream infile("kernels.bin",std::ifstream::binary);
+	infile.seekg(0,infile.end);
+	
+	*size = infile.tellg();
+	char * binin = new char[*size];
+	infile.seekg(0);
+	infile.read(binin, *size);
 
 	return binin;
 }

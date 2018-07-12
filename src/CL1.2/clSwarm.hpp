@@ -11,7 +11,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #define _CLSWARM_HPP_
 
 //set opencl version
-#define CL_HPP_TARGET_OPENCL_VERSION 120
+#define CL_HPP_TARGET_OPENCL_VERSION 200
 #define RAN (cl_float)(rng()%1000)/1000
 
 #include <bits/stdc++.h>
@@ -57,14 +57,15 @@ class clSwarm {
 		cl_mem pfitnessbuf, fitnessbuf;
 
 		//opencl items
-		std::vector<cl_event> evs;
+		std::vector<cl_event> memevs, kerevs;
 		cl_platform_id platform;
 		cl_device_id device;
 		cl_context context;
 		cl_program program;
 		cl_command_queue queue;
 		cl_kernel distr, cmpre, updte, updte2;
-		cl_event ev;
+		cl_event outev, inev[3];
+		unsigned int evnum;
 
 	public:
 		/// Default constructor.
@@ -137,7 +138,7 @@ class clSwarm {
 		/** Updates all particle data values
 		 * @param times The number of times to update the particle values.
 		 */
-		void update(unsigned int times);
+		void update(int times);
 
 		/// Copies data from the input argument into the particle array.
 		void setPartData(cl_float *);

@@ -1,2 +1,0 @@
-To see if setting the value in a cl kernel is faster than writing that value to memory.
-I will need to run the kernel anyway, so there will not be much of a loss really
