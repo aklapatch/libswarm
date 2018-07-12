@@ -8,7 +8,7 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
 #include "clSwarm.hpp"
-#include "misc.hpp"
+#include "misc.cpp"
 
 //sets dimensions to 1 and number of particles to 100 and w to 1.0
 clSwarm::clSwarm() {
@@ -113,7 +113,7 @@ void clSwarm::buildSource(){
 //build program with binary
 void clSwarm::buildBinary(FILE * binaryfile){
 	size_t size[1];
-	unsigned char * tmpbin = readBinary(binaryfile, size);
+	char * tmpbin = readBinary(binaryfile, size);
 	program = clCreateProgramWithBinary(context,1,&device, size, (const unsigned char **)&(tmpbin), NULL, &ret);
 
 	delete [] tmpbin;
@@ -245,7 +245,6 @@ void clSwarm::setDimNum(cl_uint num){
 	//re-writes values to gfitness
 	ret=clEnqueueWriteBuffer(queue, gfitbuf,CL_TRUE, 0, sizeof(cl_float),tmp.data(), 0, NULL,&outev);
 	inev[0]=outev;
-
 }
 
 //returns dimension number
@@ -304,12 +303,7 @@ void clSwarm::distribute(cl_float * lower, cl_float * upper){
 	//set up work dimensionts
 	std::vector<size_t> dim = {partnum, dimnum};
 
-	//wait then execute
-	wait();
-	ret = clEnqueueNDRangeKernel(queue, distr, 2, NULL, dim.data(), NULL ,0 , NULL,&outev);
-	inev[0]=outev;
-	evnum = 1;
-	wait();
+	ret = clEnqueueNDRangeKernel(queue, distr, 2, NULL, dim.data(), NULL ,0 , NULL, NULL);
 }
 
 //run the position and velocity update equation
@@ -425,6 +419,6 @@ void clSwarm::getGBest(cl_float * out){
 }
 
 void clSwarm::wait(){
-	clEnqueueBarrierWithWaitList(queue, evnum, inev, &outev);
+	clWaitForEvents(evnum, inev);
 	evnum=0;
 }

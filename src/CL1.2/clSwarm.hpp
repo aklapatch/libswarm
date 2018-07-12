@@ -11,10 +11,15 @@ along with some help from Dr. Ebeharts presentation at IUPUI.
 #define _CLSWARM_HPP_
 
 //set opencl version
-#define CL_HPP_TARGET_OPENCL_VERSION 200
+#define CL_TARGET_OPENCL_VERSION 200
 #define RAN (cl_float)(rng()%1000)/1000
 
-#include <bits/stdc++.h>
+#include <vector>
+#include <iostream>
+#include <fstream>
+#include <chrono>
+#include <cmath>
+#include <stdio.h>
 
 #ifdef __APPLE__
 #include <OpenCL/opencl.h>
