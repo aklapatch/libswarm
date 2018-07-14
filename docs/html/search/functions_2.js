@@ -1,11 +1,10 @@
 var searchData=
 [
-  ['getc1',['getC1',['../classclSwarm.html#a29e4633ea22d85d3ec3969bf26ec2a60',1,'clSwarm::getC1()'],['../classSwarm.html#ae765514e3fbe727b2a09b80eee2d0b4c',1,'Swarm::getC1()']]],
-  ['getc2',['getC2',['../classclSwarm.html#a08eafb666ba0f3de91b918e8a55f02ca',1,'clSwarm::getC2()'],['../classSwarm.html#a64d43500d3ff5a487016b3ee508c4954',1,'Swarm::getC2()']]],
-  ['getdimnum',['getDimNum',['../classclSwarm.html#a04f37f92c926fa1e11d77cb7514da8ec',1,'clSwarm::getDimNum()'],['../classSwarm.html#a67216923375508354de94e35f4ceca8f',1,'Swarm::getDimNum()']]],
-  ['getgbest',['getGBest',['../classclSwarm.html#a0f87b65536069b21082b5566b950acca',1,'clSwarm::getGBest()'],['../classSwarm.html#ad569b11fd6425effd1129c52fded1ed2',1,'Swarm::getGBest()']]],
-  ['getgfitness',['getGFitness',['../classclSwarm.html#a4a8496c0cbf113383a1b31e69e884783',1,'clSwarm::getGFitness()'],['../classSwarm.html#a82e774fd8a91796534edf3a94adf3731',1,'Swarm::getGFitness()']]],
-  ['getpartdata',['getPartData',['../classclSwarm.html#ae22ee6daedd9c1f47d9db3368e286558',1,'clSwarm::getPartData()'],['../classSwarm.html#ac127974af7fdf64c8e2879e531d36c4b',1,'Swarm::getPartData()']]],
-  ['getpartnum',['getPartNum',['../classclSwarm.html#a9da33f38e51ec38444660dabc8b53761',1,'clSwarm::getPartNum()'],['../classSwarm.html#adf953ad641a07016444604070d3f87af',1,'Swarm::getPartNum()']]],
-  ['getweight',['getWeight',['../classclSwarm.html#af5e0c6e4731d96eac29fd9a980cdfa64',1,'clSwarm::getWeight()'],['../classSwarm.html#a690d1c6e3e0836be6a01149188703f64',1,'Swarm::getWeight()']]]
+  ['setc1',['setC1',['../class_swarm.html#a1ffb11d74e5e7241dee7d977d20c4419',1,'Swarm']]],
+  ['setc2',['setC2',['../class_swarm.html#ac9cc13ae5b9f2d323c0cf272d5c864d6',1,'Swarm']]],
+  ['setdimnum',['setDimNum',['../class_swarm.html#ad8214af418b80dc9a6f2d72ce2aeb5d4',1,'Swarm']]],
+  ['setpartdata',['setPartData',['../class_swarm.html#a1ab190eac2e0740bc16a51933c53c540',1,'Swarm']]],
+  ['setpartnum',['setPartNum',['../class_swarm.html#a94c68335146f6eaa39bc7648236ccc61',1,'Swarm']]],
+  ['setweight',['setWeight',['../class_swarm.html#ab899e656cc249d574c203baf550d5539',1,'Swarm']]],
+  ['swarm',['Swarm',['../class_swarm.html#a35a9ddd3e07819b46badca515be25e6d',1,'Swarm::Swarm()'],['../class_swarm.html#a1b01d9f7d5730111670d94a368e74dd8',1,'Swarm::Swarm(size_t numparts, size_t numdims, float w, float c1, float c2)']]]
 ];

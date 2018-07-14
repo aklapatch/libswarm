@@ -1,17 +1,5 @@
-# PSOCL
+## libswarm
 
-An OpenCL implementation of particle swarm optimizaion.
+A library to perform particle swarm optimization.
 
-Compiled and tested with mingw-w64 v5.0.3 (with mingw32-make) on windows 10.
-
-## Status
-
-Only the CPU version "works" right now.
-
-## Yet-to-do's
-
-1. Get cmake to compile the kernel source files and link them into the library. (I am young in the ways of cmake)
-
-2. Optimize all the library's functions.
-
-3. Test optimization flags (-O3, -O2, etc.)
+Hopefully more to follow

@@ -1,0 +1,143 @@
+\hypertarget{class_swarm}{}\section{Swarm Class Reference}
+\label{class_swarm}\index{Swarm@{Swarm}}
+
+
+{\ttfamily \#include $<$Swarm.\+hpp$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_swarm_a35a9ddd3e07819b46badca515be25e6d}{Swarm}} ()
+\item 
+\mbox{\hyperlink{class_swarm_a1b01d9f7d5730111670d94a368e74dd8}{Swarm}} (size\+\_\+t numparts, size\+\_\+t numdims, float w, float c1, float c2)
+\item 
+\mbox{\hyperlink{class_swarm_a5d74bf7e768edf0d8930ba187005a583}{$\sim$\+Swarm}} ()
+\item 
+void \mbox{\hyperlink{class_swarm_a94c68335146f6eaa39bc7648236ccc61}{set\+Part\+Num}} (size\+\_\+t)
+\item 
+\mbox{\Hypertarget{class_swarm_adf953ad641a07016444604070d3f87af}\label{class_swarm_adf953ad641a07016444604070d3f87af}} 
+size\+\_\+t \mbox{\hyperlink{class_swarm_adf953ad641a07016444604070d3f87af}{get\+Part\+Num}} ()
+\begin{DoxyCompactList}\small\item\em Returns number of particles in the swarm. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_swarm_ad8214af418b80dc9a6f2d72ce2aeb5d4}{set\+Dim\+Num}} (size\+\_\+t)
+\item 
+\mbox{\Hypertarget{class_swarm_a67216923375508354de94e35f4ceca8f}\label{class_swarm_a67216923375508354de94e35f4ceca8f}} 
+size\+\_\+t \mbox{\hyperlink{class_swarm_a67216923375508354de94e35f4ceca8f}{get\+Dim\+Num}} ()
+\begin{DoxyCompactList}\small\item\em Returns number of dimensions in problem space. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_swarm_ab899e656cc249d574c203baf550d5539}\label{class_swarm_ab899e656cc249d574c203baf550d5539}} 
+void \mbox{\hyperlink{class_swarm_ab899e656cc249d574c203baf550d5539}{set\+Weight}} (float)
+\begin{DoxyCompactList}\small\item\em Sets the inertial weight. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_swarm_a690d1c6e3e0836be6a01149188703f64}\label{class_swarm_a690d1c6e3e0836be6a01149188703f64}} 
+float \mbox{\hyperlink{class_swarm_a690d1c6e3e0836be6a01149188703f64}{get\+Weight}} ()
+\begin{DoxyCompactList}\small\item\em Returns the inertial weight. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_swarm_a1ffb11d74e5e7241dee7d977d20c4419}\label{class_swarm_a1ffb11d74e5e7241dee7d977d20c4419}} 
+void \mbox{\hyperlink{class_swarm_a1ffb11d74e5e7241dee7d977d20c4419}{set\+C1}} (float)
+\begin{DoxyCompactList}\small\item\em Sets the constant affecting the pull of particles\textquotesingle{} best. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_swarm_ac9cc13ae5b9f2d323c0cf272d5c864d6}\label{class_swarm_ac9cc13ae5b9f2d323c0cf272d5c864d6}} 
+void \mbox{\hyperlink{class_swarm_ac9cc13ae5b9f2d323c0cf272d5c864d6}{set\+C2}} (float)
+\begin{DoxyCompactList}\small\item\em Sets the constant affecting the pull of the global best. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_swarm_ae765514e3fbe727b2a09b80eee2d0b4c}\label{class_swarm_ae765514e3fbe727b2a09b80eee2d0b4c}} 
+float \mbox{\hyperlink{class_swarm_ae765514e3fbe727b2a09b80eee2d0b4c}{get\+C1}} ()
+\begin{DoxyCompactList}\small\item\em Returns particle best behavioral constant. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_swarm_a64d43500d3ff5a487016b3ee508c4954}\label{class_swarm_a64d43500d3ff5a487016b3ee508c4954}} 
+float \mbox{\hyperlink{class_swarm_a64d43500d3ff5a487016b3ee508c4954}{get\+C2}} ()
+\begin{DoxyCompactList}\small\item\em Returns global best behavioral constant. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_swarm_a9da23c6a5013d4d24b1591e6a44c803e}{distribute}} (double $\ast$lowerbound, double $\ast$upperbound)
+\item 
+void \mbox{\hyperlink{class_swarm_ae2156e78f44bfd081fa6cf870dfdba81}{update}} (int times, double($\ast$fitness)(double $\ast$))
+\item 
+\mbox{\Hypertarget{class_swarm_ad569b11fd6425effd1129c52fded1ed2}\label{class_swarm_ad569b11fd6425effd1129c52fded1ed2}} 
+void \mbox{\hyperlink{class_swarm_ad569b11fd6425effd1129c52fded1ed2}{get\+G\+Best}} (double $\ast$)
+\begin{DoxyCompactList}\small\item\em Copies the global best to the argument. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_swarm_a82e774fd8a91796534edf3a94adf3731}\label{class_swarm_a82e774fd8a91796534edf3a94adf3731}} 
+double \mbox{\hyperlink{class_swarm_a82e774fd8a91796534edf3a94adf3731}{get\+G\+Fitness}} ()
+\begin{DoxyCompactList}\small\item\em Returns the fitness of the best particle. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_swarm_a1ab190eac2e0740bc16a51933c53c540}\label{class_swarm_a1ab190eac2e0740bc16a51933c53c540}} 
+void \mbox{\hyperlink{class_swarm_a1ab190eac2e0740bc16a51933c53c540}{set\+Part\+Data}} (double $\ast$$\ast$)
+\begin{DoxyCompactList}\small\item\em Copies data from the input argument into the particle matrix. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_swarm_ac127974af7fdf64c8e2879e531d36c4b}\label{class_swarm_ac127974af7fdf64c8e2879e531d36c4b}} 
+void \mbox{\hyperlink{class_swarm_ac127974af7fdf64c8e2879e531d36c4b}{get\+Part\+Data}} (double $\ast$$\ast$)
+\begin{DoxyCompactList}\small\item\em Copies particle data into the input argument. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Represents a herd, school, or organization of members trying to find the best solution to a problem 
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_swarm_a35a9ddd3e07819b46badca515be25e6d}\label{class_swarm_a35a9ddd3e07819b46badca515be25e6d}} 
+\index{Swarm@{Swarm}!Swarm@{Swarm}}
+\index{Swarm@{Swarm}!Swarm@{Swarm}}
+\subsubsection{\texorpdfstring{Swarm()}{Swarm()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily Swarm\+::\+Swarm (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Default constructor. Makes a swarm with 100 particles and a 1 dimension problem space. \mbox{\Hypertarget{class_swarm_a1b01d9f7d5730111670d94a368e74dd8}\label{class_swarm_a1b01d9f7d5730111670d94a368e74dd8}} 
+\index{Swarm@{Swarm}!Swarm@{Swarm}}
+\index{Swarm@{Swarm}!Swarm@{Swarm}}
+\subsubsection{\texorpdfstring{Swarm()}{Swarm()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily Swarm\+::\+Swarm (\begin{DoxyParamCaption}\item[{size\+\_\+t}]{numparts,  }\item[{size\+\_\+t}]{numdims,  }\item[{float}]{w,  }\item[{float}]{c1,  }\item[{float}]{c2 }\end{DoxyParamCaption})}
+
+Makes a \mbox{\hyperlink{class_swarm}{Swarm}} with the specified parameters. 
+\begin{DoxyParams}{Parameters}
+{\em numparts} & Number of particles in the swarm. \\
+\hline
+{\em numdims} & Number of dimensions in problem space. \\
+\hline
+{\em w} & How much velocity carries over from update to update. Best left between 0 and 1. \\
+\hline
+{\em c1} & How much the particle\textquotesingle{}s best position affects the particle\textquotesingle{}s velocity. \\
+\hline
+{\em c2} & How much the global best affects the individual particle\textquotesingle{}s next position. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_swarm_a5d74bf7e768edf0d8930ba187005a583}\label{class_swarm_a5d74bf7e768edf0d8930ba187005a583}} 
+\index{Swarm@{Swarm}!````~Swarm@{$\sim$\+Swarm}}
+\index{````~Swarm@{$\sim$\+Swarm}!Swarm@{Swarm}}
+\subsubsection{\texorpdfstring{$\sim$\+Swarm()}{~Swarm()}}
+{\footnotesize\ttfamily Swarm\+::$\sim$\+Swarm (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Destructor. Frees Heap-\/allocated memory 
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{class_swarm_a9da23c6a5013d4d24b1591e6a44c803e}\label{class_swarm_a9da23c6a5013d4d24b1591e6a44c803e}} 
+\index{Swarm@{Swarm}!distribute@{distribute}}
+\index{distribute@{distribute}!Swarm@{Swarm}}
+\subsubsection{\texorpdfstring{distribute()}{distribute()}}
+{\footnotesize\ttfamily void Swarm\+::distribute (\begin{DoxyParamCaption}\item[{double $\ast$}]{lowerbound,  }\item[{double $\ast$}]{upperbound }\end{DoxyParamCaption})}
+
+Sets upper and lower bounds for the problem space and distributes linearly between them. 
+\begin{DoxyParams}{Parameters}
+{\em lowerbound} & The lower bound in the problemspace. \\
+\hline
+{\em upperbound} & The upper bound in the problem space. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_swarm_ad8214af418b80dc9a6f2d72ce2aeb5d4}\label{class_swarm_ad8214af418b80dc9a6f2d72ce2aeb5d4}} 
+\index{Swarm@{Swarm}!set\+Dim\+Num@{set\+Dim\+Num}}
+\index{set\+Dim\+Num@{set\+Dim\+Num}!Swarm@{Swarm}}
+\subsubsection{\texorpdfstring{set\+Dim\+Num()}{setDimNum()}}
+{\footnotesize\ttfamily void Swarm\+::set\+Dim\+Num (\begin{DoxyParamCaption}\item[{size\+\_\+t}]{num }\end{DoxyParamCaption})}
+
+Sets number of dimensions in the problem space. Deletes all particle data \mbox{\Hypertarget{class_swarm_a94c68335146f6eaa39bc7648236ccc61}\label{class_swarm_a94c68335146f6eaa39bc7648236ccc61}} 
+\index{Swarm@{Swarm}!set\+Part\+Num@{set\+Part\+Num}}
+\index{set\+Part\+Num@{set\+Part\+Num}!Swarm@{Swarm}}
+\subsubsection{\texorpdfstring{set\+Part\+Num()}{setPartNum()}}
+{\footnotesize\ttfamily void Swarm\+::set\+Part\+Num (\begin{DoxyParamCaption}\item[{size\+\_\+t}]{num }\end{DoxyParamCaption})}
+
+Sets the number of particles in the swarm. Deletes all stored particle data \mbox{\Hypertarget{class_swarm_ae2156e78f44bfd081fa6cf870dfdba81}\label{class_swarm_ae2156e78f44bfd081fa6cf870dfdba81}} 
+\index{Swarm@{Swarm}!update@{update}}
+\index{update@{update}!Swarm@{Swarm}}
+\subsubsection{\texorpdfstring{update()}{update()}}
+{\footnotesize\ttfamily void Swarm\+::update (\begin{DoxyParamCaption}\item[{int}]{times,  }\item[{double($\ast$)(double $\ast$)}]{fitness }\end{DoxyParamCaption})}
+
+Updates all particle data values 
+\begin{DoxyParams}{Parameters}
+{\em times} & The number of times to update the particle values. \\
+\hline
+{\em $\ast$fitness} & Takes in the current position of a particle and returns the particle fitness. \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+Swarm.\+hpp\item 
+Swarm.\+cpp\end{DoxyCompactItemize}
