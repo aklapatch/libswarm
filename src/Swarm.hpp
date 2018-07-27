@@ -103,6 +103,7 @@ class Swarm {
         /// Returns global best behavioral constant.
         float getC2();
 
+        // internal function to reserve vector sizes
         void Reserve(size_t,size_t);
 
         /** Sets upper and lower bounds for the problem space and distributes linearly between them.
@@ -113,11 +114,11 @@ class Swarm {
 
         /** Updates all particle data values
          * @param times The number of times to update the particle values.
-         * @param *fitness Takes in the current position of a particle and returns the particle fitness.
+         * @param *fitness Takes in the current position of a particle (offset specifies how far along you are in the array) and returns the particle fitness.
          */
-        void update(int times, double (*fitness)(std::vector<double>, int) );
+        void update(int times, double (*fitness)(std::vector<double>, size_t) );
 
-        /// Copies the global best to the argument.
+        /// Returns position of global best.
         std::vector<double> getGBest();
 
         /// Returns the fitness of the best particle.
@@ -126,7 +127,7 @@ class Swarm {
         /// Copies data from the input argument into the particle matrix.
         void setPartData(std::vector<double>);
 
-        /// Copies particle data into the input argument.
+        /// Returns particle Data.
         std::vector<double> getPartData();
 };
 

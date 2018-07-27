@@ -1,11 +1,11 @@
 ///example.cpp
-/** a dead simple example of using particle swarm acceleration
+/** a dead simple example of using particle swarm aoptimization
  * Copyright 2018 Aaron Klapatch
  */
 
 #include "Swarm.hpp"
 
-double fitness(std::vector<double> in, int offset){
+double fitness(std::vector<double> in, size_t offset){
 	return -(in[offset]-2)*(in[offset]-2);
 }
 

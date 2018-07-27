@@ -141,7 +141,7 @@ size_t rng(){
 }
 
 //run the position and velocity update equation
-void Swarm::update(int times, double (*fitness) (std::vector<double>, int)){
+void Swarm::update(int times, double (*fitness) (std::vector<double>, size_t)){
 
     while(times--){
         for(size_t i=0;i<partnum;++i){
