@@ -7,136 +7,58 @@ code derived from http://www.swarmintelligence.org/tutorials.php
 along with some help from Dr. Ebeharts presentation at IUPUI.
 */
 
-#include "swarm.hpp"
+#include "Swarm.hpp"
 #include <iostream>
+
+void Swarm::Reserve(size_t t_partnum, size_t t_dimnum){
+
+    partnum = t_partnum;
+    dimnum = t_dimnum;
+
+    // reserve vector sizes for dimension items
+    gbest.resize(dimnum);
+    upperbound.resize(dimnum);
+    lowerbound.resize(dimnum);
+
+    // resize dim and part oriented items
+    presents.resize(dimnum*partnum);
+    pbests.resize(dimnum*partnum);
+    v.resize(dimnum*partnum);
+
+    //resize sizes for particle oriented items
+    pfitnesses.assign(partnum, -HUGE_VAL);
+    fitnesses.resize(partnum);
+}
 
 //sets dimensions to 1 and number of particles to 100 and w to 1.0
 Swarm::Swarm(){
 
     //set swarm characteristics to defaults
-    partnum=DEFAULT_PARTNUM;
-    dimnum=DEFAULT_DIM;
+    Reserve(DEFAULT_PARTNUM,DEFAULT_DIM);
     w = DEFAULT_W;
     gfitness=-HUGE_VAL;
     c1=DEFAULT_C1;
     c2=DEFAULT_C2;
-
-    try {
-        //set all vector sizes to default sizes
-        gbest = new double[DEFAULT_DIM];
-
-        pfitnesses = new double [DEFAULT_PARTNUM];
-        fitnesses= new double [DEFAULT_PARTNUM];
-
-        pbests= new double * [DEFAULT_PARTNUM];
-        presents= new double * [DEFAULT_PARTNUM];
-        v= new double * [DEFAULT_PARTNUM];
-
-        //set all vectors to proper dimensions
-        int i;
-        for(i=0;i<DEFAULT_PARTNUM;++i){
-            presents[i]= new double [DEFAULT_DIM];
-            pbests[i]= new double [DEFAULT_DIM];
-            v[i]= new double [DEFAULT_DIM];
-            pfitnesses[i]=-HUGE_VAL;
-        }
-    } catch (std::bad_alloc& ac) {
-        std::cerr << "Memory allocation failed: "<<ac.what() <<std::endl;
-        exit(1);
-    }
 }
 
 //sets dimensions to 1 and number of particles to 100 and w to 1.5
 Swarm::Swarm(size_t numparts, size_t numdims,float inw, float inc1, float inc2){
 
     //set swarm characteristics
-    partnum=numparts;
-    dimnum=numdims;
+    Reserve(numparts,numdims);
     w = inw;
     gfitness=-HUGE_VAL;
     c1=inc1;
     c2=inc2;
-
-    try {
-        //set all vector sizes
-        gbest = new double[dimnum];
-
-        pfitnesses = new double [partnum];
-        fitnesses= new double [partnum];
-
-        pbests= new double * [partnum];
-        presents= new double * [partnum];
-        v= new double * [partnum];
-
-        //set all vectors to proper dimensions
-        while(numparts--){
-            presents[numparts]= new double [dimnum];
-            pbests[numparts]= new double [dimnum];
-            v[numparts]= new double [dimnum];
-            pfitnesses[numparts]=-HUGE_VAL;
-        }
-    } catch (std::bad_alloc& ac) {
-        std::cerr << "Memory allocation failed: "<<ac.what() <<std::endl;
-        exit(1);
-    }
 }
 
 //deallocate all memory
-Swarm::~Swarm(){
-
-    delete [] gbest;
-    delete [] pfitnesses;
-    delete [] fitnesses;
-
-    while(partnum--){
-        delete [] presents[partnum];
-        delete [] pbests[partnum];
-        delete [] v[partnum];
-    }
-
-    delete [] pbests;
-    delete [] presents;
-    delete [] v;
-}
+Swarm::~Swarm(){}
 
 //sets number of particles
 void Swarm::setPartNum(size_t num){
 
-    delete [] pfitnesses;
-    delete [] fitnesses;
-
-    while(partnum--){
-        delete [] presents[partnum];
-        delete [] pbests[partnum];
-        delete [] v[partnum];
-    }
-
-    delete [] pbests;
-    delete [] presents;
-    delete [] v;
-
-    try {
-        //reset particle swarm #
-        partnum=num;
-
-        pfitnesses = new double [num];
-        fitnesses= new double [num];
-
-        pbests= new double * [num];
-        presents= new double * [num];
-        v= new double * [num];
-
-        //set all vectors to proper dimensions
-        while(num--){
-            presents[num]= new double [dimnum];
-            pbests[num]= new double [dimnum];
-            v[num]= new double [dimnum];
-            pfitnesses[num]=-HUGE_VAL;
-        }
-    } catch (std::bad_alloc& ac) {
-        std::cerr << "Memory allocation failed: "<<ac.what() <<std::endl;
-        exit(1);
-    }
+    Reserve(num,dimnum);
 }
 
 //get number of particles
@@ -147,27 +69,7 @@ size_t Swarm::getPartNum(){
 //sets number of dimensions
 void Swarm::setDimNum(size_t num){
 
-    dimnum=num;
-
-    try {
-
-        delete [] gbest;
-        gbest = new double [num];
-
-        int i;
-        for(i=0;i<partnum;++i){
-            delete [] presents[i];
-            delete [] pbests[i];
-            delete [] v[i];
-
-            presents[i] = new double [num];
-            pbests[i] = new double [num];
-            v[i] = new double [num];
-        }
-    } catch (std::bad_alloc& ac) {
-        std::cerr << "Memory allocation failed: "<<ac.what() <<std::endl;
-        exit(1);
-    }
+    Reserve(partnum,num);
 }
 
 //return no. of dimensions
@@ -205,34 +107,21 @@ float Swarm::getC2(){
 }
 
 //distribute particle linearly from lower bound to upper bound
-void Swarm::distribute(double * lower, double * upper){
+void Swarm::distribute(std::vector<double> lower, std::vector<double> upper){
 
     //store bounds for later
     upperbound=upper;
     lowerbound=lower;
 
-    size_t i,j;
+    std::vector<double> delta(dimnum);
+    for(size_t i = 0 ; i < dimnum; ++i){
+        delta.at(i) = (upperbound[i] - lowerbound[i])/(partnum-1);
+    }
 
-    //allocate memory for and distribute particles
-    try{
-        double * delta = new double [dimnum];
-
-        for(i=0; i<dimnum; ++i){
-            delta[i]=(upperbound[i] - lowerbound[i])/(partnum-1);
-            gbest[i]=0;
-
-            for(j=0;j<partnum;++j){
-                presents[j][i]=j*delta[i] + lowerbound[i];
-                pbests[j][i]=0;
-                v[j][i]=0;
-            }
+    for(size_t j = 0; j < partnum; ++j){
+        for(size_t k = 0; k < dimnum; ++k){
+            presents.at(j*dimnum+k) = j*delta.at(k);
         }
-
-        delete [] delta;
-
-    } catch (std::bad_alloc& ac) {
-        std::cerr << "Memory allocation failed: "<<ac.what() <<std::endl;
-        exit(1);
     }
 }
 
@@ -252,15 +141,13 @@ size_t rng(){
 }
 
 //run the position and velocity update equation
-void Swarm::update(int times, double (*fitness) (double*)){
-
-    int i,j;
+void Swarm::update(int times, double (*fitness) (std::vector<double>, int)){
 
     while(times--){
-        for(i=0;i<partnum;++i){
+        for(size_t i=0;i<partnum;++i){
 
             //get fitness
-            fitnesses[i] = fitness(presents[i]);
+            fitnesses[i] = fitness(presents,i);
 
             //if the fitness is better than the particle best store the best position
             if(fitnesses[i]>pfitnesses[i]){
@@ -269,8 +156,8 @@ void Swarm::update(int times, double (*fitness) (double*)){
                 pfitnesses[i]=fitnesses[i];
 
                 //store position
-                for(j=0;j<dimnum;++j)
-                    pbests[i][j]=presents[i][j];
+                for(size_t j = 0; j<dimnum; ++j)
+                    pbests[i*dimnum+j]=presents[i*dimnum+j];
 
                 //if fitness is better than global fitness
                 if(fitnesses[i]>gfitness){
@@ -279,35 +166,36 @@ void Swarm::update(int times, double (*fitness) (double*)){
                     gfitness=fitnesses[i];
 
                     //store best position
-                    for(j=0;j<dimnum;++j)
-                        gbest[j]=presents[i][j];
+                    for(size_t j=0;j<dimnum;++j)
+                        gbest[j]= presents[i*dimnum + j];
                 }
             }
 
-            for(j=0;j<dimnum;++j){
+            for(size_t j=0;j<dimnum;++j){
 
                 //update velocity
-                v[i][j]=w*v[i][j] + c1*RAN*(pbests[i][j]-presents[i][j]) +c2*RAN*(gbest[j]-presents[i][j]);
+                v[i*dimnum+j]=w*v[i*dimnum+j] + c1*RAN*(pbests[i*dimnum+j]-presents[i*dimnum+j]) +c2*RAN*(gbest[j]-presents[i*dimnum+j]);
 
                 //update position
-                presents[i][j]=presents[i][j]+v[i][j];
+                presents[i*dimnum+j]=presents[i*dimnum+j]+v[i*dimnum+j];
 
                 //if it exceeds the bounds
-                if(presents[i][j]>upperbound[j]){
-                    presents[i][j]=upperbound[j];
+                if(presents[i*dimnum+j]>upperbound[j]){
+                    presents[i*dimnum+j]=upperbound[j];
 
                 //if it goes below the lower bound
-                } else if (presents[i][j]< lowerbound[j]){
-                    presents[i][j]=lowerbound[j];
+                } else if (presents[i*dimnum+j]< lowerbound[j]){
+                    presents[i*dimnum+j]=lowerbound[j];
                 }
             }
         }
     }
 
     // do one final check for the fitness
-    for(i=0;i<partnum;++i){
+    for(size_t i=0;i<partnum;++i){
+
         //get fitness
-        fitnesses[i] = fitness(presents[i]);
+        fitnesses[i] = fitness(presents,i);
 
         //if the fitness is better than the particle best store the best position
         if(fitnesses[i]>pfitnesses[i]){
@@ -316,8 +204,8 @@ void Swarm::update(int times, double (*fitness) (double*)){
             pfitnesses[i]=fitnesses[i];
 
             //store position
-            for(j=0;j<dimnum;++j)
-                pbests[i][j]=presents[i][j];
+            for(size_t j = 0; j<dimnum; ++j)
+                pbests[i*dimnum+j]=presents[i*dimnum+j];
 
             //if fitness is better than global fitness
             if(fitnesses[i]>gfitness){
@@ -326,18 +214,16 @@ void Swarm::update(int times, double (*fitness) (double*)){
                 gfitness=fitnesses[i];
 
                 //store best position
-                for(j=0;j<dimnum;++j)
-                    gbest[j]=presents[i][j];
+                for(size_t j=0;j<dimnum;++j)
+                    gbest[j]= presents[i*dimnum + j];
             }
         }
     }
 }
 
 //returns best position of the swarm
-void Swarm::getGBest(double * out){
-    size_t i=dimnum;
-    while(i--)
-        out[i]=gbest[i];
+std::vector<double> Swarm::getGBest(){
+    return gbest;
 }
 
 //returns the fitness of the best particle
@@ -346,19 +232,11 @@ double Swarm::getGFitness(){
 }
 
 //copies input array data to particle array
-void Swarm::setPartData(double ** in){
-    size_t j, i=partnum;
-    while (i--){
-        for(j=0;j<dimnum;++j){
-            presents[i][j]=in[i][j];
-        }
-    }
+void Swarm::setPartData(std::vector<double> t_partdata){
+    std::copy(t_partdata.data(), t_partdata.data() + partnum, presents.begin());
 }
 
 //copy particle data into input argument
-void Swarm::getPartData(double ** out){
-
-    size_t i=partnum;
-    while(i--)
-        memcpy(out[i],presents[i],sizeof(double)*dimnum);
+std::vector<double> Swarm::getPartData(){
+    return presents;
 }

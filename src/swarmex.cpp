@@ -3,11 +3,10 @@
  * Copyright 2018 Aaron Klapatch
  */
 
-#include "swarm.hpp"
-#include <vector>
+#include "Swarm.hpp"
 
-double fitness(double * in){
-	return -(in[0]-2)*(in[0]-2);
+double fitness(std::vector<double> in, int offset){
+	return -(in[offset]-2)*(in[offset]-2);
 }
 
 int main(){
@@ -18,17 +17,14 @@ int main(){
 	double lower=-32,  upper=45;
 
 	///distribute particles
-	test.distribute(&lower, &upper);
+	test.distribute({lower}, {upper});
 
 	///run the swarm
 	test.update(100, fitness);
 
 	///get the answer and get it to the user
-	double * answer = new double[test.getDimNum()];
-	test.getGBest(answer);
+	std::vector<double> answer = test.getGBest();
 	std::cout<< "The answer is " << answer[0] <<std:: endl;
-
-	delete [] answer;
 
 	return 0;
 }

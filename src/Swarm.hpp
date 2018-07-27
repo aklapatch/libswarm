@@ -34,22 +34,22 @@ class Swarm {
         size_t partnum, dimnum;
         
         // the best particle position in the swarm
-        double * gbest;
+        std::vector<double> gbest;
 
         // fitness of the best position of the swarm
         double gfitness;
 
         // The upper and lower bounds of the problem space
-        double * upperbound, * lowerbound;
+        std::vector<double> upperbound, lowerbound;
 
         // inertial weight and 2 behavioral constants
         float w, c1, c2;
 
         //particle position, its best position, and its velocity
-        double ** presents, ** pbests, **v;
+        std::vector<double> presents, pbests, v;
 
         //fitnesses of the particle's best position and the current fitness
-        double * pfitnesses, * fitnesses;
+        std::vector<double> pfitnesses, fitnesses;
 
     public:
 
@@ -103,29 +103,31 @@ class Swarm {
         /// Returns global best behavioral constant.
         float getC2();
 
+        void Reserve(size_t,size_t);
+
         /** Sets upper and lower bounds for the problem space and distributes linearly between them.
          * @param lowerbound The lower bound in the problemspace.
          * @param upperbound The upper bound in the problem space.
          */ 
-        void distribute(double* lowerbound, double* upperbound);
+        void distribute(std::vector<double> lowerbound, std::vector<double> upperbound);
 
         /** Updates all particle data values
          * @param times The number of times to update the particle values.
          * @param *fitness Takes in the current position of a particle and returns the particle fitness.
          */
-        void update(int times, double (*fitness)(double*) );
+        void update(int times, double (*fitness)(std::vector<double>, int) );
 
         /// Copies the global best to the argument.
-        void getGBest(double *);
+        std::vector<double> getGBest();
 
         /// Returns the fitness of the best particle.
         double getGFitness();
 
         /// Copies data from the input argument into the particle matrix.
-        void setPartData(double **);
+        void setPartData(std::vector<double>);
 
         /// Copies particle data into the input argument.
-        void getPartData(double **);
+        std::vector<double> getPartData();
 };
 
 #endif
