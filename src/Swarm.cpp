@@ -115,12 +115,12 @@ void Swarm::distribute(std::vector<double> lower, std::vector<double> upper){
 
     std::vector<double> delta(dimnum);
     for(size_t i = 0 ; i < dimnum; ++i){
-        delta.at(i) = (upperbound[i] - lowerbound[i])/(partnum-1);
+        delta[i] = (upperbound[i] - lowerbound[i])/(partnum-1);
     }
 
     for(size_t j = 0; j < partnum; ++j){
         for(size_t k = 0; k < dimnum; ++k){
-            presents.at(j*dimnum+k) = j*delta.at(k);
+            presents[j*dimnum+k] = j*delta[k];
         }
     }
 }

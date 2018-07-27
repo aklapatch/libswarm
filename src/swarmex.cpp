@@ -5,11 +5,13 @@
 
 #include "Swarm.hpp"
 
+const size_t times = 1000;
+
 double fitness(std::vector<double> in, size_t offset){
 	return -(in[offset]-2)*(in[offset]-2);
 }
 
-int main(){
+void test(){
 	///the test swarm
 	Swarm test(100,1,.1,.5,1);
 
@@ -25,6 +27,11 @@ int main(){
 	///get the answer and get it to the user
 	std::vector<double> answer = test.getGBest();
 	std::cout<< "The answer is " << answer[0] <<std:: endl;
+}
+
+int main(){
+	for(size_t i = 0; i < times; ++i)
+		test();
 
 	return 0;
 }
